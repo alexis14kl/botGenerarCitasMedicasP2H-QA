@@ -10949,6 +10949,30 @@ async function openModuleFromExistingAppointmentInCalendar(page) {
     return { ok: true, scanned: 0, attempted: 0, via: 'tablero_already_active' };
   }
 
+  // Check inmediato: detectar tab Tablero Médico (puede existir pero no estar activo)
+  try {
+    const earlyState = await readModuloLoadState(page);
+    if (earlyState?.tableroTabExists || earlyState?.loaded) {
+      console.log(`MODULE_OPEN_TABLERO_TAB_DETECTED signal=${earlyState.signal || 'tab'}`);
+      return { ok: true, scanned: 0, attempted: 0, via: 'tablero_tab_detected' };
+    }
+  } catch {}
+
+  // Check inmediato: popup "Nueva cita asignada" → click "Abrir módulo" antes de buscar celdas
+  const earlyP2H = await dismissStaleP2HPopup(page, { clickAbrirModulo: true });
+  if (earlyP2H?.action === 'abrir_modulo') {
+    console.log('MODULE_OPEN_VIA_RECORDATORIO_EARLY - esperando carga...');
+    await updateBotStatusOverlay(page, 'working', 'esperando apertura Tablero Médico...');
+    const recLoaded = await waitForModuloLoaded(page, 'recordatorio_early', { autoPostModule: false });
+    if (recLoaded) {
+      console.log('MODULE_OPEN_VIA_RECORDATORIO_EARLY_OK');
+      await updateBotStatusOverlay(page, 'success', 'Tablero Médico abierto!');
+      return { ok: true, scanned: 0, attempted: 0, via: 'recordatorio_early' };
+    }
+    console.log('MODULE_OPEN_VIA_RECORDATORIO_EARLY_TIMEOUT - continuando búsqueda normal');
+    await updateBotStatusOverlay(page, 'waiting', 'recordatorio no cargó, buscando celda...');
+  }
+
   let scanned = 0;
   const attempted = new Set();
   const minBaseDate = new Date();
@@ -11047,8 +11071,17 @@ async function openModuleFromExistingAppointmentInCalendar(page) {
       // Si aparece recordatorio "Nueva cita asignada", click "Abrir módulo" directo
       const slotPopup = await dismissStaleP2HPopup(page, { clickAbrirModulo: true });
       if (slotPopup?.action === 'abrir_modulo') {
-        console.log(`MODULE_OPEN_VIA_RECORDATORIO_SLOT slot=${i + 1}/${slots.length}`);
-        return { ok: true, scanned, attempted: attempted.size, via: 'recordatorio_during_slot' };
+        console.log(`MODULE_OPEN_VIA_RECORDATORIO_SLOT slot=${i + 1}/${slots.length} - esperando carga...`);
+        await updateBotStatusOverlay(page, 'working', 'esperando apertura Tablero Médico...');
+        const recLoaded = await waitForModuloLoaded(page, `recordatorio_slot_${i + 1}`, { autoPostModule: false });
+        if (recLoaded) {
+          console.log(`MODULE_OPEN_VIA_RECORDATORIO_LOADED slot=${i + 1}/${slots.length}`);
+          await updateBotStatusOverlay(page, 'success', 'Tablero Médico abierto!');
+          return { ok: true, scanned, attempted: attempted.size, via: 'recordatorio_during_slot' };
+        }
+        // Si no cargó, continuar buscando en celdas normales
+        console.log(`MODULE_OPEN_VIA_RECORDATORIO_TIMEOUT slot=${i + 1}/${slots.length} - continuando búsqueda`);
+        await updateBotStatusOverlay(page, 'waiting', 'recordatorio no cargó, buscando celda...');
       }
       if (await isCatalogPacientesModalVisible(page)) {
         await closeCatalogPacientesModal(page);
@@ -11514,37 +11547,100 @@ async function runSingleFlowAttempt(attempt, totalAttempts) {
       // Espera generosa para que el portal cargue completamente tras login
       await page.waitForTimeout(3000);
       await dismissNetworkBanners(page);
-      await ensureCalendarContext(page);
-      if (BOT_MAIN_MODE !== '2' || MODE2_AUTO_FILTER) {
-        await applyAgendaFilter(page);
-      }
-      await ensureWorkingHoursVisible(page);
-      await ensureCalendarOnCurrentWeek(page, { applyFilter: BOT_MAIN_MODE !== '2' || MODE2_AUTO_FILTER });
-      // Manejar popup "Nueva cita asignada" y banners de red si aparecieron al inicializar
-      await dismissNetworkBanners(page);
+
+      // Modo 2: detectar si el Tablero Médico ya está abierto ANTES de buscar el calendario
       let earlyModuleOpened = false;
       if (BOT_MAIN_MODE === '2') {
-        // En Modo 2: si el popup "Nueva cita asignada" aparece, clickear "Abrir módulo" directamente
-        const p2hResult = await dismissStaleP2HPopup(page, { clickAbrirModulo: true });
-        if (p2hResult?.action === 'abrir_modulo') {
-          console.log('P2H_POPUP_ABRIR_MODULO_CLICKED - esperando carga de módulo...');
-          await updateBotStatusOverlay(page, 'working', 'esperando apertura Tablero Médico...');
-          const loaded = await waitForModuloLoaded(page, 'p2h_popup_direct');
-          if (loaded) {
+        // Check 1: Tablero Médico tab ya existe en RadTabStrip
+        try {
+          const tableroState = await readModuloLoadState(page);
+          if (tableroState?.tableroTabExists || tableroState?.loaded) {
             earlyModuleOpened = true;
-            await updateBotStatusOverlay(page, 'success', 'Tablero Médico abierto!');
-            console.log('P2H_POPUP_MODULE_LOADED_OK');
-          } else {
-            await updateBotStatusOverlay(page, 'waiting', 'módulo no cargó, buscando cita normal...');
-            console.log('P2H_POPUP_MODULE_LOAD_FAILED - continuando con búsqueda normal');
+            await updateBotStatusOverlay(page, 'success', 'Tablero Médico ya abierto!');
+            console.log(`PASO6_EARLY_TABLERO_DETECTED signal=${tableroState.signal || 'tab'}`);
+          }
+        } catch {}
+
+        // Check 2: popup P2H "Nueva cita asignada" → clickear "Abrir módulo"
+        if (!earlyModuleOpened) {
+          const p2hResult = await dismissStaleP2HPopup(page, { clickAbrirModulo: true });
+          if (p2hResult?.action === 'abrir_modulo') {
+            console.log('P2H_POPUP_ABRIR_MODULO_CLICKED - esperando carga de módulo...');
+            await updateBotStatusOverlay(page, 'working', 'esperando apertura Tablero Médico...');
+            const loaded = await waitForModuloLoaded(page, 'p2h_popup_direct');
+            if (loaded) {
+              earlyModuleOpened = true;
+              await updateBotStatusOverlay(page, 'success', 'Tablero Médico abierto!');
+              console.log('P2H_POPUP_MODULE_LOADED_OK');
+            } else {
+              await updateBotStatusOverlay(page, 'waiting', 'módulo no cargó, buscando cita normal...');
+              console.log('P2H_POPUP_MODULE_LOAD_FAILED - continuando con búsqueda normal');
+            }
           }
         }
-      } else {
+      }
+
+      // Solo asegurar calendario si NO hay módulo abierto ya
+      if (!earlyModuleOpened) {
+        try {
+          await ensureCalendarContext(page);
+        } catch (e) {
+          // En Modo 2: re-check si mientras tanto apareció el Tablero
+          if (BOT_MAIN_MODE === '2') {
+            try {
+              const retryState = await readModuloLoadState(page);
+              if (retryState?.tableroTabExists || retryState?.loaded) {
+                earlyModuleOpened = true;
+                await updateBotStatusOverlay(page, 'success', 'Tablero Médico detectado!');
+                console.log(`PASO6_TABLERO_DETECTED_AFTER_CALENDAR_FAIL signal=${retryState.signal || 'tab'}`);
+              }
+            } catch {}
+          }
+          if (!earlyModuleOpened) throw e;
+        }
+        if (BOT_MAIN_MODE !== '2' || MODE2_AUTO_FILTER) {
+          await applyAgendaFilter(page);
+        }
+        await ensureWorkingHoursVisible(page);
+        await ensureCalendarOnCurrentWeek(page, { applyFilter: BOT_MAIN_MODE !== '2' || MODE2_AUTO_FILTER });
+      }
+
+      await dismissNetworkBanners(page);
+      if (BOT_MAIN_MODE !== '2') {
         // En Modo 1: solo ocultar el popup sin clickear nada
         await dismissStaleP2HPopup(page);
       }
       await dismissNetworkBanners(page);
       if (BOT_MAIN_MODE === '2') {
+        // Esperar breve a que la agenda se estabilice antes de buscar citas
+        if (!earlyModuleOpened) {
+          await updateBotStatusOverlay(page, 'working', 'esperando agenda...');
+          await waitForTimeoutRaw(page, 2200);
+          // Re-check: popup P2H pudo aparecer durante la espera
+          const postWaitP2H = await dismissStaleP2HPopup(page, { clickAbrirModulo: true });
+          if (postWaitP2H?.action === 'abrir_modulo') {
+            console.log('PASO7_PRE_WAIT_P2H_POPUP_DETECTED - esperando carga módulo...');
+            await updateBotStatusOverlay(page, 'working', 'recordatorio detectado, abriendo módulo...');
+            const loaded = await waitForModuloLoaded(page, 'p2h_post_calendar_wait', { autoPostModule: false });
+            if (loaded) {
+              earlyModuleOpened = true;
+              await updateBotStatusOverlay(page, 'success', 'Tablero Médico abierto!');
+              console.log('PASO7_PRE_WAIT_P2H_MODULE_LOADED');
+            }
+          }
+          // Re-check: Tablero tab pudo activarse
+          if (!earlyModuleOpened) {
+            try {
+              const postWaitState = await readModuloLoadState(page);
+              if (postWaitState?.tableroTabExists || postWaitState?.loaded) {
+                earlyModuleOpened = true;
+                console.log(`PASO7_PRE_WAIT_TABLERO_DETECTED signal=${postWaitState.signal || 'tab'}`);
+                await updateBotStatusOverlay(page, 'success', 'Tablero Médico detectado!');
+              }
+            } catch {}
+          }
+        }
+
         const MODE2_MAX_PATIENT_RETRIES = 5;
         let mode2Success = false;
 
