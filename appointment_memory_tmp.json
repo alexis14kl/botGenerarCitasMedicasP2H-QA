@@ -1,0 +1,904 @@
+{
+  "version": 1,
+  "updatedAt": "2026-02-22T20:55:19.545Z",
+  "ttlHours": 72,
+  "maxItems": 800,
+  "records": [
+    {
+      "ts": 1771722654540,
+      "createdAt": "2026-02-22T01:10:54.540Z",
+      "patientKey": "00037778-2",
+      "appointmentNumber": "41699",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 180,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 446
+        }
+      }
+    },
+    {
+      "ts": 1771723419623,
+      "createdAt": "2026-02-22T01:23:39.623Z",
+      "patientKey": "00051530-6",
+      "appointmentNumber": "41700",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 210,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 473
+        }
+      }
+    },
+    {
+      "ts": 1771725683437,
+      "createdAt": "2026-02-22T02:01:23.437Z",
+      "patientKey": "00021869-5",
+      "appointmentNumber": "41701",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 210,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 473
+        }
+      }
+    },
+    {
+      "ts": 1771728374623,
+      "createdAt": "2026-02-22T02:46:14.623Z",
+      "patientKey": "00072016-3",
+      "appointmentNumber": "41702",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 240,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 500
+        }
+      }
+    },
+    {
+      "ts": 1771734574912,
+      "createdAt": "2026-02-22T04:29:34.912Z",
+      "patientKey": "00072016-3",
+      "appointmentNumber": "",
+      "status": "success_inferred",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 270,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 526
+        }
+      }
+    },
+    {
+      "ts": 1771734873810,
+      "createdAt": "2026-02-22T04:34:33.810Z",
+      "patientKey": "00072016-3",
+      "appointmentNumber": "",
+      "status": "success_inferred",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 270,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 526
+        }
+      }
+    },
+    {
+      "ts": 1771735016996,
+      "createdAt": "2026-02-22T04:36:56.996Z",
+      "patientKey": "00072016-3",
+      "appointmentNumber": "",
+      "status": "success_inferred",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 270,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 526
+        }
+      }
+    },
+    {
+      "ts": 1771735173962,
+      "createdAt": "2026-02-22T04:39:33.962Z",
+      "patientKey": "00072016-3",
+      "appointmentNumber": "",
+      "status": "success_inferred",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 270,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 526
+        }
+      }
+    },
+    {
+      "ts": 1771736324168,
+      "createdAt": "2026-02-22T04:58:44.168Z",
+      "patientKey": "00021869-5",
+      "appointmentNumber": "",
+      "status": "success_inferred",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 270,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 526
+        }
+      }
+    },
+    {
+      "ts": 1771736739459,
+      "createdAt": "2026-02-22T05:05:39.459Z",
+      "patientKey": "00021869-5",
+      "appointmentNumber": "",
+      "status": "success_inferred",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 270,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 526
+        }
+      }
+    },
+    {
+      "ts": 1771736917937,
+      "createdAt": "2026-02-22T05:08:37.937Z",
+      "patientKey": "00021869-5",
+      "appointmentNumber": "",
+      "status": "success_inferred",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 300,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 553
+        }
+      }
+    },
+    {
+      "ts": 1771737226585,
+      "createdAt": "2026-02-22T05:13:46.585Z",
+      "patientKey": "00021869-5",
+      "appointmentNumber": "",
+      "status": "success_inferred",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 270,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 518
+        }
+      }
+    },
+    {
+      "ts": 1771738232375,
+      "createdAt": "2026-02-22T05:30:32.375Z",
+      "patientKey": "00021869-5",
+      "appointmentNumber": "",
+      "status": "success_inferred",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 270,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 503
+        }
+      }
+    },
+    {
+      "ts": 1771738490460,
+      "createdAt": "2026-02-22T05:34:50.460Z",
+      "patientKey": "00021869-5",
+      "appointmentNumber": "",
+      "status": "success_inferred",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 270,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 499
+        }
+      }
+    },
+    {
+      "ts": 1771738803537,
+      "createdAt": "2026-02-22T05:40:03.537Z",
+      "patientKey": "00024525-2",
+      "appointmentNumber": "41703",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 270,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 495
+        }
+      }
+    },
+    {
+      "ts": 1771740209315,
+      "createdAt": "2026-02-22T06:03:29.315Z",
+      "patientKey": "00203082-3",
+      "appointmentNumber": "41704",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 300,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 502
+        }
+      }
+    },
+    {
+      "ts": 1771740902562,
+      "createdAt": "2026-02-22T06:15:02.562Z",
+      "patientKey": "00216064-4",
+      "appointmentNumber": "41705",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 360,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 546
+        }
+      }
+    },
+    {
+      "ts": 1771741561392,
+      "createdAt": "2026-02-22T06:26:01.392Z",
+      "patientKey": "00280321-8",
+      "appointmentNumber": "41706",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 390,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 564
+        }
+      }
+    },
+    {
+      "ts": 1771742003435,
+      "createdAt": "2026-02-22T06:33:23.435Z",
+      "patientKey": "00315464-6",
+      "appointmentNumber": "41707",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 420,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 583
+        }
+      }
+    },
+    {
+      "ts": 1771742837432,
+      "createdAt": "2026-02-22T06:47:17.432Z",
+      "patientKey": "00445572-8",
+      "appointmentNumber": "41708",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 450,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 598
+        }
+      }
+    },
+    {
+      "ts": 1771743769327,
+      "createdAt": "2026-02-22T07:02:49.327Z",
+      "patientKey": "00467381-3",
+      "appointmentNumber": "41709",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 480,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 612
+        }
+      }
+    },
+    {
+      "ts": 1771744469927,
+      "createdAt": "2026-02-22T07:14:29.927Z",
+      "patientKey": "00550849-3",
+      "appointmentNumber": "41710",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 540,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 654
+        }
+      }
+    },
+    {
+      "ts": 1771744950515,
+      "createdAt": "2026-02-22T07:22:30.515Z",
+      "patientKey": "00558972-4",
+      "appointmentNumber": "41711",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 570,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 674
+        }
+      }
+    },
+    {
+      "ts": 1771745967984,
+      "createdAt": "2026-02-22T07:39:27.984Z",
+      "patientKey": "00604077-3",
+      "appointmentNumber": "41712",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 510,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 605
+        }
+      }
+    },
+    {
+      "ts": 1771746556071,
+      "createdAt": "2026-02-22T07:49:16.071Z",
+      "patientKey": "00651564-7",
+      "appointmentNumber": "41713",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 630,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 704
+        }
+      }
+    },
+    {
+      "ts": 1771747242480,
+      "createdAt": "2026-02-22T08:00:42.480Z",
+      "patientKey": "00652290-3",
+      "appointmentNumber": "41714",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 690,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 748
+        }
+      }
+    },
+    {
+      "ts": 1771747979604,
+      "createdAt": "2026-02-22T08:12:59.604Z",
+      "patientKey": "00680367-6",
+      "appointmentNumber": "41715",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 750,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 790
+        }
+      }
+    },
+    {
+      "ts": 1771774337495,
+      "createdAt": "2026-02-22T15:32:17.495Z",
+      "patientKey": "01637480-7",
+      "appointmentNumber": "41717",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 780,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 421
+        }
+      }
+    },
+    {
+      "ts": 1771775296744,
+      "createdAt": "2026-02-22T15:48:16.744Z",
+      "patientKey": "04878284-0",
+      "appointmentNumber": "41718",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 810,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 434
+        }
+      }
+    },
+    {
+      "ts": 1771775535349,
+      "createdAt": "2026-02-22T15:52:15.349Z",
+      "patientKey": "05213068-1",
+      "appointmentNumber": "41719",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 840,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 458
+        }
+      }
+    },
+    {
+      "ts": 1771777747783,
+      "createdAt": "2026-02-22T16:29:07.783Z",
+      "patientKey": "59322",
+      "appointmentNumber": "41720",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 870,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 451
+        }
+      }
+    },
+    {
+      "ts": 1771778695467,
+      "createdAt": "2026-02-22T16:44:55.467Z",
+      "patientKey": "01427337-2",
+      "appointmentNumber": "41721",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 900,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 464
+        }
+      }
+    },
+    {
+      "ts": 1771778942699,
+      "createdAt": "2026-02-22T16:49:02.699Z",
+      "patientKey": "01882576-5",
+      "appointmentNumber": "41722",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 930,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 488
+        }
+      }
+    },
+    {
+      "ts": 1771779309851,
+      "createdAt": "2026-02-22T16:55:09.851Z",
+      "patientKey": "03655305-7",
+      "appointmentNumber": "41723",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 960,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 508
+        }
+      }
+    },
+    {
+      "ts": 1771779789320,
+      "createdAt": "2026-02-22T17:03:09.320Z",
+      "patientKey": "02881397-2",
+      "appointmentNumber": "41724",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 990,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 527
+        }
+      }
+    },
+    {
+      "ts": 1771781244803,
+      "createdAt": "2026-02-22T17:27:24.803Z",
+      "patientKey": "07470949-8",
+      "appointmentNumber": "41725",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 1020,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 532
+        }
+      }
+    },
+    {
+      "ts": 1771781653157,
+      "createdAt": "2026-02-22T17:34:13.157Z",
+      "patientKey": "02149255-5",
+      "appointmentNumber": "41726",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 1050,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 553
+        }
+      }
+    },
+    {
+      "ts": 1771782035427,
+      "createdAt": "2026-02-22T17:40:35.427Z",
+      "patientKey": "05258566-6",
+      "appointmentNumber": "41727",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-23",
+        "minutes": 1080,
+        "colIdx": 1,
+        "point": {
+          "x": 531,
+          "y": 574
+        }
+      }
+    },
+    {
+      "ts": 1771784014082,
+      "createdAt": "2026-02-22T18:13:34.082Z",
+      "patientKey": "05332271-0",
+      "appointmentNumber": "41729",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-24",
+        "minutes": 120,
+        "colIdx": 2,
+        "point": {
+          "x": 665,
+          "y": -309
+        }
+      }
+    },
+    {
+      "ts": 1771784453784,
+      "createdAt": "2026-02-22T18:20:53.784Z",
+      "patientKey": "05116545-5",
+      "appointmentNumber": "41730",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-24",
+        "minutes": 150,
+        "colIdx": 2,
+        "point": {
+          "x": 665,
+          "y": -288
+        }
+      }
+    },
+    {
+      "ts": 1771785224138,
+      "createdAt": "2026-02-22T18:33:44.138Z",
+      "patientKey": "04904151-4",
+      "appointmentNumber": "41731",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-24",
+        "minutes": 180,
+        "colIdx": 2,
+        "point": {
+          "x": 665,
+          "y": -273
+        }
+      }
+    },
+    {
+      "ts": 1771785533254,
+      "createdAt": "2026-02-22T18:38:53.254Z",
+      "patientKey": "05391653-5",
+      "appointmentNumber": "41732",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-24",
+        "minutes": 210,
+        "colIdx": 2,
+        "point": {
+          "x": 665,
+          "y": -251
+        }
+      }
+    },
+    {
+      "ts": 1771786200671,
+      "createdAt": "2026-02-22T18:50:00.671Z",
+      "patientKey": "00782290-8",
+      "appointmentNumber": "41733",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-24",
+        "minutes": 240,
+        "colIdx": 2,
+        "point": {
+          "x": 665,
+          "y": -234
+        }
+      }
+    },
+    {
+      "ts": 1771786712444,
+      "createdAt": "2026-02-22T18:58:32.444Z",
+      "patientKey": "03414425-0",
+      "appointmentNumber": "41734",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-24",
+        "minutes": 270,
+        "colIdx": 2,
+        "point": {
+          "x": 665,
+          "y": -215
+        }
+      }
+    },
+    {
+      "ts": 1771787010996,
+      "createdAt": "2026-02-22T19:03:30.996Z",
+      "patientKey": "04604327-4",
+      "appointmentNumber": "41735",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-24",
+        "minutes": 300,
+        "colIdx": 2,
+        "point": {
+          "x": 665,
+          "y": -194
+        }
+      }
+    },
+    {
+      "ts": 1771787265351,
+      "createdAt": "2026-02-22T19:07:45.351Z",
+      "patientKey": "04772150-8",
+      "appointmentNumber": "41736",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-24",
+        "minutes": 330,
+        "colIdx": 2,
+        "point": {
+          "x": 665,
+          "y": -171
+        }
+      }
+    },
+    {
+      "ts": 1771787693372,
+      "createdAt": "2026-02-22T19:14:53.372Z",
+      "patientKey": "07705166-6",
+      "appointmentNumber": "41737",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-24",
+        "minutes": 360,
+        "colIdx": 2,
+        "point": {
+          "x": 665,
+          "y": -151
+        }
+      }
+    },
+    {
+      "ts": 1771788511552,
+      "createdAt": "2026-02-22T19:28:31.552Z",
+      "patientKey": "02324470-4",
+      "appointmentNumber": "41738",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-24",
+        "minutes": 390,
+        "colIdx": 2,
+        "point": {
+          "x": 665,
+          "y": -135
+        }
+      }
+    },
+    {
+      "ts": 1771788812607,
+      "createdAt": "2026-02-22T19:33:32.607Z",
+      "patientKey": "03078869-6",
+      "appointmentNumber": "41739",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-24",
+        "minutes": 420,
+        "colIdx": 2,
+        "point": {
+          "x": 665,
+          "y": -112
+        }
+      }
+    },
+    {
+      "ts": 1771789669411,
+      "createdAt": "2026-02-22T19:47:49.411Z",
+      "patientKey": "B04676303",
+      "appointmentNumber": "41740",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-24",
+        "minutes": 450,
+        "colIdx": 2,
+        "point": {
+          "x": 665,
+          "y": -99
+        }
+      }
+    },
+    {
+      "ts": 1771790255059,
+      "createdAt": "2026-02-22T19:57:35.059Z",
+      "patientKey": "01167917-1",
+      "appointmentNumber": "41741",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-24",
+        "minutes": 480,
+        "colIdx": 2,
+        "point": {
+          "x": 665,
+          "y": -80
+        }
+      }
+    },
+    {
+      "ts": 1771790686450,
+      "createdAt": "2026-02-22T20:04:46.450Z",
+      "patientKey": "01835170-8",
+      "appointmentNumber": "41742",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-24",
+        "minutes": 510,
+        "colIdx": 2,
+        "point": {
+          "x": 665,
+          "y": -61
+        }
+      }
+    },
+    {
+      "ts": 1771791790717,
+      "createdAt": "2026-02-22T20:23:10.717Z",
+      "patientKey": "B01700785",
+      "appointmentNumber": "41743",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-24",
+        "minutes": 540,
+        "colIdx": 2,
+        "point": {
+          "x": 665,
+          "y": -51
+        }
+      }
+    },
+    {
+      "ts": 1771792591757,
+      "createdAt": "2026-02-22T20:36:31.757Z",
+      "patientKey": "02726251-8",
+      "appointmentNumber": "41744",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-24",
+        "minutes": 570,
+        "colIdx": 2,
+        "point": {
+          "x": 665,
+          "y": -36
+        }
+      }
+    },
+    {
+      "ts": 1771793380730,
+      "createdAt": "2026-02-22T20:49:40.730Z",
+      "patientKey": "25233",
+      "appointmentNumber": "41745",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-24",
+        "minutes": 600,
+        "colIdx": 2,
+        "point": {
+          "x": 665,
+          "y": -21
+        }
+      }
+    },
+    {
+      "ts": 1771793719544,
+      "createdAt": "2026-02-22T20:55:19.544Z",
+      "patientKey": "04500544-3",
+      "appointmentNumber": "41746",
+      "status": "success_alert",
+      "slot": {
+        "dayIso": "2026-02-24",
+        "minutes": 630,
+        "colIdx": 2,
+        "point": {
+          "x": 665,
+          "y": 1
+        }
+      }
+    }
+  ]
+}

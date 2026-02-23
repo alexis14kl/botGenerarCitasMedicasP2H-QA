@@ -1,0 +1,2889 @@
+{
+  "version": 1,
+  "updatedAt": "2026-02-23T11:28:23.780Z",
+  "ttlHours": 168,
+  "hardBlockThreshold": 2,
+  "maxItems": 6000,
+  "records": [
+    {
+      "ts": 1771796867364,
+      "createdAt": "2026-02-22T21:47:47.364Z",
+      "key": "00793986-0",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771796888243,
+      "createdAt": "2026-02-22T21:48:08.243Z",
+      "key": "04620275-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771797074034,
+      "createdAt": "2026-02-22T21:51:14.034Z",
+      "key": "05820704-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771797392378,
+      "createdAt": "2026-02-22T21:56:32.378Z",
+      "key": "03655305-7",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771797410567,
+      "createdAt": "2026-02-22T21:56:50.567Z",
+      "key": "B02661296",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771797428435,
+      "createdAt": "2026-02-22T21:57:08.435Z",
+      "key": "03379408-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771797446451,
+      "createdAt": "2026-02-22T21:57:26.451Z",
+      "key": "06169373-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771797464574,
+      "createdAt": "2026-02-22T21:57:44.574Z",
+      "key": "00209107-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771797482480,
+      "createdAt": "2026-02-22T21:58:02.480Z",
+      "key": "05214355-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771797500654,
+      "createdAt": "2026-02-22T21:58:20.654Z",
+      "key": "05122851-2",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771797518625,
+      "createdAt": "2026-02-22T21:58:38.625Z",
+      "key": "525850",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798054950,
+      "createdAt": "2026-02-22T22:07:34.950Z",
+      "key": "00461273-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798231374,
+      "createdAt": "2026-02-22T22:10:31.374Z",
+      "key": "27107",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798249492,
+      "createdAt": "2026-02-22T22:10:49.492Z",
+      "key": "05332271-0",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798267211,
+      "createdAt": "2026-02-22T22:11:07.211Z",
+      "key": "35584",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798284897,
+      "createdAt": "2026-02-22T22:11:24.897Z",
+      "key": "00922748-9",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798302610,
+      "createdAt": "2026-02-22T22:11:42.610Z",
+      "key": "06207065-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798320136,
+      "createdAt": "2026-02-22T22:12:00.136Z",
+      "key": "1011378",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798337738,
+      "createdAt": "2026-02-22T22:12:17.738Z",
+      "key": "01239506-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798355298,
+      "createdAt": "2026-02-22T22:12:35.298Z",
+      "key": "00315464-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798372868,
+      "createdAt": "2026-02-22T22:12:52.868Z",
+      "key": "02202841-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798390351,
+      "createdAt": "2026-02-22T22:13:10.351Z",
+      "key": "02781004-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798407836,
+      "createdAt": "2026-02-22T22:13:27.836Z",
+      "key": "00955871-7",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798425548,
+      "createdAt": "2026-02-22T22:13:45.548Z",
+      "key": "02189020-8",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798443082,
+      "createdAt": "2026-02-22T22:14:03.082Z",
+      "key": "04702085-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798460763,
+      "createdAt": "2026-02-22T22:14:20.763Z",
+      "key": "05824731-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798463056,
+      "createdAt": "2026-02-22T22:14:23.056Z",
+      "key": "01925922-6",
+      "outcome": "catalog_opened:after_key_set_late",
+      "severity": "soft",
+      "tag": "catalog_noise"
+    },
+    {
+      "ts": 1771798480798,
+      "createdAt": "2026-02-22T22:14:40.798Z",
+      "key": "02491208-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798498619,
+      "createdAt": "2026-02-22T22:14:58.619Z",
+      "key": "04429471-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798516329,
+      "createdAt": "2026-02-22T22:15:16.329Z",
+      "key": "04779680-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798534060,
+      "createdAt": "2026-02-22T22:15:34.060Z",
+      "key": "B00838396",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798551821,
+      "createdAt": "2026-02-22T22:15:51.821Z",
+      "key": "00652290-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798569616,
+      "createdAt": "2026-02-22T22:16:09.616Z",
+      "key": "05905699-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798587404,
+      "createdAt": "2026-02-22T22:16:27.404Z",
+      "key": "46430",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798605003,
+      "createdAt": "2026-02-22T22:16:45.003Z",
+      "key": "04554087-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798622856,
+      "createdAt": "2026-02-22T22:17:02.856Z",
+      "key": "00782290-8",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798640467,
+      "createdAt": "2026-02-22T22:17:20.467Z",
+      "key": "00034442-0",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798658041,
+      "createdAt": "2026-02-22T22:17:38.041Z",
+      "key": "02420687-2",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798675467,
+      "createdAt": "2026-02-22T22:17:55.467Z",
+      "key": "B04676303",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798693364,
+      "createdAt": "2026-02-22T22:18:13.364Z",
+      "key": "01167917-1",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798711244,
+      "createdAt": "2026-02-22T22:18:31.244Z",
+      "key": "06400308-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798728854,
+      "createdAt": "2026-02-22T22:18:48.854Z",
+      "key": "05116545-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798746419,
+      "createdAt": "2026-02-22T22:19:06.419Z",
+      "key": "00956224-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798764059,
+      "createdAt": "2026-02-22T22:19:24.059Z",
+      "key": "00680367-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798781690,
+      "createdAt": "2026-02-22T22:19:41.690Z",
+      "key": "04850448-8",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798799459,
+      "createdAt": "2026-02-22T22:19:59.459Z",
+      "key": "02150816-0",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798817149,
+      "createdAt": "2026-02-22T22:20:17.149Z",
+      "key": "04942538-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798834754,
+      "createdAt": "2026-02-22T22:20:34.754Z",
+      "key": "00216064-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798852366,
+      "createdAt": "2026-02-22T22:20:52.366Z",
+      "key": "00024525-2",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798869965,
+      "createdAt": "2026-02-22T22:21:09.965Z",
+      "key": "05079517-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798872241,
+      "createdAt": "2026-02-22T22:21:12.241Z",
+      "key": "02387466-4",
+      "outcome": "catalog_opened:after_key_set_late",
+      "severity": "soft",
+      "tag": "catalog_noise"
+    },
+    {
+      "ts": 1771798889682,
+      "createdAt": "2026-02-22T22:21:29.682Z",
+      "key": "9948",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798907054,
+      "createdAt": "2026-02-22T22:21:47.054Z",
+      "key": "1006686",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798924817,
+      "createdAt": "2026-02-22T22:22:04.817Z",
+      "key": "01956109-7",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798942593,
+      "createdAt": "2026-02-22T22:22:22.593Z",
+      "key": "04878284-0",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798960113,
+      "createdAt": "2026-02-22T22:22:40.113Z",
+      "key": "01622606-2",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798977719,
+      "createdAt": "2026-02-22T22:22:57.719Z",
+      "key": "01256263-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771798995281,
+      "createdAt": "2026-02-22T22:23:15.281Z",
+      "key": "00892380-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799013045,
+      "createdAt": "2026-02-22T22:23:33.045Z",
+      "key": "03946818-8",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799030961,
+      "createdAt": "2026-02-22T22:23:50.961Z",
+      "key": "03472921-2",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799048636,
+      "createdAt": "2026-02-22T22:24:08.636Z",
+      "key": "06348205-9",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799066285,
+      "createdAt": "2026-02-22T22:24:26.285Z",
+      "key": "05456612-1",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799083718,
+      "createdAt": "2026-02-22T22:24:43.718Z",
+      "key": "29301",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799101302,
+      "createdAt": "2026-02-22T22:25:01.302Z",
+      "key": "06353184-0",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799118818,
+      "createdAt": "2026-02-22T22:25:18.818Z",
+      "key": "00064200-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799136318,
+      "createdAt": "2026-02-22T22:25:36.318Z",
+      "key": "B06289809",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799153868,
+      "createdAt": "2026-02-22T22:25:53.868Z",
+      "key": "00955923-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799171385,
+      "createdAt": "2026-02-22T22:26:11.385Z",
+      "key": "59322",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799189044,
+      "createdAt": "2026-02-22T22:26:29.044Z",
+      "key": "02583253-7",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799206719,
+      "createdAt": "2026-02-22T22:26:46.719Z",
+      "key": "06385429-8",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799224384,
+      "createdAt": "2026-02-22T22:27:04.384Z",
+      "key": "02149255-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799242015,
+      "createdAt": "2026-02-22T22:27:22.015Z",
+      "key": "00194193-2",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799259718,
+      "createdAt": "2026-02-22T22:27:39.718Z",
+      "key": "05870410-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799277245,
+      "createdAt": "2026-02-22T22:27:57.245Z",
+      "key": "06610993-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799294879,
+      "createdAt": "2026-02-22T22:28:14.879Z",
+      "key": "04566837-2",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799312511,
+      "createdAt": "2026-02-22T22:28:32.511Z",
+      "key": "B02400728",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799330087,
+      "createdAt": "2026-02-22T22:28:50.087Z",
+      "key": "04117487-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799347688,
+      "createdAt": "2026-02-22T22:29:07.688Z",
+      "key": "01760250-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799365238,
+      "createdAt": "2026-02-22T22:29:25.238Z",
+      "key": "04500544-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799382787,
+      "createdAt": "2026-02-22T22:29:42.787Z",
+      "key": "B00027922",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799400426,
+      "createdAt": "2026-02-22T22:30:00.426Z",
+      "key": "01498598-7",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799418135,
+      "createdAt": "2026-02-22T22:30:18.135Z",
+      "key": "06318214-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799435651,
+      "createdAt": "2026-02-22T22:30:35.651Z",
+      "key": "05699258-0",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799453379,
+      "createdAt": "2026-02-22T22:30:53.379Z",
+      "key": "05213584-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799471036,
+      "createdAt": "2026-02-22T22:31:11.036Z",
+      "key": "05608981-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799473548,
+      "createdAt": "2026-02-22T22:31:13.548Z",
+      "key": "A01141897",
+      "outcome": "catalog_opened:after_key_set_late",
+      "severity": "soft",
+      "tag": "catalog_noise"
+    },
+    {
+      "ts": 1771799491055,
+      "createdAt": "2026-02-22T22:31:31.055Z",
+      "key": "04963611-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799508606,
+      "createdAt": "2026-02-22T22:31:48.606Z",
+      "key": "05018422-8",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799526369,
+      "createdAt": "2026-02-22T22:32:06.369Z",
+      "key": "06318487-1",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799543913,
+      "createdAt": "2026-02-22T22:32:23.913Z",
+      "key": "A00545520",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799561448,
+      "createdAt": "2026-02-22T22:32:41.448Z",
+      "key": "06028961-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799579038,
+      "createdAt": "2026-02-22T22:32:59.038Z",
+      "key": "06263409-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799596603,
+      "createdAt": "2026-02-22T22:33:16.603Z",
+      "key": "00021869-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799614258,
+      "createdAt": "2026-02-22T22:33:34.258Z",
+      "key": "00956095-0",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799631804,
+      "createdAt": "2026-02-22T22:33:51.804Z",
+      "key": "07705166-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799649700,
+      "createdAt": "2026-02-22T22:34:09.700Z",
+      "key": "01155309-0",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799667230,
+      "createdAt": "2026-02-22T22:34:27.230Z",
+      "key": "05322744-9",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799685033,
+      "createdAt": "2026-02-22T22:34:45.033Z",
+      "key": "04512593-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799702561,
+      "createdAt": "2026-02-22T22:35:02.561Z",
+      "key": "B00491489",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799720103,
+      "createdAt": "2026-02-22T22:35:20.103Z",
+      "key": "06135331-9",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799737670,
+      "createdAt": "2026-02-22T22:35:37.670Z",
+      "key": "01451733-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799739653,
+      "createdAt": "2026-02-22T22:35:39.653Z",
+      "key": "1013688443",
+      "outcome": "key_rejected:catalog_opened_after_key_set",
+      "severity": "soft",
+      "tag": "catalog_noise"
+    },
+    {
+      "ts": 1771799757276,
+      "createdAt": "2026-02-22T22:35:57.276Z",
+      "key": "02001375-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799774762,
+      "createdAt": "2026-02-22T22:36:14.762Z",
+      "key": "690799",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799792468,
+      "createdAt": "2026-02-22T22:36:32.468Z",
+      "key": "05377016-7",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799810139,
+      "createdAt": "2026-02-22T22:36:50.139Z",
+      "key": "01168885-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799827782,
+      "createdAt": "2026-02-22T22:37:07.782Z",
+      "key": "04981640-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799845254,
+      "createdAt": "2026-02-22T22:37:25.254Z",
+      "key": "07470949-8",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799862802,
+      "createdAt": "2026-02-22T22:37:42.802Z",
+      "key": "05433651-8",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799880365,
+      "createdAt": "2026-02-22T22:38:00.365Z",
+      "key": "04675463-9",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799882603,
+      "createdAt": "2026-02-22T22:38:02.603Z",
+      "key": "06285063-1",
+      "outcome": "catalog_opened:after_key_set_late",
+      "severity": "soft",
+      "tag": "catalog_noise"
+    },
+    {
+      "ts": 1771799900414,
+      "createdAt": "2026-02-22T22:38:20.414Z",
+      "key": "05888356-7",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799918062,
+      "createdAt": "2026-02-22T22:38:38.062Z",
+      "key": "05192235-2",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799935817,
+      "createdAt": "2026-02-22T22:38:55.817Z",
+      "key": "01874657-1",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799953431,
+      "createdAt": "2026-02-22T22:39:13.431Z",
+      "key": "B03512359",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799970999,
+      "createdAt": "2026-02-22T22:39:30.999Z",
+      "key": "05420733-7",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771799988858,
+      "createdAt": "2026-02-22T22:39:48.858Z",
+      "key": "05400186-2",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800006353,
+      "createdAt": "2026-02-22T22:40:06.353Z",
+      "key": "04687633-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800024107,
+      "createdAt": "2026-02-22T22:40:24.107Z",
+      "key": "04831463-9",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800041876,
+      "createdAt": "2026-02-22T22:40:41.876Z",
+      "key": "1004148",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800059473,
+      "createdAt": "2026-02-22T22:40:59.473Z",
+      "key": "04535588-0",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800077247,
+      "createdAt": "2026-02-22T22:41:17.247Z",
+      "key": "00955878-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800094899,
+      "createdAt": "2026-02-22T22:41:34.899Z",
+      "key": "04833449-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800112506,
+      "createdAt": "2026-02-22T22:41:52.506Z",
+      "key": "04824024-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800130248,
+      "createdAt": "2026-02-22T22:42:10.248Z",
+      "key": "04604327-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800147755,
+      "createdAt": "2026-02-22T22:42:27.755Z",
+      "key": "01049962-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800165544,
+      "createdAt": "2026-02-22T22:42:45.544Z",
+      "key": "01204867-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800183241,
+      "createdAt": "2026-02-22T22:43:03.241Z",
+      "key": "02191938-7",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800200817,
+      "createdAt": "2026-02-22T22:43:20.817Z",
+      "key": "00955926-8",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800218355,
+      "createdAt": "2026-02-22T22:43:38.355Z",
+      "key": "05490292-9",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800235817,
+      "createdAt": "2026-02-22T22:43:55.817Z",
+      "key": "04420967-0",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800253373,
+      "createdAt": "2026-02-22T22:44:13.373Z",
+      "key": "03203748-1",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800270833,
+      "createdAt": "2026-02-22T22:44:30.833Z",
+      "key": "1019589",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800288577,
+      "createdAt": "2026-02-22T22:44:48.577Z",
+      "key": "00042032-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800306439,
+      "createdAt": "2026-02-22T22:45:06.439Z",
+      "key": "01897687-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800324187,
+      "createdAt": "2026-02-22T22:45:24.187Z",
+      "key": "05306660-7",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800341709,
+      "createdAt": "2026-02-22T22:45:41.709Z",
+      "key": "00467381-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800359274,
+      "createdAt": "2026-02-22T22:45:59.274Z",
+      "key": "00651564-7",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800376838,
+      "createdAt": "2026-02-22T22:46:16.838Z",
+      "key": "05001187-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800394614,
+      "createdAt": "2026-02-22T22:46:34.614Z",
+      "key": "06314419-8",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800412142,
+      "createdAt": "2026-02-22T22:46:52.142Z",
+      "key": "05083442-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800429757,
+      "createdAt": "2026-02-22T22:47:09.757Z",
+      "key": "05171453-9",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800447358,
+      "createdAt": "2026-02-22T22:47:27.358Z",
+      "key": "00445572-8",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800465000,
+      "createdAt": "2026-02-22T22:47:45.000Z",
+      "key": "01806150-7",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800482560,
+      "createdAt": "2026-02-22T22:48:02.560Z",
+      "key": "04582255-2",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800500083,
+      "createdAt": "2026-02-22T22:48:20.083Z",
+      "key": "A50618508",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800517684,
+      "createdAt": "2026-02-22T22:48:37.684Z",
+      "key": "1001856",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800535388,
+      "createdAt": "2026-02-22T22:48:55.388Z",
+      "key": "05042277-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800552911,
+      "createdAt": "2026-02-22T22:49:12.911Z",
+      "key": "00280321-8",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800570539,
+      "createdAt": "2026-02-22T22:49:30.539Z",
+      "key": "00736161-9",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800588128,
+      "createdAt": "2026-02-22T22:49:48.128Z",
+      "key": "A01147084",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800606256,
+      "createdAt": "2026-02-22T22:50:06.256Z",
+      "key": "00072016-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800624005,
+      "createdAt": "2026-02-22T22:50:24.005Z",
+      "key": "01637480-7",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800641663,
+      "createdAt": "2026-02-22T22:50:41.663Z",
+      "key": "01023985-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800659243,
+      "createdAt": "2026-02-22T22:50:59.243Z",
+      "key": "02264944-8",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800676835,
+      "createdAt": "2026-02-22T22:51:16.835Z",
+      "key": "05258566-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800694372,
+      "createdAt": "2026-02-22T22:51:34.372Z",
+      "key": "01004801-8",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800711972,
+      "createdAt": "2026-02-22T22:51:51.972Z",
+      "key": "04054571-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800729640,
+      "createdAt": "2026-02-22T22:52:09.640Z",
+      "key": "05429019-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800747264,
+      "createdAt": "2026-02-22T22:52:27.264Z",
+      "key": "00737512-1",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800765151,
+      "createdAt": "2026-02-22T22:52:45.151Z",
+      "key": "00550849-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800782706,
+      "createdAt": "2026-02-22T22:53:02.706Z",
+      "key": "B05579209",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800800537,
+      "createdAt": "2026-02-22T22:53:20.537Z",
+      "key": "04274983-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800818189,
+      "createdAt": "2026-02-22T22:53:38.189Z",
+      "key": "05391653-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800836104,
+      "createdAt": "2026-02-22T22:53:56.104Z",
+      "key": "00604077-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800853625,
+      "createdAt": "2026-02-22T22:54:13.625Z",
+      "key": "01882576-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800871223,
+      "createdAt": "2026-02-22T22:54:31.223Z",
+      "key": "04321186-0",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800889023,
+      "createdAt": "2026-02-22T22:54:49.023Z",
+      "key": "01427337-2",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800906606,
+      "createdAt": "2026-02-22T22:55:06.606Z",
+      "key": "00956049-7",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800924111,
+      "createdAt": "2026-02-22T22:55:24.111Z",
+      "key": "01539543-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800941674,
+      "createdAt": "2026-02-22T22:55:41.674Z",
+      "key": "05213068-1",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800959516,
+      "createdAt": "2026-02-22T22:55:59.516Z",
+      "key": "01658759-9",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800977410,
+      "createdAt": "2026-02-22T22:56:17.410Z",
+      "key": "01835170-8",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771800994893,
+      "createdAt": "2026-02-22T22:56:34.893Z",
+      "key": "04988217-2",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801012459,
+      "createdAt": "2026-02-22T22:56:52.459Z",
+      "key": "02642297-9",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801030044,
+      "createdAt": "2026-02-22T22:57:10.044Z",
+      "key": "01900986-7",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801047546,
+      "createdAt": "2026-02-22T22:57:27.546Z",
+      "key": "03968876-2",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801065073,
+      "createdAt": "2026-02-22T22:57:45.073Z",
+      "key": "01221492-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801082956,
+      "createdAt": "2026-02-22T22:58:02.956Z",
+      "key": "04910789-9",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801100590,
+      "createdAt": "2026-02-22T22:58:20.590Z",
+      "key": "00203082-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801118140,
+      "createdAt": "2026-02-22T22:58:38.140Z",
+      "key": "02190504-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801135742,
+      "createdAt": "2026-02-22T22:58:55.742Z",
+      "key": "05242129-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801153409,
+      "createdAt": "2026-02-22T22:59:13.409Z",
+      "key": "02405615-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801171388,
+      "createdAt": "2026-02-22T22:59:31.388Z",
+      "key": "04808863-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801189024,
+      "createdAt": "2026-02-22T22:59:49.024Z",
+      "key": "04904151-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801206541,
+      "createdAt": "2026-02-22T23:00:06.541Z",
+      "key": "B01700785",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801224192,
+      "createdAt": "2026-02-22T23:00:24.192Z",
+      "key": "04190214-8",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801241823,
+      "createdAt": "2026-02-22T23:00:41.823Z",
+      "key": "01214429-2",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801259441,
+      "createdAt": "2026-02-22T23:00:59.441Z",
+      "key": "06381981-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801276940,
+      "createdAt": "2026-02-22T23:01:16.940Z",
+      "key": "05117525-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801294597,
+      "createdAt": "2026-02-22T23:01:34.597Z",
+      "key": "C00728398",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801312153,
+      "createdAt": "2026-02-22T23:01:52.153Z",
+      "key": "04603020-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801329741,
+      "createdAt": "2026-02-22T23:02:09.741Z",
+      "key": "B04240082",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801347076,
+      "createdAt": "2026-02-22T23:02:27.076Z",
+      "key": "55080",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801364725,
+      "createdAt": "2026-02-22T23:02:44.725Z",
+      "key": "01781278-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801382260,
+      "createdAt": "2026-02-22T23:03:02.260Z",
+      "key": "02428451-1",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801399901,
+      "createdAt": "2026-02-22T23:03:19.901Z",
+      "key": "01074559-7",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801417547,
+      "createdAt": "2026-02-22T23:03:37.547Z",
+      "key": "05064058-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801435127,
+      "createdAt": "2026-02-22T23:03:55.127Z",
+      "key": "06362434-2",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801452608,
+      "createdAt": "2026-02-22T23:04:12.608Z",
+      "key": "01430367-2",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801470191,
+      "createdAt": "2026-02-22T23:04:30.191Z",
+      "key": "A03655305",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801487784,
+      "createdAt": "2026-02-22T23:04:47.784Z",
+      "key": "00558972-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801505236,
+      "createdAt": "2026-02-22T23:05:05.236Z",
+      "key": "04952437-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801522875,
+      "createdAt": "2026-02-22T23:05:22.875Z",
+      "key": "04149378-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801540511,
+      "createdAt": "2026-02-22T23:05:40.511Z",
+      "key": "00760349-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801558143,
+      "createdAt": "2026-02-22T23:05:58.143Z",
+      "key": "01736260-9",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801575644,
+      "createdAt": "2026-02-22T23:06:15.644Z",
+      "key": "03911359-7",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801593218,
+      "createdAt": "2026-02-22T23:06:33.218Z",
+      "key": "01199712-1",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801611046,
+      "createdAt": "2026-02-22T23:06:51.046Z",
+      "key": "03414425-0",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801628631,
+      "createdAt": "2026-02-22T23:07:08.631Z",
+      "key": "06416857-7",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801646229,
+      "createdAt": "2026-02-22T23:07:26.229Z",
+      "key": "02726251-8",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801663716,
+      "createdAt": "2026-02-22T23:07:43.716Z",
+      "key": "01520608-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801681540,
+      "createdAt": "2026-02-22T23:08:01.540Z",
+      "key": "02881397-2",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801699159,
+      "createdAt": "2026-02-22T23:08:19.159Z",
+      "key": "02515434-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801716793,
+      "createdAt": "2026-02-22T23:08:36.793Z",
+      "key": "01061276-0",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801734375,
+      "createdAt": "2026-02-22T23:08:54.375Z",
+      "key": "06350366-9",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801751894,
+      "createdAt": "2026-02-22T23:09:11.894Z",
+      "key": "00955873-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801769664,
+      "createdAt": "2026-02-22T23:09:29.664Z",
+      "key": "01085857-8",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801787113,
+      "createdAt": "2026-02-22T23:09:47.113Z",
+      "key": "01738173-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801804798,
+      "createdAt": "2026-02-22T23:10:04.798Z",
+      "key": "02326154-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801822527,
+      "createdAt": "2026-02-22T23:10:22.527Z",
+      "key": "04772150-8",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801840061,
+      "createdAt": "2026-02-22T23:10:40.061Z",
+      "key": "04248020-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801857681,
+      "createdAt": "2026-02-22T23:10:57.681Z",
+      "key": "04975667-2",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801875244,
+      "createdAt": "2026-02-22T23:11:15.244Z",
+      "key": "01381274-1",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801892810,
+      "createdAt": "2026-02-22T23:11:32.810Z",
+      "key": "1004320",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801910210,
+      "createdAt": "2026-02-22T23:11:50.210Z",
+      "key": "25233",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801927795,
+      "createdAt": "2026-02-22T23:12:07.795Z",
+      "key": "01643232-0",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801945477,
+      "createdAt": "2026-02-22T23:12:25.477Z",
+      "key": "02324470-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801963308,
+      "createdAt": "2026-02-22T23:12:43.308Z",
+      "key": "04409540-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771801966091,
+      "createdAt": "2026-02-22T23:12:46.091Z",
+      "key": "07467935-0",
+      "outcome": "catalog_opened:after_key_set_late",
+      "severity": "soft",
+      "tag": "catalog_noise"
+    },
+    {
+      "ts": 1771801983979,
+      "createdAt": "2026-02-22T23:13:03.979Z",
+      "key": "05483946-9",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771802001415,
+      "createdAt": "2026-02-22T23:13:21.415Z",
+      "key": "04876855-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771802019030,
+      "createdAt": "2026-02-22T23:13:39.030Z",
+      "key": "01214424-2",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771802036646,
+      "createdAt": "2026-02-22T23:13:56.646Z",
+      "key": "05190491-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771802054193,
+      "createdAt": "2026-02-22T23:14:14.193Z",
+      "key": "00955886-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771802071919,
+      "createdAt": "2026-02-22T23:14:31.919Z",
+      "key": "05954864-9",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771802089424,
+      "createdAt": "2026-02-22T23:14:49.424Z",
+      "key": "33271",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771802107060,
+      "createdAt": "2026-02-22T23:15:07.060Z",
+      "key": "00051530-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771802124571,
+      "createdAt": "2026-02-22T23:15:24.571Z",
+      "key": "06051318-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771802142387,
+      "createdAt": "2026-02-22T23:15:42.387Z",
+      "key": "05205919-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771802159956,
+      "createdAt": "2026-02-22T23:15:59.956Z",
+      "key": "00956084-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771802177549,
+      "createdAt": "2026-02-22T23:16:17.549Z",
+      "key": "1009192",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771802195064,
+      "createdAt": "2026-02-22T23:16:35.064Z",
+      "key": "02364315-2",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771802212877,
+      "createdAt": "2026-02-22T23:16:52.877Z",
+      "key": "00037778-2",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771802230518,
+      "createdAt": "2026-02-22T23:17:10.518Z",
+      "key": "A00043070",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771802233080,
+      "createdAt": "2026-02-22T23:17:13.080Z",
+      "key": "00080793-1",
+      "outcome": "catalog_opened:after_key_set_late",
+      "severity": "soft",
+      "tag": "catalog_noise"
+    },
+    {
+      "ts": 1771802250629,
+      "createdAt": "2026-02-22T23:17:30.629Z",
+      "key": "03078869-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771802268318,
+      "createdAt": "2026-02-22T23:17:48.318Z",
+      "key": "05188627-1",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771802285998,
+      "createdAt": "2026-02-22T23:18:05.998Z",
+      "key": "05012971-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771802303543,
+      "createdAt": "2026-02-22T23:18:23.543Z",
+      "key": "00708925-9",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771802321270,
+      "createdAt": "2026-02-22T23:18:41.270Z",
+      "key": "02260281-0",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771802338812,
+      "createdAt": "2026-02-22T23:18:58.812Z",
+      "key": "525850",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771802356310,
+      "createdAt": "2026-02-22T23:19:16.310Z",
+      "key": "03379408-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771802374010,
+      "createdAt": "2026-02-22T23:19:34.010Z",
+      "key": "05122851-2",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771802391628,
+      "createdAt": "2026-02-22T23:19:51.628Z",
+      "key": "B02661296",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771802409211,
+      "createdAt": "2026-02-22T23:20:09.211Z",
+      "key": "05820704-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771802427096,
+      "createdAt": "2026-02-22T23:20:27.096Z",
+      "key": "00461273-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771802444610,
+      "createdAt": "2026-02-22T23:20:44.610Z",
+      "key": "00209107-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771802462196,
+      "createdAt": "2026-02-22T23:21:02.196Z",
+      "key": "05214355-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771802480009,
+      "createdAt": "2026-02-22T23:21:20.009Z",
+      "key": "04620275-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771802497696,
+      "createdAt": "2026-02-22T23:21:37.696Z",
+      "key": "03655305-7",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771802515606,
+      "createdAt": "2026-02-22T23:21:55.606Z",
+      "key": "00793986-0",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771802533215,
+      "createdAt": "2026-02-22T23:22:13.215Z",
+      "key": "06169373-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771803317294,
+      "createdAt": "2026-02-22T23:35:17.294Z",
+      "key": "59322",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771803850599,
+      "createdAt": "2026-02-22T23:44:10.599Z",
+      "key": "1006686",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771803868619,
+      "createdAt": "2026-02-22T23:44:28.619Z",
+      "key": "A03655305",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771803886432,
+      "createdAt": "2026-02-22T23:44:46.432Z",
+      "key": "00216064-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771803903931,
+      "createdAt": "2026-02-22T23:45:03.931Z",
+      "key": "03472921-2",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771803921477,
+      "createdAt": "2026-02-22T23:45:21.477Z",
+      "key": "02189020-8",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771803939244,
+      "createdAt": "2026-02-22T23:45:39.244Z",
+      "key": "05377016-7",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771803956832,
+      "createdAt": "2026-02-22T23:45:56.832Z",
+      "key": "04117487-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771803974285,
+      "createdAt": "2026-02-22T23:46:14.285Z",
+      "key": "00737512-1",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771803991775,
+      "createdAt": "2026-02-22T23:46:31.775Z",
+      "key": "04535588-0",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771804009694,
+      "createdAt": "2026-02-22T23:46:49.694Z",
+      "key": "01760250-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771804027269,
+      "createdAt": "2026-02-22T23:47:07.269Z",
+      "key": "02642297-9",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771804044944,
+      "createdAt": "2026-02-22T23:47:24.944Z",
+      "key": "00604077-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771804062418,
+      "createdAt": "2026-02-22T23:47:42.418Z",
+      "key": "00072016-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771804080211,
+      "createdAt": "2026-02-22T23:48:00.211Z",
+      "key": "00922748-9",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771804097777,
+      "createdAt": "2026-02-22T23:48:17.777Z",
+      "key": "04963611-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771804115312,
+      "createdAt": "2026-02-22T23:48:35.312Z",
+      "key": "05608981-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771804132640,
+      "createdAt": "2026-02-22T23:48:52.640Z",
+      "key": "9948",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771804150227,
+      "createdAt": "2026-02-22T23:49:10.227Z",
+      "key": "06416857-7",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771804167881,
+      "createdAt": "2026-02-22T23:49:27.881Z",
+      "key": "01781278-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771804185515,
+      "createdAt": "2026-02-22T23:49:45.515Z",
+      "key": "06400308-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771804203096,
+      "createdAt": "2026-02-22T23:50:03.096Z",
+      "key": "04808863-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771804220796,
+      "createdAt": "2026-02-22T23:50:20.796Z",
+      "key": "06353184-0",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771804238549,
+      "createdAt": "2026-02-22T23:50:38.549Z",
+      "key": "05429019-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771804256333,
+      "createdAt": "2026-02-22T23:50:56.333Z",
+      "key": "02420687-2",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771804273781,
+      "createdAt": "2026-02-22T23:51:13.781Z",
+      "key": "05391653-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771804291331,
+      "createdAt": "2026-02-22T23:51:31.331Z",
+      "key": "02150816-0",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771804309347,
+      "createdAt": "2026-02-22T23:51:49.347Z",
+      "key": "02405615-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771804327077,
+      "createdAt": "2026-02-22T23:52:07.077Z",
+      "key": "B06289809",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771804345092,
+      "createdAt": "2026-02-22T23:52:25.092Z",
+      "key": "01381274-1",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771804363312,
+      "createdAt": "2026-02-22T23:52:43.312Z",
+      "key": "04824024-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771804380920,
+      "createdAt": "2026-02-22T23:53:00.920Z",
+      "key": "00956095-0",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771804399030,
+      "createdAt": "2026-02-22T23:53:19.030Z",
+      "key": "00280321-8",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771804416568,
+      "createdAt": "2026-02-22T23:53:36.568Z",
+      "key": "01956109-7",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771804434077,
+      "createdAt": "2026-02-22T23:53:54.077Z",
+      "key": "04274983-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771804451682,
+      "createdAt": "2026-02-22T23:54:11.682Z",
+      "key": "04779680-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771804469404,
+      "createdAt": "2026-02-22T23:54:29.404Z",
+      "key": "06263409-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771804487053,
+      "createdAt": "2026-02-22T23:54:47.053Z",
+      "key": "04878284-0",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771804504599,
+      "createdAt": "2026-02-22T23:55:04.599Z",
+      "key": "00194193-2",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771804522094,
+      "createdAt": "2026-02-22T23:55:22.094Z",
+      "key": "05188627-1",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771804539745,
+      "createdAt": "2026-02-22T23:55:39.745Z",
+      "key": "04409540-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845108758,
+      "createdAt": "2026-02-23T11:11:48.758Z",
+      "key": "01256263-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845127616,
+      "createdAt": "2026-02-23T11:12:07.616Z",
+      "key": "05870410-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845146713,
+      "createdAt": "2026-02-23T11:12:26.713Z",
+      "key": "04149378-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845165653,
+      "createdAt": "2026-02-23T11:12:45.653Z",
+      "key": "46430",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845184558,
+      "createdAt": "2026-02-23T11:13:04.558Z",
+      "key": "05190491-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845203175,
+      "createdAt": "2026-02-23T11:13:23.175Z",
+      "key": "01214429-2",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845221195,
+      "createdAt": "2026-02-23T11:13:41.195Z",
+      "key": "01882576-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845239180,
+      "createdAt": "2026-02-23T11:13:59.180Z",
+      "key": "06381981-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845257380,
+      "createdAt": "2026-02-23T11:14:17.380Z",
+      "key": "05012971-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845276184,
+      "createdAt": "2026-02-23T11:14:36.184Z",
+      "key": "01520608-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845294448,
+      "createdAt": "2026-02-23T11:14:54.448Z",
+      "key": "04512593-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845312686,
+      "createdAt": "2026-02-23T11:15:12.686Z",
+      "key": "04988217-2",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845330806,
+      "createdAt": "2026-02-23T11:15:30.806Z",
+      "key": "00736161-9",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845348757,
+      "createdAt": "2026-02-23T11:15:48.757Z",
+      "key": "29301",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845366370,
+      "createdAt": "2026-02-23T11:16:06.370Z",
+      "key": "02149255-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845369271,
+      "createdAt": "2026-02-23T11:16:09.271Z",
+      "key": "00080793-1",
+      "outcome": "catalog_opened:after_key_set_late",
+      "severity": "soft",
+      "tag": "catalog_noise"
+    },
+    {
+      "ts": 1771845387193,
+      "createdAt": "2026-02-23T11:16:27.193Z",
+      "key": "01539543-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845405680,
+      "createdAt": "2026-02-23T11:16:45.680Z",
+      "key": "04904151-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845423695,
+      "createdAt": "2026-02-23T11:17:03.695Z",
+      "key": "04687633-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845441616,
+      "createdAt": "2026-02-23T11:17:21.616Z",
+      "key": "04981640-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845459761,
+      "createdAt": "2026-02-23T11:17:39.761Z",
+      "key": "05242129-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845477988,
+      "createdAt": "2026-02-23T11:17:57.988Z",
+      "key": "01168885-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845496489,
+      "createdAt": "2026-02-23T11:18:16.489Z",
+      "key": "01658759-9",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845514507,
+      "createdAt": "2026-02-23T11:18:34.507Z",
+      "key": "03414425-0",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845532554,
+      "createdAt": "2026-02-23T11:18:52.554Z",
+      "key": "04190214-8",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845550318,
+      "createdAt": "2026-02-23T11:19:10.318Z",
+      "key": "27107",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845568144,
+      "createdAt": "2026-02-23T11:19:28.144Z",
+      "key": "04321186-0",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845587021,
+      "createdAt": "2026-02-23T11:19:47.021Z",
+      "key": "02881397-2",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845605096,
+      "createdAt": "2026-02-23T11:20:05.096Z",
+      "key": "00955923-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845622926,
+      "createdAt": "2026-02-23T11:20:22.926Z",
+      "key": "01427337-2",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845641349,
+      "createdAt": "2026-02-23T11:20:41.349Z",
+      "key": "A00545520",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845659022,
+      "createdAt": "2026-02-23T11:20:59.022Z",
+      "key": "05322744-9",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845683796,
+      "createdAt": "2026-02-23T11:21:23.796Z",
+      "key": "05824731-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845702019,
+      "createdAt": "2026-02-23T11:21:42.019Z",
+      "key": "04772150-8",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845720252,
+      "createdAt": "2026-02-23T11:22:00.252Z",
+      "key": "05433651-8",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845738115,
+      "createdAt": "2026-02-23T11:22:18.115Z",
+      "key": "00203082-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845756165,
+      "createdAt": "2026-02-23T11:22:36.165Z",
+      "key": "01049962-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845774302,
+      "createdAt": "2026-02-23T11:22:54.302Z",
+      "key": "04604327-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845792037,
+      "createdAt": "2026-02-23T11:23:12.037Z",
+      "key": "07470949-8",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845810005,
+      "createdAt": "2026-02-23T11:23:30.005Z",
+      "key": "05018422-8",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845830028,
+      "createdAt": "2026-02-23T11:23:50.028Z",
+      "key": "02001375-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845848812,
+      "createdAt": "2026-02-23T11:24:08.812Z",
+      "key": "06028961-4",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845867006,
+      "createdAt": "2026-02-23T11:24:27.006Z",
+      "key": "B00027922",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845885787,
+      "createdAt": "2026-02-23T11:24:45.787Z",
+      "key": "05400186-2",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845903789,
+      "createdAt": "2026-02-23T11:25:03.789Z",
+      "key": "00042032-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845921710,
+      "createdAt": "2026-02-23T11:25:21.710Z",
+      "key": "01061276-0",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845939382,
+      "createdAt": "2026-02-23T11:25:39.382Z",
+      "key": "1004148",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845957627,
+      "createdAt": "2026-02-23T11:25:57.627Z",
+      "key": "00064200-6",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845975922,
+      "createdAt": "2026-02-23T11:26:15.922Z",
+      "key": "00445572-8",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771845993912,
+      "createdAt": "2026-02-23T11:26:33.912Z",
+      "key": "B04676303",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771846011992,
+      "createdAt": "2026-02-23T11:26:51.992Z",
+      "key": "00652290-3",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771846029819,
+      "createdAt": "2026-02-23T11:27:09.819Z",
+      "key": "03911359-7",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771846048949,
+      "createdAt": "2026-02-23T11:27:28.949Z",
+      "key": "05192235-2",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771846067129,
+      "createdAt": "2026-02-23T11:27:47.129Z",
+      "key": "00956084-5",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771846085100,
+      "createdAt": "2026-02-23T11:28:05.100Z",
+      "key": "06135331-9",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    },
+    {
+      "ts": 1771846103780,
+      "createdAt": "2026-02-23T11:28:23.780Z",
+      "key": "01900986-7",
+      "outcome": "save_failed_continue",
+      "severity": "soft",
+      "tag": "other"
+    }
+  ]
+}
