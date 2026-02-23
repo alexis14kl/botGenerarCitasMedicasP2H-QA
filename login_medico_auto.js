@@ -2850,10 +2850,28 @@ async function readModuloLoadState(page) {
     const hash = String(location.hash || '').toLowerCase();
     const hashSignal = /#t(3|4|5|6|7|8|9|10|11|12)\b/.test(hash);
 
+    // Detectar tab "Tablero Médico" en RadTabStrip (puede existir pero no estar activo)
+    let tableroTabExists = false;
+    const tabLinks = document.querySelectorAll('.rtsLink, [role="tab"]');
+    for (const tab of tabLinks) {
+      const txt = normalize(tab.textContent || '');
+      if (txt.includes('tablero medico') || txt.includes('tablero médico')) {
+        tableroTabExists = true;
+        // Si el tab existe pero no está activo, clickearlo para activarlo
+        const isActive = tab.classList.contains('rtsSelected') ||
+          tab.parentElement?.classList.contains('rtsSelected');
+        if (!isActive) {
+          try { tab.click(); } catch {}
+        }
+        break;
+      }
+    }
+
     return {
-      loaded: Boolean(tokenHit) || hashSignal,
-      signal: tokenHit ? `token:${tokenHit}` : (hashSignal ? `hash:${hash}` : 'none'),
+      loaded: Boolean(tokenHit) || hashSignal || tableroTabExists,
+      signal: tokenHit ? `token:${tokenHit}` : (hashSignal ? `hash:${hash}` : (tableroTabExists ? 'tab:tablero_medico' : 'none')),
       schedulerVisible,
+      tableroTabExists,
       url: location.href
     };
   });
@@ -6370,14 +6388,14 @@ async function processNotaMedicaAndFinalizar(page, origin = '') {
     return false;
   }
 
-  await updateBotStatusOverlay(page, 'working', 'buscando Plan de tratamiento...');
+  await updateBotStatusOverlay(page, 'working', 'generando Plan de tratamiento...');
   const planReady = await ensurePlanTratamientoAndGenerate(page, origin);
   if (!planReady) {
     console.log(`MODE2_NOTA_FINALIZAR_FAIL origin=${origin || '-'} step=plan_tratamiento`);
     await updateBotStatusOverlay(page, 'error', 'falló en Plan tratamiento');
     return false;
   }
-  await updateBotStatusOverlay(page, 'success', 'Plan de tratamiento OK');
+  await updateBotStatusOverlay(page, 'success', 'Plan generado!');
 
   await updateBotStatusOverlay(page, 'working', 'click en Finalizar...');
   const clickedFinalizar = await clickFinalizarCitaInModuleWithRetry(page);
@@ -11510,11 +11528,14 @@ async function runSingleFlowAttempt(attempt, totalAttempts) {
         const p2hResult = await dismissStaleP2HPopup(page, { clickAbrirModulo: true });
         if (p2hResult?.action === 'abrir_modulo') {
           console.log('P2H_POPUP_ABRIR_MODULO_CLICKED - esperando carga de módulo...');
+          await updateBotStatusOverlay(page, 'working', 'esperando apertura Tablero Médico...');
           const loaded = await waitForModuloLoaded(page, 'p2h_popup_direct');
           if (loaded) {
             earlyModuleOpened = true;
+            await updateBotStatusOverlay(page, 'success', 'Tablero Médico abierto!');
             console.log('P2H_POPUP_MODULE_LOADED_OK');
           } else {
+            await updateBotStatusOverlay(page, 'waiting', 'módulo no cargó, buscando cita normal...');
             console.log('P2H_POPUP_MODULE_LOAD_FAILED - continuando con búsqueda normal');
           }
         }
