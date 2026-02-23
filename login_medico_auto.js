@@ -5802,6 +5802,7 @@ async function clickFinalizarCitaInModule(page) {
   if (isPageClosedSafe(page)) return false;
 
   const directSelectors = [
+    '[id$="btnResolver"]',
     'button:has-text("Finalizar cita"), a:has-text("Finalizar cita"), [role="button"]:has-text("Finalizar cita")',
     '[title*="finalizar" i], [aria-label*="finalizar" i], [id*="finalizar" i], [name*="finalizar" i]'
   ];
