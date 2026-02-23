@@ -1602,74 +1602,77 @@ async function dismissNetworkBanners(page) {
 async function dismissStaleP2HPopup(page, options = {}) {
   const clickAbrirModulo = options?.clickAbrirModulo === true;
   try {
-    const result = await page.evaluate(({ clickAbrirModulo }) => {
+    // Paso 1: detectar si el popup existe (solo detección, sin click)
+    const detected = await page.evaluate(() => {
       const normalize = (s) =>
         (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
 
-      // Estrategia 1: buscar por clase P2H directa
-      let popup = document.querySelector('.div_hos930AvisoPaciente');
+      // Estrategia 1: clase P2H directa
+      const popup = document.querySelector('.div_hos930AvisoPaciente');
       if (popup) {
         const st = getComputedStyle(popup);
         const r = popup.getBoundingClientRect();
-        if (st.display === 'none' || st.visibility === 'hidden' || r.width < 50 || r.height < 50) popup = null;
-        if (popup) {
+        if (st.display !== 'none' && st.visibility !== 'hidden' && r.width >= 50 && r.height >= 50) {
           const txt = normalize(popup.textContent || '');
-          if (!txt.includes('nueva cita') && !txt.includes('cita asignada') && !txt.includes('paciente')) popup = null;
-        }
-      }
-
-      // Estrategia 2: buscar modal alertify con header "Nueva cita asignada"
-      let ajsDialog = null;
-      if (!popup) {
-        const dialogs = document.querySelectorAll('.ajs-dialog, .alertify .ajs-dialog');
-        for (const d of dialogs) {
-          const dst = getComputedStyle(d);
-          if (dst.display === 'none' || dst.visibility === 'hidden') continue;
-          const header = d.querySelector('.ajs-header');
-          if (header && normalize(header.textContent).includes('nueva cita asignada')) {
-            ajsDialog = d;
-            break;
+          if (txt.includes('nueva cita') || txt.includes('cita asignada') || txt.includes('paciente')) {
+            return { found: true, via: 'p2h_class' };
           }
         }
       }
 
-      const root = popup || ajsDialog;
-      if (!root) return { found: false };
-      const via = popup ? 'p2h_class' : 'alertify';
-
-      if (clickAbrirModulo) {
-        // Buscar botón "Abrir módulo" por texto
-        const btns = Array.from(root.querySelectorAll('button, a, span, input[type="button"]'));
-        const abrirModulo = btns.find((b) => {
-          const t = normalize(b.textContent || '');
-          return t.includes('abrir modulo') || t.includes('abrir módulo') || t === 'modulo' || t === 'módulo';
-        });
-        // Fallback por ID específico del botón
-        const btnById = document.querySelector('[id$="MP_HOS930_btnModulo"]');
-        const target = abrirModulo || btnById;
-        if (target instanceof HTMLElement) {
-          target.click();
-          return { found: true, action: 'abrir_modulo', via };
+      // Estrategia 2: alertify dialog con header "Nueva cita asignada"
+      const dialogs = document.querySelectorAll('.ajs-dialog');
+      for (const d of dialogs) {
+        const dst = getComputedStyle(d);
+        if (dst.display === 'none' || dst.visibility === 'hidden') continue;
+        const header = d.querySelector('.ajs-header');
+        if (header && normalize(header.textContent).includes('nueva cita asignada')) {
+          return { found: true, via: 'alertify' };
         }
       }
 
-      // Modo 1 o fallback: ocultar sin clickear
-      if (popup) {
-        popup.style.display = 'none';
-        popup.style.visibility = 'hidden';
-        popup.style.pointerEvents = 'none';
+      return { found: false };
+    });
+
+    if (!detected?.found) return false;
+
+    // Paso 2: click "Abrir módulo" usando Playwright locator (dispara postback Telerik)
+    if (clickAbrirModulo) {
+      const btnSelectors = [
+        '[id$="MP_HOS930_btnModulo"]',
+        'button:has-text("Abrir módulo")',
+        'a:has-text("Abrir módulo")'
+      ];
+      for (const sel of btnSelectors) {
+        try {
+          const loc = page.locator(sel).first();
+          if ((await loc.count()) === 0) continue;
+          if (!(await loc.isVisible())) continue;
+          await loc.click({ force: true, timeout: 2000 });
+          console.log(`DISMISS_STALE_P2H_POPUP action=abrir_modulo via=${detected.via} sel="${sel}"`);
+          await page.waitForTimeout(800);
+          return { found: true, action: 'abrir_modulo', via: detected.via };
+        } catch {}
       }
-      if (ajsDialog) {
-        const closeBtn = ajsDialog.querySelector('.ajs-close, [class*="btnCerrar"]');
-        if (closeBtn instanceof HTMLElement) closeBtn.click();
-      }
-      return { found: true, action: 'hidden', via };
-    }, { clickAbrirModulo });
-    if (result?.found) {
-      console.log(`DISMISS_STALE_P2H_POPUP action=${result.action} via=${result.via || '-'}`);
-      await page.waitForTimeout(result.action === 'abrir_modulo' ? 600 : 200);
+      console.log(`DISMISS_STALE_P2H_POPUP action=abrir_modulo_FAIL via=${detected.via}`);
     }
-    return result?.found ? result : false;
+
+    // Modo 1 o fallback: ocultar/cerrar
+    try {
+      await page.evaluate(() => {
+        const popup = document.querySelector('.div_hos930AvisoPaciente');
+        if (popup) {
+          popup.style.display = 'none';
+          popup.style.visibility = 'hidden';
+          popup.style.pointerEvents = 'none';
+        }
+        const closeBtn = document.querySelector('.ajs-dialog .ajs-close') || document.querySelector('[id$="MP_HOS930_btnCerrar"]');
+        if (closeBtn instanceof HTMLElement) closeBtn.click();
+      });
+    } catch {}
+    console.log(`DISMISS_STALE_P2H_POPUP action=hidden via=${detected.via}`);
+    await page.waitForTimeout(200);
+    return { found: true, action: 'hidden', via: detected.via };
   } catch {
     return false;
   }
@@ -5867,38 +5870,42 @@ async function ensurePlanTratamientoAndGenerate(page, origin = '') {
 async function clickFinalizarCitaInModule(page) {
   if (isPageClosedSafe(page)) return false;
 
-  // Estrategia 1: buscar btnResolver por ID (ícono check verde, sin texto)
+  // Paso 1: detectar btnResolver y quitar disabled si es necesario (solo detección)
   try {
-    const clickedById = await page.evaluate(() => {
+    const detected = await page.evaluate(() => {
       const btn = document.querySelector('[id$="btnResolver"]');
       if (!btn || !(btn instanceof HTMLElement)) return { found: false };
       const st = getComputedStyle(btn);
       const r = btn.getBoundingClientRect();
       const isVisible = st.display !== 'none' && st.visibility !== 'hidden' && r.width > 8 && r.height > 8;
-      if (!isVisible) return { found: true, clicked: false, reason: 'not_visible' };
+      if (!isVisible) return { found: true, visible: false, reason: 'not_visible' };
       const isDisabled = btn.disabled || btn.classList.contains('k-state-disabled');
-      // Si está disabled, quitar disabled y clickear
       if (isDisabled) {
         btn.disabled = false;
         btn.classList.remove('k-state-disabled');
+        btn.removeAttribute('aria-disabled');
       }
-      btn.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, view: window }));
-      btn.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true, view: window }));
-      btn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-      btn.click();
-      return { found: true, clicked: true, wasDisabled: isDisabled, id: btn.id };
+      return { found: true, visible: true, wasDisabled: isDisabled, id: btn.id };
     });
-    if (clickedById?.clicked) {
-      await waitForTimeoutRaw(page, 220);
-      console.log(`FINALIZAR_CLICK_OK via=btnResolver_id wasDisabled=${clickedById.wasDisabled ? 1 : 0}`);
-      return true;
+
+    if (detected?.found && detected?.visible) {
+      // Paso 2: click con Playwright locator (dispara postback Telerik correctamente)
+      const loc = page.locator('[id$="btnResolver"]').first();
+      try {
+        await loc.click({ force: true, timeout: 2000 });
+        await waitForTimeoutRaw(page, 300);
+        console.log(`FINALIZAR_CLICK_OK via=btnResolver_locator wasDisabled=${detected.wasDisabled ? 1 : 0}`);
+        return true;
+      } catch (e) {
+        console.log(`FINALIZAR_BTNRESOLVER_LOCATOR_FAIL err=${(e?.message || '').slice(0, 80)}`);
+      }
     }
-    if (clickedById?.found) {
-      console.log(`FINALIZAR_BTNRESOLVER_FOUND_BUT reason=${clickedById.reason || 'click_failed'}`);
+    if (detected?.found && !detected?.visible) {
+      console.log(`FINALIZAR_BTNRESOLVER_FOUND_BUT reason=${detected.reason || 'not_visible'}`);
     }
   } catch {}
 
-  // Estrategia 2: selectores directos por texto
+  // Estrategia 2: selectores directos por texto (fallback)
   const directSelectors = [
     'button:has-text("Finalizar cita"), a:has-text("Finalizar cita"), [role="button"]:has-text("Finalizar cita")',
     '[title*="finalizar" i], [aria-label*="finalizar" i]'
