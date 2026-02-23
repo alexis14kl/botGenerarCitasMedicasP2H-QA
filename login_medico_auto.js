@@ -1549,6 +1549,37 @@ async function ensureCalendarOnCurrentWeek(page, options = {}) {
   return finalOk;
 }
 
+async function dismissStaleP2HPopup(page) {
+  try {
+    const dismissed = await page.evaluate(() => {
+      const normalize = (s) =>
+        (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
+      const popup = document.querySelector('.div_hos930AvisoPaciente');
+      if (!popup) return false;
+      const st = getComputedStyle(popup);
+      const r = popup.getBoundingClientRect();
+      if (st.display === 'none' || st.visibility === 'hidden' || r.width < 50 || r.height < 50) return false;
+      const txt = normalize(popup.textContent || '');
+      if (!txt.includes('nueva cita') && !txt.includes('cita asignada') && !txt.includes('paciente')) return false;
+      const btns = Array.from(popup.querySelectorAll('button, a, span, input[type="button"]'));
+      const cerrar = btns.find((b) => normalize(b.textContent || '').includes('cerrar'));
+      if (cerrar instanceof HTMLElement) {
+        cerrar.click();
+        return true;
+      }
+      popup.style.display = 'none';
+      return true;
+    });
+    if (dismissed) {
+      console.log('DISMISS_STALE_P2H_POPUP_OK');
+      await page.waitForTimeout(300);
+    }
+    return dismissed;
+  } catch {
+    return false;
+  }
+}
+
 async function ensureWorkingHoursVisible(page) {
   try {
     const btn = page.locator('button:has-text("Mostrar horas laborales"), button:has-text("Mostrar horas laborables")').first();
@@ -10897,6 +10928,8 @@ async function runSingleFlowAttempt(attempt, totalAttempts) {
       }
       await ensureWorkingHoursVisible(page);
       await ensureCalendarOnCurrentWeek(page, { applyFilter: BOT_MAIN_MODE !== '2' || MODE2_AUTO_FILTER });
+      // Cerrar popup "Nueva cita asignada" si se abrió accidentalmente al inicializar el calendario
+      await dismissStaleP2HPopup(page);
       if (BOT_MAIN_MODE === '2') {
         console.log('Paso 7: abrir módulo desde cita existente');
         const moduleOpen = await openModuleFromExistingAppointmentInCalendar(page);
