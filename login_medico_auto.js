@@ -1599,32 +1599,48 @@ async function dismissNetworkBanners(page) {
   }
 }
 
-async function dismissStaleP2HPopup(page) {
+async function dismissStaleP2HPopup(page, options = {}) {
+  const clickAbrirModulo = options?.clickAbrirModulo === true;
   try {
-    const dismissed = await page.evaluate(() => {
+    const result = await page.evaluate(({ clickAbrirModulo }) => {
       const normalize = (s) =>
         (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
       const popup = document.querySelector('.div_hos930AvisoPaciente');
-      if (!popup) return false;
+      if (!popup) return { found: false };
       const st = getComputedStyle(popup);
       const r = popup.getBoundingClientRect();
-      if (st.display === 'none' || st.visibility === 'hidden' || r.width < 50 || r.height < 50) return false;
+      if (st.display === 'none' || st.visibility === 'hidden' || r.width < 50 || r.height < 50) return { found: false };
       const txt = normalize(popup.textContent || '');
-      if (!txt.includes('nueva cita') && !txt.includes('cita asignada') && !txt.includes('paciente')) return false;
+      if (!txt.includes('nueva cita') && !txt.includes('cita asignada') && !txt.includes('paciente')) return { found: false };
+
       const btns = Array.from(popup.querySelectorAll('button, a, span, input[type="button"]'));
-      const cerrar = btns.find((b) => normalize(b.textContent || '').includes('cerrar'));
-      if (cerrar instanceof HTMLElement) {
-        cerrar.click();
-        return true;
+
+      if (clickAbrirModulo) {
+        // Mode 2: click "Abrir módulo" para entrar directo al módulo del paciente
+        const abrirModulo = btns.find((b) => {
+          const t = normalize(b.textContent || '');
+          return t.includes('abrir modulo') || t.includes('abrir módulo') || t === 'modulo' || t === 'módulo';
+        });
+        // También buscar por ID específico del botón
+        const btnById = document.getElementById('ctl00_nc002_MP_HOS930_btnModulo');
+        const target = abrirModulo || btnById;
+        if (target instanceof HTMLElement) {
+          target.click();
+          return { found: true, action: 'abrir_modulo' };
+        }
       }
+
+      // Modo 1 o fallback: solo ocultar sin clickear nada (cerrar.click dispara __doPostBack y recarga)
       popup.style.display = 'none';
-      return true;
-    });
-    if (dismissed) {
-      console.log('DISMISS_STALE_P2H_POPUP_OK');
-      await page.waitForTimeout(300);
+      popup.style.visibility = 'hidden';
+      popup.style.pointerEvents = 'none';
+      return { found: true, action: 'hidden' };
+    }, { clickAbrirModulo });
+    if (result?.found) {
+      console.log(`DISMISS_STALE_P2H_POPUP action=${result.action}`);
+      await page.waitForTimeout(result.action === 'abrir_modulo' ? 600 : 200);
     }
-    return dismissed;
+    return result?.found ? result : false;
   } catch {
     return false;
   }
@@ -10979,12 +10995,35 @@ async function runSingleFlowAttempt(attempt, totalAttempts) {
       }
       await ensureWorkingHoursVisible(page);
       await ensureCalendarOnCurrentWeek(page, { applyFilter: BOT_MAIN_MODE !== '2' || MODE2_AUTO_FILTER });
-      // Cerrar popup "Nueva cita asignada" y banners de red si aparecieron al inicializar
-      await dismissStaleP2HPopup(page);
+      // Manejar popup "Nueva cita asignada" y banners de red si aparecieron al inicializar
+      await dismissNetworkBanners(page);
+      let earlyModuleOpened = false;
+      if (BOT_MAIN_MODE === '2') {
+        // En Modo 2: si el popup "Nueva cita asignada" aparece, clickear "Abrir módulo" directamente
+        const p2hResult = await dismissStaleP2HPopup(page, { clickAbrirModulo: true });
+        if (p2hResult?.action === 'abrir_modulo') {
+          console.log('P2H_POPUP_ABRIR_MODULO_CLICKED - esperando carga de módulo...');
+          const loaded = await waitForModuloLoaded(page, 'p2h_popup_direct');
+          if (loaded) {
+            earlyModuleOpened = true;
+            console.log('P2H_POPUP_MODULE_LOADED_OK');
+          } else {
+            console.log('P2H_POPUP_MODULE_LOAD_FAILED - continuando con búsqueda normal');
+          }
+        }
+      } else {
+        // En Modo 1: solo ocultar el popup sin clickear nada
+        await dismissStaleP2HPopup(page);
+      }
       await dismissNetworkBanners(page);
       if (BOT_MAIN_MODE === '2') {
         console.log('Paso 7: abrir módulo desde cita existente');
-        const moduleOpen = await openModuleFromExistingAppointmentInCalendar(page);
+        let moduleOpen;
+        if (earlyModuleOpened) {
+          moduleOpen = { ok: true, scanned: 0, attempted: 0, via: 'p2h_popup_direct' };
+        } else {
+          moduleOpen = await openModuleFromExistingAppointmentInCalendar(page);
+        }
         console.log(
           `MODULE_OPEN_RESULT ok=${moduleOpen.ok ? 1 : 0} scanned=${moduleOpen.scanned || 0} attempted=${moduleOpen.attempted || 0} reason=${moduleOpen.reason || '-'}`
         );
