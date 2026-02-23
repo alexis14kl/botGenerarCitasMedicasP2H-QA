@@ -5802,9 +5802,9 @@ async function clickFinalizarCitaInModule(page) {
   if (isPageClosedSafe(page)) return false;
 
   const directSelectors = [
-    '[id$="btnResolver"]',
-    'button:has-text("Finalizar cita"), a:has-text("Finalizar cita"), [role="button"]:has-text("Finalizar cita")',
-    '[title*="finalizar" i], [aria-label*="finalizar" i], [id*="finalizar" i], [name*="finalizar" i]'
+    '[id$="btnResolver"]:not([disabled]):not(.k-state-disabled)',
+    'button:has-text("Finalizar cita"):not([disabled]), a:has-text("Finalizar cita"), [role="button"]:has-text("Finalizar cita")',
+    '[title*="finalizar" i]:not([disabled]), [aria-label*="finalizar" i]:not([disabled])'
   ];
   for (const sel of directSelectors) {
     try {
@@ -9188,9 +9188,8 @@ async function createAppointmentFromCalendar(page) {
   const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
   const maxAllowedStart = todayStart + (7 * 24 * 60 * 60 * 1000);
 
-  await applyAgendaFilter(page);
   await ensureWorkingHoursVisible(page);
-  await ensureCalendarOnCurrentWeek(page, { applyFilter: true });
+  await ensureCalendarOnCurrentWeek(page, { applyFilter: false });
 
   if (opened) {
     console.log('NUEVA_CITA_MODAL_YA_ABIERTO: pasando directo a carga de clave');
@@ -9201,8 +9200,8 @@ async function createAppointmentFromCalendar(page) {
     if (week > 0) {
       await goToNextCalendarRange(page);
       await page.waitForTimeout(1200);
+      await applyAgendaFilter(page);
     }
-    await applyAgendaFilter(page);
     await ensureWorkingHoursVisible(page);
     // Esperar a que los eventos del scheduler se rendericen
     await page.waitForTimeout(1500);
@@ -10483,18 +10482,16 @@ async function openModuleFromExistingAppointmentInCalendar(page) {
   minBaseDate.setDate(minBaseDate.getDate() + MODE2_SLOT_MIN_DAY_OFFSET);
   const minDayIso = minBaseDate.toISOString().slice(0, 10);
   console.log(`MODULE_OPEN_DAY_FILTER min_day_iso=${minDayIso} offset=${MODE2_SLOT_MIN_DAY_OFFSET} skip_sundays=${MODE2_SKIP_SUNDAYS ? 1 : 0} auto_filter=${MODE2_AUTO_FILTER ? 1 : 0}`);
-  if (MODE2_AUTO_FILTER) await applyAgendaFilter(page);
   await ensureWorkingHoursVisible(page);
-  await ensureCalendarOnCurrentWeek(page, { applyFilter: MODE2_AUTO_FILTER });
+  await ensureCalendarOnCurrentWeek(page, { applyFilter: false });
 
   for (let week = 0; week < MODE2_MAX_SEARCH_WEEKS; week += 1) {
     if (week > 0) {
       const moved = await goToNextCalendarRange(page);
       console.log(`MODULE_OPEN_NEXT_WEEK week=${week} moved=${moved ? 1 : 0}`);
       await waitForTimeoutRaw(page, 820);
+      if (MODE2_AUTO_FILTER) await applyAgendaFilter(page);
     }
-
-    if (MODE2_AUTO_FILTER) await applyAgendaFilter(page);
     await ensureWorkingHoursVisible(page);
     await waitForTimeoutRaw(page, 620);
 
