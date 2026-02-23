@@ -5867,10 +5867,41 @@ async function ensurePlanTratamientoAndGenerate(page, origin = '') {
 async function clickFinalizarCitaInModule(page) {
   if (isPageClosedSafe(page)) return false;
 
+  // Estrategia 1: buscar btnResolver por ID (ícono check verde, sin texto)
+  try {
+    const clickedById = await page.evaluate(() => {
+      const btn = document.querySelector('[id$="btnResolver"]');
+      if (!btn || !(btn instanceof HTMLElement)) return { found: false };
+      const st = getComputedStyle(btn);
+      const r = btn.getBoundingClientRect();
+      const isVisible = st.display !== 'none' && st.visibility !== 'hidden' && r.width > 8 && r.height > 8;
+      if (!isVisible) return { found: true, clicked: false, reason: 'not_visible' };
+      const isDisabled = btn.disabled || btn.classList.contains('k-state-disabled');
+      // Si está disabled, quitar disabled y clickear
+      if (isDisabled) {
+        btn.disabled = false;
+        btn.classList.remove('k-state-disabled');
+      }
+      btn.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, view: window }));
+      btn.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true, view: window }));
+      btn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+      btn.click();
+      return { found: true, clicked: true, wasDisabled: isDisabled, id: btn.id };
+    });
+    if (clickedById?.clicked) {
+      await waitForTimeoutRaw(page, 220);
+      console.log(`FINALIZAR_CLICK_OK via=btnResolver_id wasDisabled=${clickedById.wasDisabled ? 1 : 0}`);
+      return true;
+    }
+    if (clickedById?.found) {
+      console.log(`FINALIZAR_BTNRESOLVER_FOUND_BUT reason=${clickedById.reason || 'click_failed'}`);
+    }
+  } catch {}
+
+  // Estrategia 2: selectores directos por texto
   const directSelectors = [
-    '[id$="btnResolver"]:not([disabled]):not(.k-state-disabled)',
-    'button:has-text("Finalizar cita"):not([disabled]), a:has-text("Finalizar cita"), [role="button"]:has-text("Finalizar cita")',
-    '[title*="finalizar" i]:not([disabled]), [aria-label*="finalizar" i]:not([disabled])'
+    'button:has-text("Finalizar cita"), a:has-text("Finalizar cita"), [role="button"]:has-text("Finalizar cita")',
+    '[title*="finalizar" i], [aria-label*="finalizar" i]'
   ];
   for (const sel of directSelectors) {
     try {
@@ -5883,64 +5914,6 @@ async function clickFinalizarCitaInModule(page) {
       return true;
     } catch {}
   }
-
-  try {
-    const clicked = await page.evaluate(() => {
-      const normalize = (s) =>
-        (s || '')
-          .toLowerCase()
-          .normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '')
-          .replace(/\s+/g, ' ')
-          .trim();
-      const visible = (el) => {
-        if (!el) return false;
-        const st = getComputedStyle(el);
-        const r = el.getBoundingClientRect();
-        return st.display !== 'none' && st.visibility !== 'hidden' && r.width > 8 && r.height > 8;
-      };
-      const safeClick = (el) => {
-        if (!(el instanceof HTMLElement)) return false;
-        try {
-          el.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, view: window }));
-          el.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true, view: window }));
-          el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-          el.click();
-          return true;
-        } catch {
-          return false;
-        }
-      };
-
-      const nodes = Array.from(
-        document.querySelectorAll('button, a, span, div, i, input[type="button"], input[type="submit"], [role="button"], [title], [aria-label]')
-      ).filter(visible);
-      const scored = [];
-      for (const n of nodes) {
-        const txt = normalize(
-          `${n.textContent || ''} ${n.getAttribute('title') || ''} ${n.getAttribute('aria-label') || ''} ${n.id || ''} ${n.getAttribute('name') || ''}`
-        );
-        if (!txt) continue;
-        if (!(txt.includes('finalizar cita') || txt.includes('finalizar'))) continue;
-        if (txt.includes('cancelar') || txt.includes('anular') || txt.includes('salir') || txt.includes('cerrar')) continue;
-        const r = n.getBoundingClientRect();
-        let score = 100;
-        if (txt.includes('finalizar cita')) score += 260;
-        if (txt.includes('finalizar')) score += 140;
-        if (r.top >= 80 && r.top <= 420) score += 65;
-        if (r.left >= 450) score += 25;
-        scored.push({ n, score });
-      }
-      if (!scored.length) return false;
-      scored.sort((a, b) => b.score - a.score);
-      return safeClick(scored[0].n);
-    });
-    if (clicked) {
-      await waitForTimeoutRaw(page, 220);
-      console.log('FINALIZAR_CLICK_OK via=dom_scored');
-      return true;
-    }
-  } catch {}
 
   console.log('FINALIZAR_CLICK_FAIL');
   return false;
