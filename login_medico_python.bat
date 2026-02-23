@@ -1,6 +1,6 @@
 @echo off
 setlocal
-cd /d "C:\Users\NyGsoft\Desktop\bot ordenes m"
+cd /d "C:\Users\NyGsoft\Desktop\bot ordenes m\botGenerarCitasMedicasP2H-QA"
 if not defined PATIENT_KEYS_FILE set "PATIENT_KEYS_FILE=%CD%\patient_keys.txt"
 if not defined APPOINTMENT_MEMORY_ENABLED set "APPOINTMENT_MEMORY_ENABLED=1"
 if not defined APPOINTMENT_MEMORY_FILE set "APPOINTMENT_MEMORY_FILE=%CD%\appointment_memory_tmp.json"
