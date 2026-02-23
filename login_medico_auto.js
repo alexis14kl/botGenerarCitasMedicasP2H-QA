@@ -1605,39 +1605,68 @@ async function dismissStaleP2HPopup(page, options = {}) {
     const result = await page.evaluate(({ clickAbrirModulo }) => {
       const normalize = (s) =>
         (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
-      const popup = document.querySelector('.div_hos930AvisoPaciente');
-      if (!popup) return { found: false };
-      const st = getComputedStyle(popup);
-      const r = popup.getBoundingClientRect();
-      if (st.display === 'none' || st.visibility === 'hidden' || r.width < 50 || r.height < 50) return { found: false };
-      const txt = normalize(popup.textContent || '');
-      if (!txt.includes('nueva cita') && !txt.includes('cita asignada') && !txt.includes('paciente')) return { found: false };
 
-      const btns = Array.from(popup.querySelectorAll('button, a, span, input[type="button"]'));
+      // Estrategia 1: buscar por clase P2H directa
+      let popup = document.querySelector('.div_hos930AvisoPaciente');
+      if (popup) {
+        const st = getComputedStyle(popup);
+        const r = popup.getBoundingClientRect();
+        if (st.display === 'none' || st.visibility === 'hidden' || r.width < 50 || r.height < 50) popup = null;
+        if (popup) {
+          const txt = normalize(popup.textContent || '');
+          if (!txt.includes('nueva cita') && !txt.includes('cita asignada') && !txt.includes('paciente')) popup = null;
+        }
+      }
+
+      // Estrategia 2: buscar modal alertify con header "Nueva cita asignada"
+      let ajsDialog = null;
+      if (!popup) {
+        const dialogs = document.querySelectorAll('.ajs-dialog, .alertify .ajs-dialog');
+        for (const d of dialogs) {
+          const dst = getComputedStyle(d);
+          if (dst.display === 'none' || dst.visibility === 'hidden') continue;
+          const header = d.querySelector('.ajs-header');
+          if (header && normalize(header.textContent).includes('nueva cita asignada')) {
+            ajsDialog = d;
+            break;
+          }
+        }
+      }
+
+      const root = popup || ajsDialog;
+      if (!root) return { found: false };
+      const via = popup ? 'p2h_class' : 'alertify';
 
       if (clickAbrirModulo) {
-        // Mode 2: click "Abrir módulo" para entrar directo al módulo del paciente
+        // Buscar botón "Abrir módulo" por texto
+        const btns = Array.from(root.querySelectorAll('button, a, span, input[type="button"]'));
         const abrirModulo = btns.find((b) => {
           const t = normalize(b.textContent || '');
           return t.includes('abrir modulo') || t.includes('abrir módulo') || t === 'modulo' || t === 'módulo';
         });
-        // También buscar por ID específico del botón
-        const btnById = document.getElementById('ctl00_nc002_MP_HOS930_btnModulo');
+        // Fallback por ID específico del botón
+        const btnById = document.querySelector('[id$="MP_HOS930_btnModulo"]');
         const target = abrirModulo || btnById;
         if (target instanceof HTMLElement) {
           target.click();
-          return { found: true, action: 'abrir_modulo' };
+          return { found: true, action: 'abrir_modulo', via };
         }
       }
 
-      // Modo 1 o fallback: solo ocultar sin clickear nada (cerrar.click dispara __doPostBack y recarga)
-      popup.style.display = 'none';
-      popup.style.visibility = 'hidden';
-      popup.style.pointerEvents = 'none';
-      return { found: true, action: 'hidden' };
+      // Modo 1 o fallback: ocultar sin clickear
+      if (popup) {
+        popup.style.display = 'none';
+        popup.style.visibility = 'hidden';
+        popup.style.pointerEvents = 'none';
+      }
+      if (ajsDialog) {
+        const closeBtn = ajsDialog.querySelector('.ajs-close, [class*="btnCerrar"]');
+        if (closeBtn instanceof HTMLElement) closeBtn.click();
+      }
+      return { found: true, action: 'hidden', via };
     }, { clickAbrirModulo });
     if (result?.found) {
-      console.log(`DISMISS_STALE_P2H_POPUP action=${result.action}`);
+      console.log(`DISMISS_STALE_P2H_POPUP action=${result.action} via=${result.via || '-'}`);
       await page.waitForTimeout(result.action === 'abrir_modulo' ? 600 : 200);
     }
     return result?.found ? result : false;
@@ -5271,7 +5300,12 @@ async function readNotaMedicaRequiredState(page) {
 async function ensureNotaMedicaReadyForFinalize(page, origin = '') {
   if (isPageClosedSafe(page)) return false;
 
-  const notaOpened = await openNotaMedicaFromSidebar(page, origin);
+  let notaOpened = await openNotaMedicaFromSidebar(page, origin);
+  if (!notaOpened) {
+    console.log(`NOTA_MEDICA_RETRY_WAIT origin=${origin || '-'} reason=module_may_still_loading`);
+    await waitForTimeoutRaw(page, 4000);
+    notaOpened = await openNotaMedicaFromSidebar(page, origin);
+  }
   if (!notaOpened) return false;
 
   const initialState = await readNotaMedicaRequiredState(page);
@@ -10495,6 +10529,13 @@ async function openModuleFromExistingAppointmentInCalendar(page) {
     await ensureWorkingHoursVisible(page);
     await waitForTimeoutRaw(page, 620);
 
+    // Si aparece recordatorio "Nueva cita asignada", click "Abrir módulo" directo
+    const weekPopup = await dismissStaleP2HPopup(page, { clickAbrirModulo: true });
+    if (weekPopup?.action === 'abrir_modulo') {
+      console.log(`MODULE_OPEN_VIA_RECORDATORIO week=${week}`);
+      return { ok: true, scanned, attempted: attempted.size, via: 'recordatorio_cita_asignada' };
+    }
+
     let slots = await getExistingAppointmentSlots(page, 120, {
       preferFinalizada: false,
       excludeFinalizada: true,
@@ -10551,6 +10592,12 @@ async function openModuleFromExistingAppointmentInCalendar(page) {
         `MODULE_OPEN_TRY slot=${i + 1}/${slots.length} scanned=${scanned} day=${slot.dayIso || '-'} status="${slot.statusHint || '-'}" number="${slot.appointmentNumber || ''}" text="${slot.text || ''}"`
       );
 
+      // Si aparece recordatorio "Nueva cita asignada", click "Abrir módulo" directo
+      const slotPopup = await dismissStaleP2HPopup(page, { clickAbrirModulo: true });
+      if (slotPopup?.action === 'abrir_modulo') {
+        console.log(`MODULE_OPEN_VIA_RECORDATORIO_SLOT slot=${i + 1}/${slots.length}`);
+        return { ok: true, scanned, attempted: attempted.size, via: 'recordatorio_during_slot' };
+      }
       if (await isCatalogPacientesModalVisible(page)) {
         await closeCatalogPacientesModal(page);
         await waitForTimeoutRaw(page, 140);
