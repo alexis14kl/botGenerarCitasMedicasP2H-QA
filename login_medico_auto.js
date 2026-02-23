@@ -183,7 +183,7 @@ const CANCEL_SEARCH_MAX_WEEKS = (() => {
   return Math.min(8, Math.max(1, Math.round(n)));
 })();
 const MODE2_SLOT_MIN_DAY_OFFSET = (() => {
-  const n = Number(process.env.MODE2_SLOT_MIN_DAY_OFFSET || '1');
+  const n = Number(process.env.MODE2_SLOT_MIN_DAY_OFFSET || '0');
   if (!Number.isFinite(n)) return 1;
   return Math.min(14, Math.max(0, Math.round(n)));
 })();
