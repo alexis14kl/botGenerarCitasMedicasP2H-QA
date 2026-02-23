@@ -11153,14 +11153,8 @@ async function runSingleFlowAttempt(attempt, totalAttempts) {
         '--disable-background-timer-throttling', // No frenar timers en background
         '--disable-renderer-backgrounding',  // No limitar rendimiento en background
         '--disable-backgrounding-occluded-windows', // No frenar ventanas ocultas
-        '--max-connections-per-host=24',     // 24 conexiones paralelas (default 6)
-        '--disable-http2',                   // HTTP/1.1 permite más conexiones paralelas reales
-        '--disable-quic',                    // Desactivar QUIC para forzar TCP estable
-        '--no-pings',                        // No enviar pings innecesarios
-        '--disable-features=NetworkServiceInProcess2,IsolateOrigins', // Mejor manejo de red
-        '--enable-features=NetworkService,NetworkServiceInProcess,ParallelDownloading', // Descargas paralelas
-        '--renderer-process-limit=4',        // Más procesos de renderizado
-        '--disable-gpu-sandbox',             // Menos overhead de GPU
+        '--max-connections-per-host=16',     // 16 conexiones paralelas (default 6)
+        '--enable-features=ParallelDownloading', // Descargas paralelas
       ]
     });
     const context = await browser.newContext({
