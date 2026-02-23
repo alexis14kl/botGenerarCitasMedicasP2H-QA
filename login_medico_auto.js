@@ -5693,41 +5693,53 @@ async function ensureNotaMedicaReadyForFinalize(page, origin = '') {
   if (isPageClosedSafe(page)) return false;
 
   // Paso 1: esperar a que el Tablero Médico cargue (sidebar visible con "Nota médica")
-  await updateBotStatusOverlay(page, 'waiting', 'esperando Tablero Médico...');
   const sidebarReady = await waitForTableroMedicoSidebar(page, 60000);
   if (!sidebarReady) {
+    await updateBotStatusOverlay(page, 'error', 'Tablero Médico no cargó');
     console.log(`NOTA_MEDICA_FAIL origin=${origin || '-'} reason=tablero_medico_not_loaded`);
     return false;
   }
+  await updateBotStatusOverlay(page, 'info', 'Tablero Médico listo');
 
   // Paso 2: click en "Nota médica"
-  await updateBotStatusOverlay(page, 'working', 'click en Nota médica...');
   const notaOpened = await openNotaMedicaFromSidebar(page, origin);
-  if (!notaOpened) return false;
+  if (!notaOpened) {
+    await updateBotStatusOverlay(page, 'error', 'no se pudo abrir Nota médica');
+    return false;
+  }
+  await updateBotStatusOverlay(page, 'success', 'Nota médica abierta');
 
   // Paso 2.5: cerrar modal "Catálogo de diagnósticos" si se abrió accidentalmente
   await dismissCatalogoDiagnosticosModal(page);
 
-  await updateBotStatusOverlay(page, 'working', 'verificando campos...');
+  await updateBotStatusOverlay(page, 'working', 'leyendo campos...');
   const initialState = await readNotaMedicaRequiredState(page);
   console.log(
     `NOTA_MEDICA_STATE_PRE origin=${origin || '-'} filled=${initialState.filledCount || 0}/${initialState.total || 5} missing=${(initialState.missing || []).join(',') || '-'}`
   );
 
   if (initialState.allFilled) {
-    await updateBotStatusOverlay(page, 'working', 'campos llenos, click Generar IA...');
+    await updateBotStatusOverlay(page, 'working', `campos llenos (${initialState.filledCount}/${initialState.total}), click Generar IA...`);
     const generarClicked = await clickGenerarIaByHumanAction(page);
     await waitForTimeoutRaw(page, 260);
     const hasAlerts = await hasNotaRequiredFieldAlerts(page);
     if (generarClicked && !hasAlerts) {
+      await updateBotStatusOverlay(page, 'success', 'Generar IA OK');
       console.log(`NOTA_MEDICA_READY_PRECHECK_OK origin=${origin || '-'} via=existing_data`);
       return true;
     }
+    await updateBotStatusOverlay(page, 'waiting', 'reparando campos...');
     console.log(`NOTA_MEDICA_READY_PRECHECK_REPAIR origin=${origin || '-'} generar=${generarClicked ? 1 : 0} alerts=${hasAlerts ? 1 : 0}`);
+  } else {
+    await updateBotStatusOverlay(page, 'working', `faltan ${initialState.missing?.length || '?'} campos, llenando...`);
   }
 
   const filled = await fillNotaMedicaAntecedentesAndGenerateIA(page, origin);
-  if (!filled) return false;
+  if (!filled) {
+    await updateBotStatusOverlay(page, 'error', 'falló llenando campos');
+    return false;
+  }
+  await updateBotStatusOverlay(page, 'success', 'campos llenados OK');
 
   const postState = await readNotaMedicaRequiredState(page);
   let postAlerts = await hasNotaRequiredFieldAlerts(page);
@@ -6340,7 +6352,7 @@ async function clickFinalizarCitaInModuleWithRetry(page, options = {}) {
 async function processNotaMedicaAndFinalizar(page, origin = '') {
   if (isPageClosedSafe(page)) return false;
   console.log(`MODE2_NOTA_FINALIZAR_START origin=${origin || '-'}`);
-  await updateBotStatusOverlay(page, 'working', 'abriendo Nota médica...');
+  // El overlay se actualiza DENTRO de ensureNotaMedicaReadyForFinalize con mensajes específicos
 
   const ready = await ensureNotaMedicaReadyForFinalize(page, origin);
   if (!ready) {
@@ -6348,21 +6360,24 @@ async function processNotaMedicaAndFinalizar(page, origin = '') {
     await updateBotStatusOverlay(page, 'error', 'falló en Nota médica');
     return false;
   }
-  await updateBotStatusOverlay(page, 'working', 'generando Plan de tratamiento...');
+
+  await updateBotStatusOverlay(page, 'working', 'buscando Plan de tratamiento...');
   const planReady = await ensurePlanTratamientoAndGenerate(page, origin);
   if (!planReady) {
     console.log(`MODE2_NOTA_FINALIZAR_FAIL origin=${origin || '-'} step=plan_tratamiento`);
     await updateBotStatusOverlay(page, 'error', 'falló en Plan tratamiento');
     return false;
   }
+  await updateBotStatusOverlay(page, 'success', 'Plan de tratamiento OK');
 
-  await updateBotStatusOverlay(page, 'working', 'finalizando cita...');
+  await updateBotStatusOverlay(page, 'working', 'click en Finalizar...');
   const clickedFinalizar = await clickFinalizarCitaInModuleWithRetry(page);
   if (!clickedFinalizar) {
     console.log(`MODE2_NOTA_FINALIZAR_FAIL origin=${origin || '-'} step=click_finalizar`);
     await updateBotStatusOverlay(page, 'error', 'falló al click Finalizar');
     return false;
   }
+  await updateBotStatusOverlay(page, 'working', 'confirmando Finalizar...');
 
   const confirmed = await confirmCancellationDialog(page);
   const feedback = await waitForCancellationFeedback(page, 5500);
