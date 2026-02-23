@@ -3701,8 +3701,149 @@ async function captureNotaFieldsByKeyboard(page, keys = [], textValue = '') {
   return { captured, total };
 }
 
+/**
+ * Detecta y cierra el modal "Catálogo de diagnósticos" si está abierto.
+ * Este modal se abre accidentalmente cuando el bot clickea el campo de búsqueda
+ * de diagnóstico en vez del botón "Generar". Usa 2-phase: detectar con evaluate,
+ * cerrar con Playwright locator para asegurar el postback Telerik.
+ */
+async function dismissCatalogoDiagnosticosModal(page) {
+  if (isPageClosedSafe(page)) return false;
+  try {
+    const modalInfo = await page.evaluate(() => {
+      const normalize = (s) =>
+        (s || '')
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/\s+/g, ' ')
+          .trim();
+      const visible = (el) => {
+        if (!el) return false;
+        const st = getComputedStyle(el);
+        const r = el.getBoundingClientRect();
+        return st.display !== 'none' && st.visibility !== 'hidden' && r.width > 20 && r.height > 20;
+      };
+
+      // Buscar ventanas Kendo/Telerik visibles
+      const windows = Array.from(document.querySelectorAll('.k-window, [role="dialog"], .RadWindow'))
+        .filter(visible);
+
+      for (const win of windows) {
+        const titleBar = win.querySelector('.k-window-titlebar, .rwTitlebar, .k-dialog-titlebar');
+        if (!titleBar) continue;
+        const titleText = normalize(titleBar.textContent || '');
+        if (!titleText.includes('catalogo de diagnostico') && !titleText.includes('catálogo de diagnóstico')) continue;
+
+        // Encontrado - buscar botón X de cierre
+        const closeSelectors = [
+          '.k-window-titlebar .k-window-titlebar-actions a',
+          '.k-window-titlebar .k-window-titlebar-actions button',
+          '.k-window-titlebar .k-window-action',
+          '.k-window-titlebar [aria-label="Close"]',
+          '.k-window-titlebar .k-i-close',
+          '.k-window-titlebar .k-svg-icon.k-svg-i-x',
+          '.rwTitlebar .rwCloseButton',
+          'button[aria-label="Close"]',
+          'a[title*="close" i]',
+          'a[title*="cerrar" i]'
+        ];
+
+        let closeBtnId = null;
+        for (const sel of closeSelectors) {
+          const btn = win.querySelector(sel);
+          if (btn instanceof HTMLElement && visible(btn)) {
+            if (!btn.id) btn.setAttribute('data-catalogo-close-tmp', '1');
+            closeBtnId = btn.id || null;
+            return { found: true, closeBtnId, hasTmpAttr: !btn.id, title: titleText.slice(0, 40) };
+          }
+        }
+
+        // Fallback: buscar cualquier botón/enlace con X o close
+        const allBtns = Array.from(win.querySelectorAll('button, a, span')).filter(visible);
+        const xBtn = allBtns.find((n) => {
+          const t = normalize(n.textContent || n.getAttribute('title') || n.getAttribute('aria-label') || '');
+          return t === 'x' || t === '×' || t === '✕' || t.includes('close') || t.includes('cerrar');
+        });
+        if (xBtn) {
+          if (!xBtn.id) xBtn.setAttribute('data-catalogo-close-tmp', '1');
+          return { found: true, closeBtnId: xBtn.id || null, hasTmpAttr: !xBtn.id, title: titleText.slice(0, 40) };
+        }
+
+        return { found: true, closeBtnId: null, hasTmpAttr: false, title: titleText.slice(0, 40) };
+      }
+      return { found: false };
+    });
+
+    if (!modalInfo?.found) return false;
+
+    console.log(`CATALOGO_DIAGNOSTICOS_MODAL_DETECTED title="${modalInfo.title || ''}"`);
+
+    // Paso 2: cerrar con Playwright locator
+    if (modalInfo.closeBtnId) {
+      try {
+        const loc = page.locator(`#${CSS.escape(modalInfo.closeBtnId)}`).first();
+        if ((await loc.count()) > 0) {
+          await loc.click({ force: true, timeout: 2000 });
+          await waitForTimeoutRaw(page, 300);
+          console.log('CATALOGO_DIAGNOSTICOS_MODAL_CLOSED via=locator_id');
+          return true;
+        }
+      } catch {}
+    }
+
+    if (modalInfo.hasTmpAttr) {
+      try {
+        const loc = page.locator('[data-catalogo-close-tmp="1"]').first();
+        if ((await loc.count()) > 0) {
+          await loc.click({ force: true, timeout: 2000 });
+          await waitForTimeoutRaw(page, 300);
+          try { await page.evaluate(() => { document.querySelectorAll('[data-catalogo-close-tmp]').forEach(e => e.removeAttribute('data-catalogo-close-tmp')); }); } catch {}
+          console.log('CATALOGO_DIAGNOSTICOS_MODAL_CLOSED via=locator_tmp_attr');
+          return true;
+        }
+      } catch {}
+    }
+
+    // Fallback: selectores genéricos de cierre en ventana Kendo
+    const fallbackSelectors = [
+      '.k-window .k-window-titlebar .k-window-action',
+      '.k-window .k-window-titlebar .k-i-close',
+      '.k-window .k-window-titlebar [aria-label="Close"]'
+    ];
+    for (const sel of fallbackSelectors) {
+      try {
+        const loc = page.locator(sel).first();
+        if ((await loc.count()) > 0 && (await loc.isVisible())) {
+          await loc.click({ force: true, timeout: 2000 });
+          await waitForTimeoutRaw(page, 300);
+          console.log(`CATALOGO_DIAGNOSTICOS_MODAL_CLOSED via=locator_fallback sel="${sel}"`);
+          return true;
+        }
+      } catch {}
+    }
+
+    // Último fallback: Escape
+    try {
+      await page.keyboard.press('Escape');
+      await waitForTimeoutRaw(page, 300);
+      console.log('CATALOGO_DIAGNOSTICOS_MODAL_CLOSED via=escape');
+      return true;
+    } catch {}
+
+    console.log('CATALOGO_DIAGNOSTICOS_MODAL_CLOSE_FAIL');
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 async function clickGenerarIaByHumanAction(page) {
   if (isPageClosedSafe(page)) return false;
+
+  // Pre-check: cerrar modal "Catálogo de diagnósticos" si está abierto
+  await dismissCatalogoDiagnosticosModal(page);
+
   await scrollNotaMedicaToTop(page);
 
   // Paso 1: detectar botones "Generar" y obtener el mejor candidato (solo detección, sin click)
@@ -5484,6 +5625,9 @@ async function ensureNotaMedicaReadyForFinalize(page, origin = '') {
   // Paso 2: click en "Nota médica"
   const notaOpened = await openNotaMedicaFromSidebar(page, origin);
   if (!notaOpened) return false;
+
+  // Paso 2.5: cerrar modal "Catálogo de diagnósticos" si se abrió accidentalmente
+  await dismissCatalogoDiagnosticosModal(page);
 
   const initialState = await readNotaMedicaRequiredState(page);
   console.log(
@@ -10783,10 +10927,10 @@ async function openModuleFromExistingAppointmentInCalendar(page) {
       const opened = await openModuloFromExistingAppointmentSlot(page, slot, scanned, {
         requireVisibleQuickStatus: true,
         requireProgramadaQuickStatus: strictProgramadaVideo,
-        skipForceTooltip: true,
+        skipForceTooltip: false,
         controlledTwoStep: true,
-        maxAttempts: 1,
-        maxFocusLoops: 1
+        maxAttempts: 2,
+        maxFocusLoops: 2
       });
       if (opened.ok) {
         console.log(
@@ -10804,10 +10948,16 @@ async function openModuleFromExistingAppointmentInCalendar(page) {
       }
 
       console.log(`MODULE_OPEN_SKIP scanned=${scanned} reason=${opened.reason || 'unknown'}`);
+      // Si el Tablero Médico quedó abierto del intento anterior, cerrarlo
+      if (await isTableroMedicoTabActive(page)) {
+        console.log('MODULE_OPEN_SKIP_CLOSE_TABLERO cleaning residual tablero tab');
+        await closeTableroMedicoTab(page);
+        await waitForTimeoutRaw(page, 400);
+      }
       await ensureCalendarContext(page);
       if (MODE2_AUTO_FILTER) await applyAgendaFilter(page);
       await ensureWorkingHoursVisible(page);
-      await waitForTimeoutRaw(page, 260);
+      await waitForTimeoutRaw(page, 400);
     }
 
     if (runtimeFinalizadaSkips >= slots.length && slots.length > 0) {
