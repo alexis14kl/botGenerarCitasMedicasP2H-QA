@@ -1,55 +1,224 @@
-[2026-02-23T17:57:31.032Z] [INFO] LIVE_LOG_PATH=C:\Users\NyGsoft\Desktop\bot ordenes m\botGenerarCitasMedicasP2H-QA\login_medico_live.log
-[2026-02-23T17:57:31.036Z] [INFO] BOT_MAIN_MODE_SELECTED=2 (nota_medica_y_finalizar_cita_existente)
-[2026-02-23T17:57:31.037Z] [INFO] FLOW_RETRY_CONFIG RESTART_FROM_LOGIN_ON_BUG=1 FULL_FLOW_RETRIES=1 BOT_MAIN_MODE=2
-[2026-02-23T17:57:31.870Z] [INFO] PERF_CONFIG TIMEOUT_SCALE=0.86 MIN_WAIT_MS=60 SLOW_MO_MS=95
-[2026-02-23T17:57:31.871Z] [INFO] FLOW_GUARDS STRICT_NUEVA_CITA_MODAL=1 CLICK_SEARCH_AFTER_KEY=0 ENABLE_ENTER_FALLBACK=0 ALLOW_SAVE_ON_UNCONFIRMED_KEY=0 CATALOG_LOOP_MAX=2 MAX_KEY_ATTEMPTS=251 PRIORITIZE_RECENT_KEYS=0 KEY_SELECTION_MODE=random KEY_RANDOM_SEED=- REQUIRE_SAVE_ALERT=1 KEY_SETTLE_MS=900 KEY_RESOLUTION_TIMEOUT_MS=4200 COMMENT_CLICK_RETRIES=3 REVIEW_HOLD_MS=1800000 ERROR_REVIEW_HOLD_MS=1800000 KEY_EXHAUST_REVIEW_HOLD_MS=0
-[2026-02-23T17:57:31.871Z] [INFO] FLOW_MODULE_LOAD MODULE_LOAD_POLL_TIMEOUT_MS=45000 MODULE_LOAD_POLL_INTERVAL_MS=350 REVIEW_HOLD_MS=1800000 AUTO_OPEN_NOTA_MEDICA_AFTER_MODULE=1 RELOAD_BEFORE_NOTA_MEDICA=1 RELOAD_BEFORE_NOTA_MEDICA_TIMEOUT_MS=20000 RELOAD_BEFORE_NOTA_MEDICA_POLL_MS=320 NOTA_MEDICA_DELAY_MS=2000 NOTA_MEDICA_CLICK_TIMEOUT_MS=12000 AUTO_FILL_NOTA_MEDICA_FIELDS=1 AUTO_CLICK_GENERAR_IA_NOTA_MEDICA=1 NOTA_MEDICA_FIELDS_FILL_TIMEOUT_MS=18000 NOTA_MEDICA_FIELDS_FILL_RETRY_MS=320 AUTO_GENERAR_PLAN_TRATAMIENTO=1 PLAN_TRATAMIENTO_GENERAR_TIMEOUT_MS=12000 AUTO_GENERAR_RECETA_AFTER_IA=1 RECETA_AFTER_IA_WAIT_MS=3500 RECETA_CLICK_TIMEOUT_MS=12000
-[2026-02-23T17:57:31.872Z] [INFO] FLOW_POST_SAVE AUTO_OPEN_MODULE_AFTER_SAVE=1 POST_SAVE_REQUIRE_ASSIGNED_MODAL=1 POST_SAVE_ALLOW_GENERIC_MODULO_FALLBACK=0 POST_SAVE_MAX_RETRIES=4 POST_SAVE_RETRY_INTERVAL_MS=90 POST_SAVE_MODAL_CLICK_LOOP_MAX=3 POST_SAVE_MODAL_CLICK_LOOP_RETRY_MS=70
-[2026-02-23T17:57:31.872Z] [INFO] FLOW_MAIN_MODE mode=2 label=nota_medica_y_finalizar_cita_existente cancel_max=1 cancel_weeks=2 mode2_auto_filter=0 mode2_max_weeks=1 mode2_min_day_offset=1 mode2_skip_sundays=1 mode2_max_slot_candidates=16 mode2_per_day_cap=4
-[2026-02-23T17:57:31.873Z] [INFO] PATIENT_KEYS_SOURCE=file:C:\Users\NyGsoft\Desktop\bot ordenes m\botGenerarCitasMedicasP2H-QA\patient_keys.txt count=251
-[2026-02-23T17:57:31.874Z] [INFO] APPOINTMENT_MEMORY enabled=1 file="C:\Users\NyGsoft\Desktop\bot ordenes m\botGenerarCitasMedicasP2H-QA\appointment_memory_tmp.json" count=56 ttl_h=72
-[2026-02-23T17:57:31.874Z] [INFO] KEY_HEALTH enabled=1 file="C:\Users\NyGsoft\Desktop\bot ordenes m\botGenerarCitasMedicasP2H-QA\patient_key_health_tmp.json" count=360 ttl_h=168 hard_block=2
-[2026-02-23T17:57:31.875Z] [INFO] FLOW_ATTEMPT 1/1
-[2026-02-23T17:57:31.875Z] [INFO] Paso 1: abrir pagina inicial
-[2026-02-23T17:57:36.085Z] [INFO] Paso 2: escribir usuario y contrasena
-[2026-02-23T17:57:36.880Z] [INFO] Paso 3-4: seleccionar Empresa y Departamento (con verificacion fuerte)
-[2026-02-23T17:57:37.631Z] [INFO] Intento select-empresa 1: value=(vacio) ""
-[2026-02-23T17:57:37.642Z] [INFO] Departamento ready after empresa: 1
-[2026-02-23T17:57:39.228Z] [INFO] Intento select-departamento 1: value=CEX "PRÁCTICA MÉDICA"
-[2026-02-23T17:57:39.683Z] [INFO] Empresa final => value:PSV text:MEDICAL PRACTICE
-[2026-02-23T17:57:39.683Z] [INFO] Departamento final => value:CEX text:PRÁCTICA MÉDICA
-[2026-02-23T17:57:39.685Z] [INFO] Boton login disabled: false
-[2026-02-23T17:57:39.686Z] [INFO] Paso 5: iniciar sesion
-[2026-02-23T17:57:42.295Z] [INFO] LOGIN_OK
-[2026-02-23T17:57:42.296Z] [INFO] Paso 6: seleccionar Práctica médica y asegurar calendario
-[2026-02-23T17:57:45.123Z] [INFO] Paso 6 action practica_card ok=false
-[2026-02-23T17:57:45.321Z] [INFO] Paso 6 action agenda_option ok=true
-[2026-02-23T17:57:52.707Z] [INFO] Paso 6 action practica_card ok=true
-[2026-02-23T17:57:52.911Z] [INFO] Paso 6 action agenda_option ok=true
-[2026-02-23T17:58:00.853Z] [INFO] Paso 6 calendar listo (15931ms)
-[2026-02-23T17:58:02.659Z] [INFO] CALENDAR_CURRENT_WEEK_OK start=2026-02-22 end=2026-02-28 step=0
-[2026-02-23T17:58:02.670Z] [INFO] Paso 7: abrir módulo desde cita existente (intento 1/5)
-[2026-02-23T17:58:02.671Z] [INFO] MODULE_OPEN_FLOW_START search_weeks=1
-[2026-02-23T17:58:02.674Z] [INFO] MODULE_OPEN_DAY_FILTER min_day_iso=2026-02-24 offset=1 skip_sundays=1 auto_filter=0
-[2026-02-23T17:58:04.483Z] [INFO] CALENDAR_CURRENT_WEEK_OK start=2026-02-22 end=2026-02-28 step=0
-[2026-02-23T17:58:07.080Z] [INFO] MODULE_OPEN_FALLBACK non_finalizada_enabled week=0 slots=21
-[2026-02-23T17:58:07.101Z] [INFO] MODULE_OPEN_WEEK_SCAN week=0 slots=5 strict_video=0 max_candidates=16 per_day_cap=4
-[2026-02-23T17:58:07.101Z] [INFO] MODULE_OPEN_TRY slot=1/5 scanned=1 day=2026-02-24 status="-" number="41685" text="maria ester molina molina- 41685 12:00 am - 12:30 am"
-[2026-02-23T17:58:09.358Z] [INFO] CANCEL_SLOT_QUICK_STATE idx=1 attempt=1.1 visible=1 status=finalizada finalizada=1 programada=1 videollamada=1
-[2026-02-23T17:58:09.358Z] [INFO] CANCEL_SLOT_STEP1_SELECT idx=1 attempt=1.1 focused=1 opened=1 via=locator_click force_click=1
-[2026-02-23T17:58:09.359Z] [INFO] CANCEL_SLOT_FINALIZADA_AMBIGUOUS idx=1 attempt=1.1 action=continue_to_modulo
-[2026-02-23T17:58:09.689Z] [INFO] CANCEL_SLOT_STEP2_SETTLE idx=1 attempt=1.1.1 ok=0 via=quick_modal_without_modulo
-[2026-02-23T17:58:10.095Z] [INFO] CANCEL_SLOT_STEP2_SETTLE idx=1 attempt=1.1.2 ok=0 via=quick_modal_without_modulo
-[2026-02-23T17:58:10.563Z] [INFO] CANCEL_SLOT_STEP2_SETTLE idx=1 attempt=1.1.3 ok=0 via=quick_modal_without_modulo
-[2026-02-23T17:58:10.951Z] [INFO] MODULO_CLICK_OK via=force_tooltip:point:slot_locator_center:poll1:mouse_xy
-[2026-02-23T17:58:10.952Z] [INFO] CANCEL_SLOT_STEP2_FALLBACK idx=1 attempt=1.1 ok=1 via=force_tooltip:point:slot_locator_center:poll1:mouse_xy
-[2026-02-23T17:58:10.957Z] [INFO] CANCEL_SLOT_STEP2_MODULO idx=1 attempt=1.1 ok=1 via=force_tooltip:point:slot_locator_center:poll1:mouse_xy modal_before=1 modal_after=1 modal_closed=0 controlled=1
-[2026-02-23T17:58:11.087Z] [INFO] MODULO_CARGA_POLL origin=cancel_mode_slot_1_attempt_1 elapsed=24ms signal=none scheduler=1 pages=1
-[2026-02-23T17:58:14.497Z] [INFO] MODULO_CARGA_POLL origin=cancel_mode_slot_1_attempt_1 elapsed=3434ms signal=none scheduler=1 pages=1
-[2026-02-23T17:58:17.914Z] [INFO] MODULO_CARGA_POLL origin=cancel_mode_slot_1_attempt_1 elapsed=6850ms signal=none scheduler=1 pages=1
-[2026-02-23T17:58:21.305Z] [INFO] MODULO_CARGA_POLL origin=cancel_mode_slot_1_attempt_1 elapsed=10242ms signal=none scheduler=1 pages=1
-[2026-02-23T17:58:24.694Z] [INFO] MODULO_CARGA_POLL origin=cancel_mode_slot_1_attempt_1 elapsed=13631ms signal=none scheduler=1 pages=1
-[2026-02-23T17:58:28.216Z] [INFO] MODULO_CARGA_POLL origin=cancel_mode_slot_1_attempt_1 elapsed=17153ms signal=none scheduler=1 pages=1
-[2026-02-23T17:58:31.674Z] [INFO] MODULO_CARGA_POLL origin=cancel_mode_slot_1_attempt_1 elapsed=20611ms signal=none scheduler=1 pages=1
-[2026-02-23T17:58:35.064Z] [INFO] MODULO_CARGA_POLL origin=cancel_mode_slot_1_attempt_1 elapsed=24001ms signal=none scheduler=1 pages=1
-[2026-02-23T17:58:40.412Z] [INFO] MODULO_CARGA_POLL origin=cancel_mode_slot_1_attempt_1 elapsed=29349ms signal=none scheduler=1 pages=1
+[2026-02-23T18:05:02.898Z] [INFO] LIVE_LOG_PATH=C:\Users\NyGsoft\Desktop\bot ordenes m\botGenerarCitasMedicasP2H-QA\login_medico_live.log
+[2026-02-23T18:05:02.901Z] [INFO] BOT_MAIN_MODE_SELECTED=2 (nota_medica_y_finalizar_cita_existente)
+[2026-02-23T18:05:02.902Z] [INFO] FLOW_RETRY_CONFIG RESTART_FROM_LOGIN_ON_BUG=1 FULL_FLOW_RETRIES=1 BOT_MAIN_MODE=2
+[2026-02-23T18:05:04.198Z] [INFO] PERF_CONFIG TIMEOUT_SCALE=0.86 MIN_WAIT_MS=60 SLOW_MO_MS=95
+[2026-02-23T18:05:04.200Z] [INFO] FLOW_GUARDS STRICT_NUEVA_CITA_MODAL=1 CLICK_SEARCH_AFTER_KEY=0 ENABLE_ENTER_FALLBACK=0 ALLOW_SAVE_ON_UNCONFIRMED_KEY=0 CATALOG_LOOP_MAX=2 MAX_KEY_ATTEMPTS=251 PRIORITIZE_RECENT_KEYS=0 KEY_SELECTION_MODE=random KEY_RANDOM_SEED=- REQUIRE_SAVE_ALERT=1 KEY_SETTLE_MS=900 KEY_RESOLUTION_TIMEOUT_MS=4200 COMMENT_CLICK_RETRIES=3 REVIEW_HOLD_MS=1800000 ERROR_REVIEW_HOLD_MS=1800000 KEY_EXHAUST_REVIEW_HOLD_MS=0
+[2026-02-23T18:05:04.201Z] [INFO] FLOW_MODULE_LOAD MODULE_LOAD_POLL_TIMEOUT_MS=45000 MODULE_LOAD_POLL_INTERVAL_MS=350 REVIEW_HOLD_MS=1800000 AUTO_OPEN_NOTA_MEDICA_AFTER_MODULE=1 RELOAD_BEFORE_NOTA_MEDICA=1 RELOAD_BEFORE_NOTA_MEDICA_TIMEOUT_MS=20000 RELOAD_BEFORE_NOTA_MEDICA_POLL_MS=320 NOTA_MEDICA_DELAY_MS=2000 NOTA_MEDICA_CLICK_TIMEOUT_MS=12000 AUTO_FILL_NOTA_MEDICA_FIELDS=1 AUTO_CLICK_GENERAR_IA_NOTA_MEDICA=1 NOTA_MEDICA_FIELDS_FILL_TIMEOUT_MS=18000 NOTA_MEDICA_FIELDS_FILL_RETRY_MS=320 AUTO_GENERAR_PLAN_TRATAMIENTO=1 PLAN_TRATAMIENTO_GENERAR_TIMEOUT_MS=12000 AUTO_GENERAR_RECETA_AFTER_IA=1 RECETA_AFTER_IA_WAIT_MS=3500 RECETA_CLICK_TIMEOUT_MS=12000
+[2026-02-23T18:05:04.202Z] [INFO] FLOW_POST_SAVE AUTO_OPEN_MODULE_AFTER_SAVE=1 POST_SAVE_REQUIRE_ASSIGNED_MODAL=1 POST_SAVE_ALLOW_GENERIC_MODULO_FALLBACK=0 POST_SAVE_MAX_RETRIES=4 POST_SAVE_RETRY_INTERVAL_MS=90 POST_SAVE_MODAL_CLICK_LOOP_MAX=3 POST_SAVE_MODAL_CLICK_LOOP_RETRY_MS=70
+[2026-02-23T18:05:04.203Z] [INFO] FLOW_MAIN_MODE mode=2 label=nota_medica_y_finalizar_cita_existente cancel_max=1 cancel_weeks=2 mode2_auto_filter=0 mode2_max_weeks=1 mode2_min_day_offset=1 mode2_skip_sundays=1 mode2_max_slot_candidates=16 mode2_per_day_cap=4
+[2026-02-23T18:05:04.221Z] [INFO] PATIENT_KEYS_SOURCE=file:C:\Users\NyGsoft\Desktop\bot ordenes m\botGenerarCitasMedicasP2H-QA\patient_keys.txt count=251
+[2026-02-23T18:05:04.222Z] [INFO] APPOINTMENT_MEMORY enabled=1 file="C:\Users\NyGsoft\Desktop\bot ordenes m\botGenerarCitasMedicasP2H-QA\appointment_memory_tmp.json" count=56 ttl_h=72
+[2026-02-23T18:05:04.228Z] [INFO] KEY_HEALTH enabled=1 file="C:\Users\NyGsoft\Desktop\bot ordenes m\botGenerarCitasMedicasP2H-QA\patient_key_health_tmp.json" count=360 ttl_h=168 hard_block=2
+[2026-02-23T18:05:04.229Z] [INFO] FLOW_ATTEMPT 1/1
+[2026-02-23T18:05:04.229Z] [INFO] Paso 1: abrir pagina inicial
+[2026-02-23T18:05:08.622Z] [INFO] Paso 2: escribir usuario y contrasena
+[2026-02-23T18:05:09.457Z] [INFO] Paso 3-4: seleccionar Empresa y Departamento (con verificacion fuerte)
+[2026-02-23T18:05:10.315Z] [INFO] Intento select-empresa 1: value=(vacio) ""
+[2026-02-23T18:05:10.338Z] [INFO] Departamento ready after empresa: 1
+[2026-02-23T18:05:11.999Z] [INFO] Intento select-departamento 1: value=CEX "PRÁCTICA MÉDICA"
+[2026-02-23T18:05:12.485Z] [INFO] Empresa final => value:PSV text:MEDICAL PRACTICE
+[2026-02-23T18:05:12.485Z] [INFO] Departamento final => value:CEX text:PRÁCTICA MÉDICA
+[2026-02-23T18:05:12.497Z] [INFO] Boton login disabled: false
+[2026-02-23T18:05:12.497Z] [INFO] Paso 5: iniciar sesion
+[2026-02-23T18:05:14.771Z] [INFO] LOGIN_OK
+[2026-02-23T18:05:14.966Z] [INFO] Paso 6: seleccionar Práctica médica y asegurar calendario
+[2026-02-23T18:05:17.845Z] [INFO] Paso 6 action practica_card ok=true
+[2026-02-23T18:05:18.049Z] [INFO] Paso 6 action agenda_option ok=true
+[2026-02-23T18:05:25.434Z] [INFO] Paso 6 action practica_card ok=false
+[2026-02-23T18:05:25.638Z] [INFO] Paso 6 action agenda_option ok=true
+[2026-02-23T18:05:33.421Z] [INFO] Paso 6 action practica_card ok=true
+[2026-02-23T18:05:33.625Z] [INFO] Paso 6 action agenda_option ok=true
+[2026-02-23T18:05:35.801Z] [INFO] Paso 6 calendar listo (18074ms)
+[2026-02-23T18:05:38.506Z] [INFO] CALENDAR_CURRENT_WEEK_OK start=2026-02-22 end=2026-02-28 step=0
+[2026-02-23T18:05:38.548Z] [INFO] Paso 7: abrir módulo desde cita existente (intento 1/5)
+[2026-02-23T18:05:38.621Z] [INFO] MODULE_OPEN_FLOW_START search_weeks=1
+[2026-02-23T18:05:38.663Z] [INFO] MODULE_OPEN_DAY_FILTER min_day_iso=2026-02-24 offset=1 skip_sundays=1 auto_filter=0
+[2026-02-23T18:05:40.484Z] [INFO] CALENDAR_CURRENT_WEEK_OK start=2026-02-22 end=2026-02-28 step=0
+[2026-02-23T18:05:43.054Z] [INFO] MODULE_OPEN_FALLBACK non_finalizada_enabled week=0 slots=21
+[2026-02-23T18:05:43.079Z] [INFO] MODULE_OPEN_WEEK_SCAN week=0 slots=5 strict_video=0 max_candidates=16 per_day_cap=4
+[2026-02-23T18:05:43.079Z] [INFO] MODULE_OPEN_TRY slot=1/5 scanned=1 day=2026-02-24 status="-" number="41685" text="maria ester molina molina- 41685 12:00 am - 12:30 am"
+[2026-02-23T18:05:45.449Z] [INFO] CANCEL_SLOT_QUICK_STATE idx=1 attempt=1.1 visible=1 status=finalizada finalizada=1 programada=1 videollamada=1
+[2026-02-23T18:05:45.450Z] [INFO] CANCEL_SLOT_STEP1_SELECT idx=1 attempt=1.1 focused=1 opened=1 via=locator_click force_click=1
+[2026-02-23T18:05:45.450Z] [INFO] CANCEL_SLOT_FINALIZADA_AMBIGUOUS idx=1 attempt=1.1 action=continue_to_modulo
+[2026-02-23T18:05:45.786Z] [INFO] CANCEL_SLOT_STEP2_SETTLE idx=1 attempt=1.1.1 ok=0 via=quick_modal_without_modulo
+[2026-02-23T18:05:46.184Z] [INFO] CANCEL_SLOT_STEP2_SETTLE idx=1 attempt=1.1.2 ok=0 via=quick_modal_without_modulo
+[2026-02-23T18:05:46.666Z] [INFO] CANCEL_SLOT_STEP2_SETTLE idx=1 attempt=1.1.3 ok=0 via=quick_modal_without_modulo
+[2026-02-23T18:05:47.346Z] [INFO] MODULO_CLICK_OK via=force_tooltip:point:slot_locator_center:poll1:mouse_xy
+[2026-02-23T18:05:47.347Z] [INFO] CANCEL_SLOT_STEP2_FALLBACK idx=1 attempt=1.1 ok=1 via=force_tooltip:point:slot_locator_center:poll1:mouse_xy
+[2026-02-23T18:05:47.361Z] [INFO] CANCEL_SLOT_STEP2_MODULO idx=1 attempt=1.1 ok=1 via=force_tooltip:point:slot_locator_center:poll1:mouse_xy modal_before=1 modal_after=1 modal_closed=0 controlled=1
+[2026-02-23T18:05:47.702Z] [INFO] MODULO_CARGA_POLL origin=cancel_mode_slot_1_attempt_1 elapsed=61ms signal=none scheduler=1 pages=1
+[2026-02-23T18:05:51.298Z] [INFO] MODULO_CARGA_POLL origin=cancel_mode_slot_1_attempt_1 elapsed=3657ms signal=none scheduler=1 pages=1
+[2026-02-23T18:05:54.863Z] [INFO] MODULO_CARGA_POLL origin=cancel_mode_slot_1_attempt_1 elapsed=7222ms signal=none scheduler=1 pages=1
+[2026-02-23T18:05:58.455Z] [INFO] MODULO_CARGA_POLL origin=cancel_mode_slot_1_attempt_1 elapsed=10814ms signal=none scheduler=1 pages=1
+[2026-02-23T18:06:02.046Z] [INFO] MODULO_CARGA_POLL origin=cancel_mode_slot_1_attempt_1 elapsed=14405ms signal=none scheduler=1 pages=1
+[2026-02-23T18:06:05.580Z] [INFO] MODULO_CARGA_POLL origin=cancel_mode_slot_1_attempt_1 elapsed=17939ms signal=none scheduler=1 pages=1
+[2026-02-23T18:06:11.126Z] [INFO] MODULO_CARGA_POLL origin=cancel_mode_slot_1_attempt_1 elapsed=23485ms signal=none scheduler=1 pages=1
+[2026-02-23T18:06:14.840Z] [INFO] MODULO_CARGA_POLL origin=cancel_mode_slot_1_attempt_1 elapsed=27199ms signal=none scheduler=1 pages=1
+[2026-02-23T18:06:18.414Z] [INFO] MODULO_CARGA_POLL origin=cancel_mode_slot_1_attempt_1 elapsed=30773ms signal=none scheduler=1 pages=1
+[2026-02-23T18:06:21.973Z] [INFO] MODULO_CARGA_POLL origin=cancel_mode_slot_1_attempt_1 elapsed=34332ms signal=none scheduler=1 pages=1
+[2026-02-23T18:06:25.654Z] [INFO] MODULO_CARGA_POLL origin=cancel_mode_slot_1_attempt_1 elapsed=38013ms signal=none scheduler=1 pages=1
+[2026-02-23T18:06:29.223Z] [INFO] MODULO_CARGA_POLL origin=cancel_mode_slot_1_attempt_1 elapsed=41582ms signal=none scheduler=1 pages=1
+[2026-02-23T18:06:32.761Z] [INFO] MODULO_CARGADO_TIMEOUT origin=cancel_mode_slot_1_attempt_1 elapsed=45120ms last_signal=none
+[2026-02-23T18:06:32.763Z] [INFO] CANCEL_SLOT_MODULE_LOAD idx=1 attempt=1 loaded=0 click_via=force_tooltip:point:slot_locator_center:poll1:mouse_xy
+[2026-02-23T18:06:37.385Z] [INFO] CANCEL_SLOT_QUICK_STATE idx=1 attempt=2.1 visible=0 status=none finalizada=0 programada=0 videollamada=0
+[2026-02-23T18:06:37.385Z] [INFO] CANCEL_SLOT_STEP1_SELECT idx=1 attempt=2.1 focused=1 opened=0 via=not_opened force_click=1
+[2026-02-23T18:06:39.732Z] [INFO] CANCEL_SLOT_QUICK_STATE idx=1 attempt=2.2 visible=0 status=none finalizada=0 programada=0 videollamada=0
+[2026-02-23T18:06:39.733Z] [INFO] CANCEL_SLOT_STEP1_SELECT idx=1 attempt=2.2 focused=1 opened=0 via=not_opened force_click=1
+[2026-02-23T18:06:39.829Z] [INFO] CANCEL_SLOT_MODULO_RETRY idx=1 attempt=2 reason=quick_modal_not_visible
+[2026-02-23T18:06:39.915Z] [INFO] MODULE_OPEN_SKIP scanned=1 reason=quick_modal_not_visible
+[2026-02-23T18:06:39.984Z] [INFO] Paso 6 calendar ya visible (63ms)
+[2026-02-23T18:06:42.212Z] [INFO] MODULE_OPEN_TRY slot=2/5 scanned=2 day=2026-02-25 status="-" number="41692" text="juana francisca solano de reales- 41692 1:30 am - 2:00 am"
+[2026-02-23T18:06:44.818Z] [INFO] CANCEL_SLOT_QUICK_STATE idx=2 attempt=1.1 visible=0 status=none finalizada=0 programada=0 videollamada=0
+[2026-02-23T18:06:44.818Z] [INFO] CANCEL_SLOT_STEP1_SELECT idx=2 attempt=1.1 focused=1 opened=0 via=not_opened force_click=1
+[2026-02-23T18:06:47.265Z] [INFO] CANCEL_SLOT_QUICK_STATE idx=2 attempt=1.2 visible=0 status=none finalizada=0 programada=0 videollamada=0
+[2026-02-23T18:06:47.266Z] [INFO] CANCEL_SLOT_STEP1_SELECT idx=2 attempt=1.2 focused=1 opened=0 via=not_opened force_click=1
+[2026-02-23T18:06:47.348Z] [INFO] CANCEL_SLOT_MODULO_RETRY idx=2 attempt=1 reason=quick_modal_not_visible
+[2026-02-23T18:06:49.799Z] [INFO] CANCEL_SLOT_QUICK_STATE idx=2 attempt=2.1 visible=0 status=none finalizada=0 programada=0 videollamada=0
+[2026-02-23T18:06:49.799Z] [INFO] CANCEL_SLOT_STEP1_SELECT idx=2 attempt=2.1 focused=1 opened=0 via=not_opened force_click=1
+[2026-02-23T18:06:52.167Z] [INFO] CANCEL_SLOT_QUICK_STATE idx=2 attempt=2.2 visible=0 status=none finalizada=0 programada=0 videollamada=0
+[2026-02-23T18:06:52.167Z] [INFO] CANCEL_SLOT_STEP1_SELECT idx=2 attempt=2.2 focused=1 opened=0 via=not_opened force_click=1
+[2026-02-23T18:06:52.248Z] [INFO] CANCEL_SLOT_MODULO_RETRY idx=2 attempt=2 reason=quick_modal_not_visible
+[2026-02-23T18:06:52.331Z] [INFO] MODULE_OPEN_SKIP scanned=2 reason=quick_modal_not_visible
+[2026-02-23T18:06:52.402Z] [INFO] Paso 6 calendar ya visible (65ms)
+[2026-02-23T18:06:54.632Z] [INFO] MODULE_OPEN_TRY slot=3/5 scanned=3 day=2026-02-24 status="-" number="41733" text="edys araniva chavez- 41733 3:30 am - 4:00 am"
+[2026-02-23T18:06:57.418Z] [INFO] CANCEL_SLOT_QUICK_STATE idx=3 attempt=1.1 visible=0 status=none finalizada=0 programada=0 videollamada=0
+[2026-02-23T18:06:57.418Z] [INFO] CANCEL_SLOT_STEP1_SELECT idx=3 attempt=1.1 focused=1 opened=0 via=not_opened force_click=1
+[2026-02-23T18:06:59.771Z] [INFO] CANCEL_SLOT_QUICK_STATE idx=3 attempt=1.2 visible=0 status=none finalizada=0 programada=0 videollamada=0
+[2026-02-23T18:06:59.771Z] [INFO] CANCEL_SLOT_STEP1_SELECT idx=3 attempt=1.2 focused=1 opened=0 via=not_opened force_click=1
+[2026-02-23T18:06:59.854Z] [INFO] CANCEL_SLOT_MODULO_RETRY idx=3 attempt=1 reason=quick_modal_not_visible
+[2026-02-23T18:07:02.478Z] [INFO] CANCEL_SLOT_QUICK_STATE idx=3 attempt=2.1 visible=0 status=none finalizada=0 programada=0 videollamada=0
+[2026-02-23T18:07:02.479Z] [INFO] CANCEL_SLOT_STEP1_SELECT idx=3 attempt=2.1 focused=1 opened=0 via=not_opened force_click=1
+[2026-02-23T18:07:05.232Z] [INFO] CANCEL_SLOT_QUICK_STATE idx=3 attempt=2.2 visible=0 status=none finalizada=0 programada=0 videollamada=0
+[2026-02-23T18:07:05.236Z] [INFO] CANCEL_SLOT_STEP1_SELECT idx=3 attempt=2.2 focused=1 opened=0 via=not_opened force_click=1
+[2026-02-23T18:07:05.326Z] [INFO] CANCEL_SLOT_MODULO_RETRY idx=3 attempt=2 reason=quick_modal_not_visible
+[2026-02-23T18:07:05.414Z] [INFO] MODULE_OPEN_SKIP scanned=3 reason=quick_modal_not_visible
+[2026-02-23T18:07:06.114Z] [INFO] Paso 6 calendar ya visible (679ms)
+[2026-02-23T18:07:08.347Z] [INFO] MODULE_OPEN_TRY slot=4/5 scanned=4 day=2026-02-24 status="-" number="41739" text="christian vizcarra;;;;;;- 41739 7:00 am - 7:30 am"
+[2026-02-23T18:07:15.086Z] [INFO] MODULE_OPEN_TABLERO_ALREADY_ACTIVE_SLOT slot=4/5
+[2026-02-23T18:07:15.087Z] [INFO] MODULE_OPEN_RESULT ok=1 scanned=4 attempted=4 reason=- attempt=1
+[2026-02-23T18:07:18.508Z] [INFO] MODULO_PAGE_TARGET_OK page_idx=1/1 signal=token:nota medica elapsed=925ms
+[2026-02-23T18:07:18.514Z] [INFO] Paso 8: Nota médica (validar/completar) y finalizar cita (intento 1)
+[2026-02-23T18:07:18.782Z] [INFO] MODE2_NOTA_FINALIZAR_START origin=mode2_existing_appointment
+[2026-02-23T18:07:18.829Z] [INFO] TABLERO_MEDICO_SIDEBAR_READY elapsed=23ms via=id
+[2026-02-23T18:07:22.232Z] [INFO] NOTA_MEDICA_CLICK_OK via=btn_id origin=mode2_existing_appointment elapsed=1139ms
+[2026-02-23T18:07:23.413Z] [INFO] NOTA_MEDICA_STATE_PRE origin=mode2_existing_appointment filled=0/5 missing=consulta_por,triage,presente_enfermedad,apreciacion_diagnostica,diagnostico_principal
+[2026-02-23T18:07:23.419Z] [INFO] NOTA_MEDICA_FIELDS_FILL_START origin=mode2_existing_appointment click_generar=1
+[2026-02-23T18:07:28.228Z] [INFO] NOTA_MEDICA_FIELD_SKIP_EXISTING origin=mode2_existing_appointment skipped=triage,presente_enfermedad,apreciacion_diagnostica
+[2026-02-23T18:07:30.675Z] [INFO] NOTA_MEDICA_FIELD_SKIP_EXISTING origin=mode2_existing_appointment skipped=triage,presente_enfermedad,apreciacion_diagnostica
+[2026-02-23T18:07:30.675Z] [INFO] NOTA_MEDICA_FIELDS_FILL_RETRY origin=mode2_existing_appointment attempts=3 filled=1/5 strict=3/3 ready=0 captured=0/0 touched=0/0 generar=0 missing=consulta_por,presente_enfermedad,apreciacion_diagnostica,diagnostico_principal
+[2026-02-23T18:07:33.044Z] [INFO] NOTA_MEDICA_FIELD_SKIP_EXISTING origin=mode2_existing_appointment skipped=triage,presente_enfermedad,apreciacion_diagnostica
+[2026-02-23T18:07:35.481Z] [INFO] NOTA_MEDICA_FIELD_SKIP_EXISTING origin=mode2_existing_appointment skipped=triage,presente_enfermedad,apreciacion_diagnostica
+[2026-02-23T18:07:37.676Z] [INFO] NOTA_MEDICA_FIELD_SKIP_EXISTING origin=mode2_existing_appointment skipped=triage,presente_enfermedad,apreciacion_diagnostica
+[2026-02-23T18:07:37.677Z] [INFO] NOTA_MEDICA_FIELDS_FILL_RETRY origin=mode2_existing_appointment attempts=6 filled=1/5 strict=3/3 ready=0 captured=0/0 touched=0/0 generar=0 missing=consulta_por,presente_enfermedad,apreciacion_diagnostica,diagnostico_principal
+[2026-02-23T18:07:40.158Z] [INFO] NOTA_MEDICA_FIELD_SKIP_EXISTING origin=mode2_existing_appointment skipped=triage,presente_enfermedad,apreciacion_diagnostica
+[2026-02-23T18:07:42.575Z] [INFO] NOTA_MEDICA_FIELD_SKIP_EXISTING origin=mode2_existing_appointment skipped=triage,presente_enfermedad,apreciacion_diagnostica
+[2026-02-23T18:07:43.070Z] [INFO] NOTA_MEDICA_FIELDS_FILL_TIMEOUT origin=mode2_existing_appointment attempts=8 filled=1/5 strict=3/3 ready=0 missing=consulta_por,presente_enfermedad,apreciacion_diagnostica,diagnostico_principal
+[2026-02-23T18:07:43.077Z] [INFO] MODE2_NOTA_FINALIZAR_FAIL origin=mode2_existing_appointment step=nota_ready
+[2026-02-23T18:07:43.098Z] [INFO] MODE2_PATIENT_FAIL attempt=1 - cerrando tablero y buscando otra cita
+[2026-02-23T18:07:44.025Z] [INFO] CLOSE_TABLERO_TAB_FAIL
+[2026-02-23T18:07:44.843Z] [INFO] Paso 7: abrir módulo desde cita existente (intento 2/5)
+[2026-02-23T18:07:44.848Z] [INFO] MODULE_OPEN_FLOW_START search_weeks=1
+[2026-02-23T18:07:44.872Z] [INFO] MODULE_OPEN_TABLERO_ALREADY_ACTIVE skipping_agenda_scan
+[2026-02-23T18:07:44.874Z] [INFO] MODULE_OPEN_RESULT ok=1 scanned=0 attempted=0 reason=- attempt=2
+[2026-02-23T18:07:45.204Z] [INFO] MODULO_PAGE_TARGET_OK page_idx=1/1 signal=token:nota medica elapsed=321ms
+[2026-02-23T18:07:45.215Z] [INFO] Paso 8: Nota médica (validar/completar) y finalizar cita (intento 2)
+[2026-02-23T18:07:45.528Z] [INFO] MODE2_NOTA_FINALIZAR_START origin=mode2_existing_appointment
+[2026-02-23T18:07:45.704Z] [INFO] TABLERO_MEDICO_SIDEBAR_READY elapsed=60ms via=id
+[2026-02-23T18:07:49.076Z] [INFO] NOTA_MEDICA_CLICK_OK via=btn_id origin=mode2_existing_appointment elapsed=1066ms
+[2026-02-23T18:07:50.695Z] [INFO] NOTA_MEDICA_STATE_PRE origin=mode2_existing_appointment filled=0/5 missing=consulta_por,triage,presente_enfermedad,apreciacion_diagnostica,diagnostico_principal
+[2026-02-23T18:07:50.696Z] [INFO] NOTA_MEDICA_FIELDS_FILL_START origin=mode2_existing_appointment click_generar=1
+[2026-02-23T18:07:53.263Z] [INFO] NOTA_MEDICA_FIELD_SKIP_EXISTING origin=mode2_existing_appointment skipped=triage,presente_enfermedad,apreciacion_diagnostica
+[2026-02-23T18:07:55.651Z] [INFO] NOTA_MEDICA_FIELD_SKIP_EXISTING origin=mode2_existing_appointment skipped=triage,presente_enfermedad,apreciacion_diagnostica
+[2026-02-23T18:07:57.856Z] [INFO] NOTA_MEDICA_FIELD_SKIP_EXISTING origin=mode2_existing_appointment skipped=triage,presente_enfermedad,apreciacion_diagnostica
+[2026-02-23T18:07:57.857Z] [INFO] NOTA_MEDICA_FIELDS_FILL_RETRY origin=mode2_existing_appointment attempts=3 filled=1/5 strict=3/3 ready=0 captured=0/0 touched=0/0 generar=0 missing=consulta_por,presente_enfermedad,apreciacion_diagnostica,diagnostico_principal
+[2026-02-23T18:08:00.185Z] [INFO] NOTA_MEDICA_FIELD_SKIP_EXISTING origin=mode2_existing_appointment skipped=triage,presente_enfermedad,apreciacion_diagnostica
+[2026-02-23T18:08:03.002Z] [INFO] NOTA_MEDICA_FIELD_SKIP_EXISTING origin=mode2_existing_appointment skipped=triage,presente_enfermedad,apreciacion_diagnostica
+[2026-02-23T18:08:05.664Z] [INFO] NOTA_MEDICA_FIELD_SKIP_EXISTING origin=mode2_existing_appointment skipped=triage,presente_enfermedad,apreciacion_diagnostica
+[2026-02-23T18:08:05.666Z] [INFO] NOTA_MEDICA_FIELDS_FILL_RETRY origin=mode2_existing_appointment attempts=6 filled=1/5 strict=3/3 ready=0 captured=0/0 touched=0/0 generar=0 missing=consulta_por,presente_enfermedad,apreciacion_diagnostica,diagnostico_principal
+[2026-02-23T18:08:07.816Z] [INFO] NOTA_MEDICA_FIELD_SKIP_EXISTING origin=mode2_existing_appointment skipped=triage,presente_enfermedad,apreciacion_diagnostica
+[2026-02-23T18:08:10.032Z] [INFO] NOTA_MEDICA_FIELD_SKIP_EXISTING origin=mode2_existing_appointment skipped=triage,presente_enfermedad,apreciacion_diagnostica
+[2026-02-23T18:08:10.365Z] [INFO] NOTA_MEDICA_FIELDS_FILL_TIMEOUT origin=mode2_existing_appointment attempts=8 filled=1/5 strict=3/3 ready=0 missing=consulta_por,presente_enfermedad,apreciacion_diagnostica,diagnostico_principal
+[2026-02-23T18:08:10.366Z] [INFO] MODE2_NOTA_FINALIZAR_FAIL origin=mode2_existing_appointment step=nota_ready
+[2026-02-23T18:08:10.371Z] [INFO] MODE2_PATIENT_FAIL attempt=2 - cerrando tablero y buscando otra cita
+[2026-02-23T18:08:11.254Z] [INFO] CLOSE_TABLERO_TAB_FAIL
+[2026-02-23T18:08:12.070Z] [INFO] Paso 7: abrir módulo desde cita existente (intento 3/5)
+[2026-02-23T18:08:12.089Z] [INFO] MODULE_OPEN_FLOW_START search_weeks=1
+[2026-02-23T18:08:12.142Z] [INFO] MODULE_OPEN_TABLERO_ALREADY_ACTIVE skipping_agenda_scan
+[2026-02-23T18:08:12.144Z] [INFO] MODULE_OPEN_RESULT ok=1 scanned=0 attempted=0 reason=- attempt=3
+[2026-02-23T18:08:12.646Z] [INFO] MODULO_PAGE_TARGET_OK page_idx=1/1 signal=token:nota medica elapsed=443ms
+[2026-02-23T18:08:12.664Z] [INFO] Paso 8: Nota médica (validar/completar) y finalizar cita (intento 3)
+[2026-02-23T18:08:12.699Z] [INFO] MODE2_NOTA_FINALIZAR_START origin=mode2_existing_appointment
+[2026-02-23T18:08:12.730Z] [INFO] TABLERO_MEDICO_SIDEBAR_READY elapsed=9ms via=id
+[2026-02-23T18:08:15.841Z] [INFO] NOTA_MEDICA_CLICK_OK via=btn_id origin=mode2_existing_appointment elapsed=863ms
+[2026-02-23T18:08:17.469Z] [INFO] NOTA_MEDICA_STATE_PRE origin=mode2_existing_appointment filled=5/5 missing=-
+[2026-02-23T18:08:19.214Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:08:19.734Z] [INFO] NOTA_MEDICA_READY_PRECHECK_REPAIR origin=mode2_existing_appointment generar=1 alerts=1
+[2026-02-23T18:08:19.735Z] [INFO] NOTA_MEDICA_FIELDS_FILL_START origin=mode2_existing_appointment click_generar=1
+[2026-02-23T18:08:22.635Z] [INFO] NOTA_MEDICA_FIELD_SKIP_EXISTING origin=mode2_existing_appointment skipped=consulta_por,triage,presente_enfermedad,apreciacion_diagnostica
+[2026-02-23T18:08:26.948Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:08:27.163Z] [INFO] NOTA_MEDICA_GENERAR_RETRY_CAPTURE_ALERT origin=mode2_existing_appointment click_try=1
+[2026-02-23T18:08:31.266Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:08:31.502Z] [INFO] NOTA_MEDICA_GENERAR_RETRY_CAPTURE_ALERT origin=mode2_existing_appointment click_try=2
+[2026-02-23T18:08:35.867Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:08:36.065Z] [INFO] NOTA_MEDICA_GENERAR_RETRY_CAPTURE_ALERT origin=mode2_existing_appointment click_try=3
+[2026-02-23T18:08:40.138Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:08:40.333Z] [INFO] NOTA_MEDICA_GENERAR_RETRY_CAPTURE_ALERT origin=mode2_existing_appointment click_try=4
+[2026-02-23T18:08:42.178Z] [INFO] NOTA_MEDICA_FIELDS_FILL_TIMEOUT origin=mode2_existing_appointment attempts=1 filled=5/5 strict=3/3 ready=1 missing=
+[2026-02-23T18:08:42.179Z] [INFO] MODE2_NOTA_FINALIZAR_FAIL origin=mode2_existing_appointment step=nota_ready
+[2026-02-23T18:08:42.184Z] [INFO] MODE2_PATIENT_FAIL attempt=3 - cerrando tablero y buscando otra cita
+[2026-02-23T18:08:42.761Z] [INFO] CLOSE_TABLERO_TAB_FAIL
+[2026-02-23T18:08:43.578Z] [INFO] Paso 7: abrir módulo desde cita existente (intento 4/5)
+[2026-02-23T18:08:43.582Z] [INFO] MODULE_OPEN_FLOW_START search_weeks=1
+[2026-02-23T18:08:43.590Z] [INFO] MODULE_OPEN_TABLERO_ALREADY_ACTIVE skipping_agenda_scan
+[2026-02-23T18:08:43.590Z] [INFO] MODULE_OPEN_RESULT ok=1 scanned=0 attempted=0 reason=- attempt=4
+[2026-02-23T18:08:43.845Z] [INFO] MODULO_PAGE_TARGET_OK page_idx=1/1 signal=token:nota medica elapsed=243ms
+[2026-02-23T18:08:43.852Z] [INFO] Paso 8: Nota médica (validar/completar) y finalizar cita (intento 4)
+[2026-02-23T18:08:43.855Z] [INFO] MODE2_NOTA_FINALIZAR_START origin=mode2_existing_appointment
+[2026-02-23T18:08:43.868Z] [INFO] TABLERO_MEDICO_SIDEBAR_READY elapsed=4ms via=id
+[2026-02-23T18:08:44.022Z] [INFO] NOTA_MEDICA_ALREADY_ACTIVE origin=mode2_existing_appointment
+[2026-02-23T18:08:45.173Z] [INFO] NOTA_MEDICA_STATE_PRE origin=mode2_existing_appointment filled=5/5 missing=-
+[2026-02-23T18:08:46.158Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:08:46.579Z] [INFO] NOTA_MEDICA_READY_PRECHECK_REPAIR origin=mode2_existing_appointment generar=1 alerts=1
+[2026-02-23T18:08:46.579Z] [INFO] NOTA_MEDICA_FIELDS_FILL_START origin=mode2_existing_appointment click_generar=1
+[2026-02-23T18:08:49.233Z] [INFO] NOTA_MEDICA_FIELD_SKIP_EXISTING origin=mode2_existing_appointment skipped=consulta_por,triage,presente_enfermedad,apreciacion_diagnostica,diagnostico_principal
+[2026-02-23T18:08:53.410Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:08:53.569Z] [INFO] NOTA_MEDICA_GENERAR_RETRY_CAPTURE_ALERT origin=mode2_existing_appointment click_try=1
+[2026-02-23T18:08:57.307Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:08:57.478Z] [INFO] NOTA_MEDICA_GENERAR_RETRY_CAPTURE_ALERT origin=mode2_existing_appointment click_try=2
+[2026-02-23T18:09:01.192Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:09:01.364Z] [INFO] NOTA_MEDICA_GENERAR_RETRY_CAPTURE_ALERT origin=mode2_existing_appointment click_try=3
+[2026-02-23T18:09:05.092Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:09:05.261Z] [INFO] NOTA_MEDICA_GENERAR_RETRY_CAPTURE_ALERT origin=mode2_existing_appointment click_try=4
+[2026-02-23T18:09:07.125Z] [INFO] NOTA_MEDICA_FIELDS_FILL_TIMEOUT origin=mode2_existing_appointment attempts=1 filled=5/5 strict=3/3 ready=1 missing=
+[2026-02-23T18:09:07.126Z] [INFO] MODE2_NOTA_FINALIZAR_FAIL origin=mode2_existing_appointment step=nota_ready
+[2026-02-23T18:09:07.129Z] [INFO] MODE2_PATIENT_FAIL attempt=4 - cerrando tablero y buscando otra cita
+[2026-02-23T18:09:07.711Z] [INFO] CLOSE_TABLERO_TAB_FAIL
+[2026-02-23T18:09:08.533Z] [INFO] Paso 7: abrir módulo desde cita existente (intento 5/5)
+[2026-02-23T18:09:08.538Z] [INFO] MODULE_OPEN_FLOW_START search_weeks=1
+[2026-02-23T18:09:08.550Z] [INFO] MODULE_OPEN_TABLERO_ALREADY_ACTIVE skipping_agenda_scan
+[2026-02-23T18:09:08.551Z] [INFO] MODULE_OPEN_RESULT ok=1 scanned=0 attempted=0 reason=- attempt=5
+[2026-02-23T18:09:08.833Z] [INFO] MODULO_PAGE_TARGET_OK page_idx=1/1 signal=token:nota medica elapsed=277ms
+[2026-02-23T18:09:08.836Z] [INFO] Paso 8: Nota médica (validar/completar) y finalizar cita (intento 5)
+[2026-02-23T18:09:08.844Z] [INFO] MODE2_NOTA_FINALIZAR_START origin=mode2_existing_appointment
+[2026-02-23T18:09:08.855Z] [INFO] TABLERO_MEDICO_SIDEBAR_READY elapsed=4ms via=id
+[2026-02-23T18:09:09.045Z] [INFO] NOTA_MEDICA_ALREADY_ACTIVE origin=mode2_existing_appointment
+[2026-02-23T18:09:10.499Z] [INFO] NOTA_MEDICA_STATE_PRE origin=mode2_existing_appointment filled=5/5 missing=-
+[2026-02-23T18:09:11.459Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:09:11.893Z] [INFO] NOTA_MEDICA_READY_PRECHECK_REPAIR origin=mode2_existing_appointment generar=1 alerts=1
+[2026-02-23T18:09:11.894Z] [INFO] NOTA_MEDICA_FIELDS_FILL_START origin=mode2_existing_appointment click_generar=1
+[2026-02-23T18:09:14.236Z] [INFO] NOTA_MEDICA_FIELD_SKIP_EXISTING origin=mode2_existing_appointment skipped=consulta_por,triage,presente_enfermedad,apreciacion_diagnostica,diagnostico_principal
+[2026-02-23T18:09:17.982Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:09:18.203Z] [INFO] NOTA_MEDICA_GENERAR_RETRY_CAPTURE_ALERT origin=mode2_existing_appointment click_try=1
+[2026-02-23T18:09:22.425Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:09:22.595Z] [INFO] NOTA_MEDICA_GENERAR_RETRY_CAPTURE_ALERT origin=mode2_existing_appointment click_try=2
+[2026-02-23T18:09:26.342Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:09:26.485Z] [INFO] NOTA_MEDICA_GENERAR_RETRY_CAPTURE_ALERT origin=mode2_existing_appointment click_try=3
+[2026-02-23T18:09:30.210Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:09:30.379Z] [INFO] NOTA_MEDICA_GENERAR_RETRY_CAPTURE_ALERT origin=mode2_existing_appointment click_try=4
+[2026-02-23T18:09:32.124Z] [INFO] NOTA_MEDICA_FIELDS_FILL_TIMEOUT origin=mode2_existing_appointment attempts=1 filled=5/5 strict=3/3 ready=1 missing=
+[2026-02-23T18:09:32.125Z] [INFO] MODE2_NOTA_FINALIZAR_FAIL origin=mode2_existing_appointment step=nota_ready
+[2026-02-23T18:09:32.129Z] [INFO] MODE2_PATIENT_FAIL attempt=5 - cerrando tablero y buscando otra cita
+[2026-02-23T18:09:32.561Z] [INFO] CLOSE_TABLERO_TAB_FAIL
+[2026-02-23T18:09:33.381Z] [ERROR] LOGIN_ERROR: No se logró completar Nota médica y finalizar cita después de 5 intentos.
+[2026-02-23T18:09:34.440Z] [INFO] Error capturado.
+[2026-02-23T18:09:34.441Z] [INFO] Navegador abierto 1800s para diagnostico de error.

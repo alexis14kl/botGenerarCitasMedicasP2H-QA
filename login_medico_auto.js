@@ -436,6 +436,76 @@ function isPageClosedSafe(page) {
   }
 }
 
+/**
+ * Inyecta/actualiza un overlay flotante en la página para mostrar el estado del bot.
+ * @param {import('playwright').Page} page
+ * @param {'working'|'success'|'error'|'waiting'|'info'} status
+ * @param {string} message - Texto a mostrar
+ */
+async function updateBotStatusOverlay(page, status, message) {
+  if (isPageClosedSafe(page)) return;
+  try {
+    await page.evaluate(({ status, message }) => {
+      const OVERLAY_ID = '__noyecodito_bot_overlay__';
+      let overlay = document.getElementById(OVERLAY_ID);
+      if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = OVERLAY_ID;
+        overlay.style.cssText = `
+          position: fixed;
+          bottom: 12px;
+          right: 12px;
+          z-index: 2147483647;
+          padding: 10px 16px;
+          border-radius: 12px;
+          font-family: 'Segoe UI', Tahoma, sans-serif;
+          font-size: 13px;
+          font-weight: 600;
+          color: #fff;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+          pointer-events: none;
+          transition: all 0.3s ease;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          max-width: 380px;
+          backdrop-filter: blur(8px);
+          border: 1px solid rgba(255,255,255,0.2);
+        `;
+        document.body.appendChild(overlay);
+      }
+
+      const configs = {
+        working:  { bg: 'linear-gradient(135deg, #0088ff, #00c6ff)', emoji: '\u{1F916}', pulse: true },
+        success:  { bg: 'linear-gradient(135deg, #00b894, #00cec9)', emoji: '\u2705',     pulse: false },
+        error:    { bg: 'linear-gradient(135deg, #e74c3c, #fd79a8)', emoji: '\u274C',     pulse: false },
+        waiting:  { bg: 'linear-gradient(135deg, #fdcb6e, #e17055)', emoji: '\u23F3',     pulse: true },
+        info:     { bg: 'linear-gradient(135deg, #6c5ce7, #a29bfe)', emoji: '\u{1F4CB}', pulse: false }
+      };
+
+      const cfg = configs[status] || configs.info;
+      overlay.style.background = cfg.bg;
+      overlay.innerHTML = `<span style="font-size:18px">${cfg.emoji}</span><span>Noyecodito ${message}</span>`;
+
+      // Animación de pulso para estados activos
+      const animId = '__noyecodito_pulse_anim__';
+      let styleEl = document.getElementById(animId);
+      if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = animId;
+        styleEl.textContent = `
+          @keyframes noyecoditoPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(1.02); }
+          }
+        `;
+        document.head.appendChild(styleEl);
+      }
+      overlay.style.animation = cfg.pulse ? 'noyecoditoPulse 2s ease-in-out infinite' : 'none';
+    }, { status, message });
+  } catch {}
+}
+
 function normalizeText(value) {
   return (value || '')
     .toString()
@@ -6259,21 +6329,27 @@ async function clickFinalizarCitaInModuleWithRetry(page, options = {}) {
 async function processNotaMedicaAndFinalizar(page, origin = '') {
   if (isPageClosedSafe(page)) return false;
   console.log(`MODE2_NOTA_FINALIZAR_START origin=${origin || '-'}`);
+  await updateBotStatusOverlay(page, 'working', 'abriendo Nota médica...');
 
   const ready = await ensureNotaMedicaReadyForFinalize(page, origin);
   if (!ready) {
     console.log(`MODE2_NOTA_FINALIZAR_FAIL origin=${origin || '-'} step=nota_ready`);
+    await updateBotStatusOverlay(page, 'error', 'falló en Nota médica');
     return false;
   }
+  await updateBotStatusOverlay(page, 'working', 'generando Plan de tratamiento...');
   const planReady = await ensurePlanTratamientoAndGenerate(page, origin);
   if (!planReady) {
     console.log(`MODE2_NOTA_FINALIZAR_FAIL origin=${origin || '-'} step=plan_tratamiento`);
+    await updateBotStatusOverlay(page, 'error', 'falló en Plan tratamiento');
     return false;
   }
 
+  await updateBotStatusOverlay(page, 'working', 'finalizando cita...');
   const clickedFinalizar = await clickFinalizarCitaInModuleWithRetry(page);
   if (!clickedFinalizar) {
     console.log(`MODE2_NOTA_FINALIZAR_FAIL origin=${origin || '-'} step=click_finalizar`);
+    await updateBotStatusOverlay(page, 'error', 'falló al click Finalizar');
     return false;
   }
 
@@ -6282,6 +6358,7 @@ async function processNotaMedicaAndFinalizar(page, origin = '') {
   console.log(
     `MODE2_NOTA_FINALIZAR_OK origin=${origin || '-'} clicked=1 confirmed=${confirmed ? 1 : 0} feedback=${feedback ? 1 : 0}`
   );
+  await updateBotStatusOverlay(page, 'success', 'cita finalizada exitosamente!');
   return true;
 }
 
@@ -11344,6 +11421,7 @@ async function runSingleFlowAttempt(attempt, totalAttempts) {
 
     console.log('Paso 1: abrir pagina inicial');
     await page.goto(START_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await updateBotStatusOverlay(page, 'working', 'iniciando sesión...');
     await page.bringToFront();
     await page.mouse.click(200, 200);
     await page.waitForTimeout(600);
@@ -11360,6 +11438,7 @@ async function runSingleFlowAttempt(attempt, totalAttempts) {
     if (!loginOk) throw new Error('No se detectó sesión iniciada después del login.');
     await page.waitForTimeout(1000);
     console.log('LOGIN_OK');
+    await updateBotStatusOverlay(page, 'success', 'login exitoso!');
 
     if (ONLY_LOGIN) {
       console.log('Modo ONLY_LOGIN activo.');
@@ -11369,6 +11448,7 @@ async function runSingleFlowAttempt(attempt, totalAttempts) {
 
     if (ONLY_SELECT_CALENDAR_FIELD) {
       console.log('Paso 6: seleccionar Práctica médica y asegurar calendario');
+      await updateBotStatusOverlay(page, 'working', 'cargando agenda médica...');
       // Espera generosa para que el portal cargue completamente tras login
       await page.waitForTimeout(3000);
       await dismissNetworkBanners(page);
@@ -11407,6 +11487,7 @@ async function runSingleFlowAttempt(attempt, totalAttempts) {
           if (isPageClosedSafe(page)) break;
 
           console.log(`Paso 7: abrir módulo desde cita existente (intento ${patientAttempt + 1}/${MODE2_MAX_PATIENT_RETRIES})`);
+          await updateBotStatusOverlay(page, 'working', `buscando cita... (${patientAttempt + 1}/${MODE2_MAX_PATIENT_RETRIES})`);
           let moduleOpen;
           if (patientAttempt === 0 && earlyModuleOpened) {
             moduleOpen = { ok: true, scanned: 0, attempted: 0, via: 'p2h_popup_direct' };
@@ -11417,8 +11498,10 @@ async function runSingleFlowAttempt(attempt, totalAttempts) {
             `MODULE_OPEN_RESULT ok=${moduleOpen.ok ? 1 : 0} scanned=${moduleOpen.scanned || 0} attempted=${moduleOpen.attempted || 0} reason=${moduleOpen.reason || '-'} attempt=${patientAttempt + 1}`
           );
           if (!moduleOpen.ok) {
+            await updateBotStatusOverlay(page, 'error', 'no se pudo abrir módulo');
             throw new Error('No se logró abrir el módulo de una cita existente.');
           }
+          await updateBotStatusOverlay(page, 'waiting', 'cargando módulo paciente...');
           const target = await getLoadedModuloPage(page, 60000);
           if (!target?.page) {
             console.log(`MODE2_NO_MODULE_PAGE attempt=${patientAttempt + 1} - cerrando tablero y reintentando`);
@@ -11428,19 +11511,23 @@ async function runSingleFlowAttempt(attempt, totalAttempts) {
           }
           try { await target.page.bringToFront(); } catch {}
           console.log(`Paso 8: Nota médica (validar/completar) y finalizar cita (intento ${patientAttempt + 1})`);
+          await updateBotStatusOverlay(target.page, 'working', 'procesando Nota médica...');
           const notaFinalizada = await processNotaMedicaAndFinalizar(target.page, 'mode2_existing_appointment');
           if (notaFinalizada) {
+            await updateBotStatusOverlay(target.page, 'success', 'cita finalizada!');
             mode2Success = true;
             break;
           }
 
           // Falló → cerrar Tablero Médico y volver a agenda para intentar otra cita
           console.log(`MODE2_PATIENT_FAIL attempt=${patientAttempt + 1} - cerrando tablero y buscando otra cita`);
+          await updateBotStatusOverlay(page, 'waiting', `reintentando... (${patientAttempt + 1}/${MODE2_MAX_PATIENT_RETRIES})`);
           await closeTableroMedicoTab(page);
           await waitForTimeoutRaw(page, 800);
         }
 
         if (!mode2Success) {
+          await updateBotStatusOverlay(page, 'error', 'falló después de todos los intentos');
           throw new Error(`No se logró completar Nota médica y finalizar cita después de ${MODE2_MAX_PATIENT_RETRIES} intentos.`);
         }
       } else if (AUTO_CREATE_APPOINTMENT) {
@@ -11502,6 +11589,7 @@ async function runSingleFlowAttempt(attempt, totalAttempts) {
       const pages = browser?.contexts?.()[0]?.pages?.() || [];
       if (pages.length) {
         const page = pages[0];
+        await updateBotStatusOverlay(page, 'error', `falló: ${message.slice(0, 60)}`);
         await page.screenshot({ path: 'login_medico_error.png', fullPage: true });
         await page.screenshot({ path: `login_medico_error_attempt${attempt}.png`, fullPage: true });
         if (retryable) {
