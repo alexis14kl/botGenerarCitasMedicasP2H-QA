@@ -1,53 +1,51 @@
-[2026-02-23T16:19:12.857Z] [INFO] LIVE_LOG_PATH=C:\Users\NyGsoft\Desktop\bot ordenes m\botGenerarCitasMedicasP2H-QA\login_medico_live.log
-[2026-02-23T16:19:12.861Z] [INFO] BOT_MAIN_MODE_SELECTED=2 (nota_medica_y_finalizar_cita_existente)
-[2026-02-23T16:19:12.861Z] [INFO] FLOW_RETRY_CONFIG RESTART_FROM_LOGIN_ON_BUG=1 FULL_FLOW_RETRIES=1 BOT_MAIN_MODE=2
-[2026-02-23T16:19:13.730Z] [INFO] PERF_CONFIG TIMEOUT_SCALE=0.86 MIN_WAIT_MS=60 SLOW_MO_MS=95
-[2026-02-23T16:19:13.732Z] [INFO] FLOW_GUARDS STRICT_NUEVA_CITA_MODAL=1 CLICK_SEARCH_AFTER_KEY=0 ENABLE_ENTER_FALLBACK=0 ALLOW_SAVE_ON_UNCONFIRMED_KEY=0 CATALOG_LOOP_MAX=2 MAX_KEY_ATTEMPTS=251 PRIORITIZE_RECENT_KEYS=0 KEY_SELECTION_MODE=random KEY_RANDOM_SEED=- REQUIRE_SAVE_ALERT=1 KEY_SETTLE_MS=900 KEY_RESOLUTION_TIMEOUT_MS=4200 COMMENT_CLICK_RETRIES=3 REVIEW_HOLD_MS=1800000 ERROR_REVIEW_HOLD_MS=1800000 KEY_EXHAUST_REVIEW_HOLD_MS=0
-[2026-02-23T16:19:13.736Z] [INFO] FLOW_MODULE_LOAD MODULE_LOAD_POLL_TIMEOUT_MS=45000 MODULE_LOAD_POLL_INTERVAL_MS=350 REVIEW_HOLD_MS=1800000 AUTO_OPEN_NOTA_MEDICA_AFTER_MODULE=1 RELOAD_BEFORE_NOTA_MEDICA=1 RELOAD_BEFORE_NOTA_MEDICA_TIMEOUT_MS=20000 RELOAD_BEFORE_NOTA_MEDICA_POLL_MS=320 NOTA_MEDICA_DELAY_MS=2000 NOTA_MEDICA_CLICK_TIMEOUT_MS=12000 AUTO_FILL_NOTA_MEDICA_FIELDS=1 AUTO_CLICK_GENERAR_IA_NOTA_MEDICA=1 NOTA_MEDICA_FIELDS_FILL_TIMEOUT_MS=18000 NOTA_MEDICA_FIELDS_FILL_RETRY_MS=320 AUTO_GENERAR_PLAN_TRATAMIENTO=1 PLAN_TRATAMIENTO_GENERAR_TIMEOUT_MS=12000 AUTO_GENERAR_RECETA_AFTER_IA=1 RECETA_AFTER_IA_WAIT_MS=3500 RECETA_CLICK_TIMEOUT_MS=12000
-[2026-02-23T16:19:13.737Z] [INFO] FLOW_POST_SAVE AUTO_OPEN_MODULE_AFTER_SAVE=1 POST_SAVE_REQUIRE_ASSIGNED_MODAL=1 POST_SAVE_ALLOW_GENERIC_MODULO_FALLBACK=0 POST_SAVE_MAX_RETRIES=4 POST_SAVE_RETRY_INTERVAL_MS=90 POST_SAVE_MODAL_CLICK_LOOP_MAX=3 POST_SAVE_MODAL_CLICK_LOOP_RETRY_MS=70
-[2026-02-23T16:19:13.739Z] [INFO] FLOW_MAIN_MODE mode=2 label=nota_medica_y_finalizar_cita_existente cancel_max=1 cancel_weeks=2 mode2_auto_filter=0 mode2_max_weeks=1 mode2_min_day_offset=1 mode2_skip_sundays=1 mode2_max_slot_candidates=16 mode2_per_day_cap=4
-[2026-02-23T16:19:13.740Z] [INFO] PATIENT_KEYS_SOURCE=file:C:\Users\NyGsoft\Desktop\bot ordenes m\botGenerarCitasMedicasP2H-QA\patient_keys.txt count=251
-[2026-02-23T16:19:13.742Z] [INFO] APPOINTMENT_MEMORY enabled=1 file="C:\Users\NyGsoft\Desktop\bot ordenes m\botGenerarCitasMedicasP2H-QA\appointment_memory_tmp.json" count=56 ttl_h=72
-[2026-02-23T16:19:13.742Z] [INFO] KEY_HEALTH enabled=1 file="C:\Users\NyGsoft\Desktop\bot ordenes m\botGenerarCitasMedicasP2H-QA\patient_key_health_tmp.json" count=360 ttl_h=168 hard_block=2
-[2026-02-23T16:19:13.743Z] [INFO] FLOW_ATTEMPT 1/1
-[2026-02-23T16:19:13.745Z] [INFO] Paso 1: abrir pagina inicial
-[2026-02-23T16:19:19.160Z] [INFO] Paso 2: escribir usuario y contrasena
-[2026-02-23T16:19:19.956Z] [INFO] Paso 3-4: seleccionar Empresa y Departamento (con verificacion fuerte)
-[2026-02-23T16:19:20.733Z] [INFO] Intento select-empresa 1: value=(vacio) ""
-[2026-02-23T16:19:20.744Z] [INFO] Departamento ready after empresa: 1
-[2026-02-23T16:19:22.337Z] [INFO] Intento select-departamento 1: value=CEX "PRÁCTICA MÉDICA"
-[2026-02-23T16:19:22.790Z] [INFO] Empresa final => value:PSV text:MEDICAL PRACTICE
-[2026-02-23T16:19:22.791Z] [INFO] Departamento final => value:CEX text:PRÁCTICA MÉDICA
-[2026-02-23T16:19:22.796Z] [INFO] Boton login disabled: false
-[2026-02-23T16:19:22.796Z] [INFO] Paso 5: iniciar sesion
-[2026-02-23T16:19:25.130Z] [INFO] LOGIN_OK
-[2026-02-23T16:19:25.130Z] [INFO] Paso 6: seleccionar Práctica médica y asegurar calendario
-[2026-02-23T16:19:27.866Z] [INFO] Paso 6 action practica_card ok=true
-[2026-02-23T16:19:28.333Z] [INFO] Paso 6 action agenda_option ok=true
-[2026-02-23T16:19:36.547Z] [INFO] Paso 6 calendar listo (8825ms)
-[2026-02-23T16:19:38.358Z] [INFO] CALENDAR_CURRENT_WEEK_OK start=2026-02-22 end=2026-02-28 step=0
-[2026-02-23T16:19:38.371Z] [INFO] Paso 7: abrir módulo desde cita existente
-[2026-02-23T16:19:38.373Z] [INFO] MODULE_OPEN_FLOW_START search_weeks=1
-[2026-02-23T16:19:38.373Z] [INFO] MODULE_OPEN_DAY_FILTER min_day_iso=2026-02-24 offset=1 skip_sundays=1 auto_filter=0
-[2026-02-23T16:19:40.189Z] [INFO] CALENDAR_CURRENT_WEEK_OK start=2026-02-22 end=2026-02-28 step=0
-[2026-02-23T16:19:42.779Z] [INFO] MODULE_OPEN_FALLBACK non_finalizada_enabled week=0 slots=21
-[2026-02-23T16:19:42.803Z] [INFO] MODULE_OPEN_WEEK_SCAN week=0 slots=5 strict_video=0 max_candidates=16 per_day_cap=4
-[2026-02-23T16:19:42.804Z] [INFO] MODULE_OPEN_TRY slot=1/5 scanned=1 day=2026-02-24 status="-" number="41685" text="maria ester molina molina- 41685 12:00 am - 12:30 am"
-[2026-02-23T16:19:45.015Z] [INFO] CANCEL_SLOT_QUICK_STATE idx=1 attempt=1.1 visible=1 status=finalizada finalizada=1 programada=1 videollamada=1
-[2026-02-23T16:19:45.016Z] [INFO] CANCEL_SLOT_STEP1_SELECT idx=1 attempt=1.1 focused=1 opened=1 via=locator_click force_click=1
-[2026-02-23T16:19:45.016Z] [INFO] CANCEL_SLOT_FINALIZADA_AMBIGUOUS idx=1 attempt=1.1 action=continue_to_modulo
-[2026-02-23T16:19:45.359Z] [INFO] CANCEL_SLOT_STEP2_SETTLE idx=1 attempt=1.1.1 ok=0 via=quick_modal_without_modulo
-[2026-02-23T16:19:45.755Z] [INFO] CANCEL_SLOT_STEP2_SETTLE idx=1 attempt=1.1.2 ok=0 via=quick_modal_without_modulo
-[2026-02-23T16:19:46.223Z] [INFO] CANCEL_SLOT_STEP2_SETTLE idx=1 attempt=1.1.3 ok=0 via=quick_modal_without_modulo
-[2026-02-23T16:19:46.632Z] [INFO] MODULO_CLICK_OK via=force_tooltip:point:slot_locator_center:poll1:mouse_xy
-[2026-02-23T16:19:46.633Z] [INFO] CANCEL_SLOT_STEP2_FALLBACK idx=1 attempt=1.1 ok=1 via=force_tooltip:point:slot_locator_center:poll1:mouse_xy
-[2026-02-23T16:19:46.641Z] [INFO] CANCEL_SLOT_STEP2_MODULO idx=1 attempt=1.1 ok=1 via=force_tooltip:point:slot_locator_center:poll1:mouse_xy modal_before=1 modal_after=1 modal_closed=0 controlled=1
-[2026-02-23T16:19:46.844Z] [INFO] MODULO_CARGA_POLL origin=cancel_mode_slot_1_attempt_1 elapsed=53ms signal=none scheduler=1 pages=1
-[2026-02-23T16:19:50.391Z] [INFO] MODULO_CARGA_POLL origin=cancel_mode_slot_1_attempt_1 elapsed=3601ms signal=none scheduler=1 pages=1
-[2026-02-23T16:19:53.807Z] [INFO] MODULO_CARGA_POLL origin=cancel_mode_slot_1_attempt_1 elapsed=7017ms signal=none scheduler=1 pages=1
-[2026-02-23T16:19:57.304Z] [INFO] MODULO_CARGA_POLL origin=cancel_mode_slot_1_attempt_1 elapsed=10513ms signal=none scheduler=1 pages=1
-[2026-02-23T16:20:00.780Z] [INFO] MODULO_CARGA_POLL origin=cancel_mode_slot_1_attempt_1 elapsed=13990ms signal=none scheduler=1 pages=1
-[2026-02-23T16:20:04.372Z] [INFO] MODULO_CARGA_POLL origin=cancel_mode_slot_1_attempt_1 elapsed=17582ms signal=none scheduler=1 pages=1
-[2026-02-23T16:20:09.274Z] [INFO] MODULO_CARGA_POLL origin=cancel_mode_slot_1_attempt_1 elapsed=22484ms signal=none scheduler=1 pages=1
-[2026-02-23T16:20:12.770Z] [INFO] MODULO_CARGA_POLL origin=cancel_mode_slot_1_attempt_1 elapsed=25979ms signal=none scheduler=1 pages=1
-[2026-02-23T16:20:16.503Z] [INFO] MODULO_CARGA_POLL origin=cancel_mode_slot_1_attempt_1 elapsed=29712ms signal=none scheduler=1 pages=1
+[2026-02-23T16:34:35.018Z] [INFO] LIVE_LOG_PATH=C:\Users\NyGsoft\Desktop\bot ordenes m\botGenerarCitasMedicasP2H-QA\login_medico_live.log
+[2026-02-23T16:34:35.021Z] [INFO] BOT_MAIN_MODE_SELECTED=2 (nota_medica_y_finalizar_cita_existente)
+[2026-02-23T16:34:35.022Z] [INFO] FLOW_RETRY_CONFIG RESTART_FROM_LOGIN_ON_BUG=1 FULL_FLOW_RETRIES=1 BOT_MAIN_MODE=2
+[2026-02-23T16:34:36.418Z] [INFO] PERF_CONFIG TIMEOUT_SCALE=0.86 MIN_WAIT_MS=60 SLOW_MO_MS=95
+[2026-02-23T16:34:36.419Z] [INFO] FLOW_GUARDS STRICT_NUEVA_CITA_MODAL=1 CLICK_SEARCH_AFTER_KEY=0 ENABLE_ENTER_FALLBACK=0 ALLOW_SAVE_ON_UNCONFIRMED_KEY=0 CATALOG_LOOP_MAX=2 MAX_KEY_ATTEMPTS=251 PRIORITIZE_RECENT_KEYS=0 KEY_SELECTION_MODE=random KEY_RANDOM_SEED=- REQUIRE_SAVE_ALERT=1 KEY_SETTLE_MS=900 KEY_RESOLUTION_TIMEOUT_MS=4200 COMMENT_CLICK_RETRIES=3 REVIEW_HOLD_MS=1800000 ERROR_REVIEW_HOLD_MS=1800000 KEY_EXHAUST_REVIEW_HOLD_MS=0
+[2026-02-23T16:34:36.419Z] [INFO] FLOW_MODULE_LOAD MODULE_LOAD_POLL_TIMEOUT_MS=45000 MODULE_LOAD_POLL_INTERVAL_MS=350 REVIEW_HOLD_MS=1800000 AUTO_OPEN_NOTA_MEDICA_AFTER_MODULE=1 RELOAD_BEFORE_NOTA_MEDICA=1 RELOAD_BEFORE_NOTA_MEDICA_TIMEOUT_MS=20000 RELOAD_BEFORE_NOTA_MEDICA_POLL_MS=320 NOTA_MEDICA_DELAY_MS=2000 NOTA_MEDICA_CLICK_TIMEOUT_MS=12000 AUTO_FILL_NOTA_MEDICA_FIELDS=1 AUTO_CLICK_GENERAR_IA_NOTA_MEDICA=1 NOTA_MEDICA_FIELDS_FILL_TIMEOUT_MS=18000 NOTA_MEDICA_FIELDS_FILL_RETRY_MS=320 AUTO_GENERAR_PLAN_TRATAMIENTO=1 PLAN_TRATAMIENTO_GENERAR_TIMEOUT_MS=12000 AUTO_GENERAR_RECETA_AFTER_IA=1 RECETA_AFTER_IA_WAIT_MS=3500 RECETA_CLICK_TIMEOUT_MS=12000
+[2026-02-23T16:34:36.420Z] [INFO] FLOW_POST_SAVE AUTO_OPEN_MODULE_AFTER_SAVE=1 POST_SAVE_REQUIRE_ASSIGNED_MODAL=1 POST_SAVE_ALLOW_GENERIC_MODULO_FALLBACK=0 POST_SAVE_MAX_RETRIES=4 POST_SAVE_RETRY_INTERVAL_MS=90 POST_SAVE_MODAL_CLICK_LOOP_MAX=3 POST_SAVE_MODAL_CLICK_LOOP_RETRY_MS=70
+[2026-02-23T16:34:36.421Z] [INFO] FLOW_MAIN_MODE mode=2 label=nota_medica_y_finalizar_cita_existente cancel_max=1 cancel_weeks=2 mode2_auto_filter=0 mode2_max_weeks=1 mode2_min_day_offset=1 mode2_skip_sundays=1 mode2_max_slot_candidates=16 mode2_per_day_cap=4
+[2026-02-23T16:34:36.421Z] [INFO] PATIENT_KEYS_SOURCE=file:C:\Users\NyGsoft\Desktop\bot ordenes m\botGenerarCitasMedicasP2H-QA\patient_keys.txt count=251
+[2026-02-23T16:34:36.422Z] [INFO] APPOINTMENT_MEMORY enabled=1 file="C:\Users\NyGsoft\Desktop\bot ordenes m\botGenerarCitasMedicasP2H-QA\appointment_memory_tmp.json" count=56 ttl_h=72
+[2026-02-23T16:34:36.437Z] [INFO] KEY_HEALTH enabled=1 file="C:\Users\NyGsoft\Desktop\bot ordenes m\botGenerarCitasMedicasP2H-QA\patient_key_health_tmp.json" count=360 ttl_h=168 hard_block=2
+[2026-02-23T16:34:36.440Z] [INFO] FLOW_ATTEMPT 1/1
+[2026-02-23T16:34:36.441Z] [INFO] Paso 1: abrir pagina inicial
+[2026-02-23T16:34:40.045Z] [INFO] Paso 2: escribir usuario y contrasena
+[2026-02-23T16:34:40.875Z] [INFO] Paso 3-4: seleccionar Empresa y Departamento (con verificacion fuerte)
+[2026-02-23T16:34:41.626Z] [INFO] Intento select-empresa 1: value=(vacio) ""
+[2026-02-23T16:34:41.637Z] [INFO] Departamento ready after empresa: 1
+[2026-02-23T16:34:43.206Z] [INFO] Intento select-departamento 1: value=CEX "PRÁCTICA MÉDICA"
+[2026-02-23T16:34:43.646Z] [INFO] Empresa final => value:PSV text:MEDICAL PRACTICE
+[2026-02-23T16:34:43.646Z] [INFO] Departamento final => value:CEX text:PRÁCTICA MÉDICA
+[2026-02-23T16:34:43.649Z] [INFO] Boton login disabled: false
+[2026-02-23T16:34:43.649Z] [INFO] Paso 5: iniciar sesion
+[2026-02-23T16:34:46.116Z] [INFO] LOGIN_OK
+[2026-02-23T16:34:46.118Z] [INFO] Paso 6: seleccionar Práctica médica y asegurar calendario
+[2026-02-23T16:34:48.889Z] [INFO] Paso 6 action practica_card ok=true
+[2026-02-23T16:34:49.104Z] [INFO] Paso 6 action agenda_option ok=true
+[2026-02-23T16:34:57.673Z] [INFO] Paso 6 action practica_card ok=false
+[2026-02-23T16:34:57.915Z] [INFO] Paso 6 action agenda_option ok=true
+[2026-02-23T16:34:58.029Z] [INFO] Paso 6 calendar listo (9315ms)
+[2026-02-23T16:34:59.846Z] [INFO] CALENDAR_CURRENT_WEEK_OK start=2026-02-22 end=2026-02-28 step=0
+[2026-02-23T16:34:59.990Z] [INFO] DISMISS_STALE_P2H_POPUP action=abrir_modulo via=p2h_class sel="[id$="MP_HOS930_btnModulo"]"
+[2026-02-23T16:35:00.688Z] [INFO] P2H_POPUP_ABRIR_MODULO_CLICKED - esperando carga de módulo...
+[2026-02-23T16:35:00.723Z] [INFO] MODULO_CARGA_POLL origin=p2h_popup_direct elapsed=34ms signal=none scheduler=1 pages=1
+[2026-02-23T16:35:04.193Z] [INFO] MODULO_CARGA_POLL origin=p2h_popup_direct elapsed=3504ms signal=none scheduler=1 pages=1
+[2026-02-23T16:35:07.856Z] [INFO] MODULO_CARGA_POLL origin=p2h_popup_direct elapsed=7167ms signal=none scheduler=1 pages=1
+[2026-02-23T16:35:11.310Z] [INFO] MODULO_CARGA_POLL origin=p2h_popup_direct elapsed=10621ms signal=none scheduler=1 pages=1
+[2026-02-23T16:35:17.498Z] [INFO] MODULO_CARGA_POLL origin=p2h_popup_direct elapsed=16808ms signal=none scheduler=1 pages=1
+[2026-02-23T16:35:21.078Z] [INFO] MODULO_CARGA_POLL origin=p2h_popup_direct elapsed=20388ms signal=none scheduler=1 pages=1
+[2026-02-23T16:35:24.785Z] [INFO] MODULO_CARGA_POLL origin=p2h_popup_direct elapsed=24096ms signal=none scheduler=1 pages=1
+[2026-02-23T16:35:28.193Z] [INFO] MODULO_CARGA_POLL origin=p2h_popup_direct elapsed=27504ms signal=none scheduler=1 pages=1
+[2026-02-23T16:35:31.631Z] [INFO] MODULO_CARGA_POLL origin=p2h_popup_direct elapsed=30942ms signal=none scheduler=1 pages=1
+[2026-02-23T16:35:35.081Z] [INFO] MODULO_CARGA_POLL origin=p2h_popup_direct elapsed=34392ms signal=none scheduler=1 pages=1
+[2026-02-23T16:35:38.576Z] [INFO] MODULO_CARGA_POLL origin=p2h_popup_direct elapsed=37887ms signal=none scheduler=1 pages=1
+[2026-02-23T16:35:42.404Z] [INFO] MODULO_CARGA_POLL origin=p2h_popup_direct elapsed=41715ms signal=none scheduler=1 pages=1
+[2026-02-23T16:35:46.140Z] [INFO] MODULO_CARGADO_TIMEOUT origin=p2h_popup_direct elapsed=45451ms last_signal=none
+[2026-02-23T16:35:46.142Z] [INFO] P2H_POPUP_MODULE_LOAD_FAILED - continuando con búsqueda normal
+[2026-02-23T16:35:46.159Z] [INFO] Paso 7: abrir módulo desde cita existente
+[2026-02-23T16:35:46.163Z] [INFO] MODULE_OPEN_FLOW_START search_weeks=1
+[2026-02-23T16:35:46.169Z] [INFO] MODULE_OPEN_DAY_FILTER min_day_iso=2026-02-24 offset=1 skip_sundays=1 auto_filter=0
+[2026-02-23T16:35:56.475Z] [INFO] CALENDAR_CURRENT_WEEK_ADJUST step=1/6 action=none start=- end=- label=""
+[2026-02-23T16:35:56.496Z] [INFO] CALENDAR_CURRENT_WEEK_WARN start=- end=- label=""

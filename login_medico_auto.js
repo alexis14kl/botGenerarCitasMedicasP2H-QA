@@ -3213,9 +3213,23 @@ async function openNotaMedicaFromSidebar(page, origin = '') {
   while (Date.now() < endBy) {
     attempts += 1;
 
+    // Estrategia 1 (más directa): click por ID exacto del botón "Nota médica"
+    try {
+      const btnLoc = page.locator('#btnIdMenuLate5MP_TableroMedico, [id$="btnIdMenuLate5MP_TableroMedico"]').first();
+      if ((await btnLoc.count()) > 0 && (await btnLoc.isVisible())) {
+        await btnLoc.click({ force: true, timeout: 2000 });
+        await waitForTimeoutRaw(page, 300);
+        if (await isNotaMedicaViewActive(page)) {
+          console.log(`NOTA_MEDICA_CLICK_OK via=btn_id origin=${origin || '-'} elapsed=${Date.now() - started}ms`);
+          return true;
+        }
+      }
+    } catch {}
+
+    // Estrategia 2: scoring por texto y posición
     if (await clickNotaMedicaInLeftMenu(page, origin, Date.now() - started)) return true;
 
-    // Fallback mínimo: click por texto exacto y validación estricta posterior.
+    // Estrategia 3: click por texto exacto regex
     try {
       const target = page.locator('text=/^\\s*Nota\\s*M[eé]dica\\s*$/i').first();
       if ((await target.count()) > 0) {
@@ -5300,6 +5314,25 @@ async function readNotaMedicaRequiredState(page) {
   }
 }
 
+async function isTableroMedicoTabActive(page) {
+  if (isPageClosedSafe(page)) return false;
+  try {
+    return await page.evaluate(() => {
+      const normalize = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
+      // Buscar tab "Tablero Médico" seleccionado en las tabs de Telerik RadTabStrip
+      const tabs = document.querySelectorAll('.rtsLink, [role="tab"]');
+      for (const t of tabs) {
+        const txt = normalize(t.textContent || '');
+        if (txt.includes('tablero medico') || txt.includes('tablero médico')) {
+          // Verificar que esté seleccionado
+          if (t.classList.contains('rtsSelected') || t.parentElement?.classList.contains('rtsSelected')) return true;
+        }
+      }
+      return false;
+    });
+  } catch { return false; }
+}
+
 async function waitForTableroMedicoSidebar(page, timeoutMs = 30000) {
   const started = Date.now();
   while ((Date.now() - started) < timeoutMs) {
@@ -5307,19 +5340,27 @@ async function waitForTableroMedicoSidebar(page, timeoutMs = 30000) {
     try {
       const found = await page.evaluate(() => {
         const normalize = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
-        const items = document.querySelectorAll('[role="option"], [role="listitem"], li, a, span, div');
+        // Estrategia 1: buscar por ID directo del botón "Nota médica"
+        const btnById = document.querySelector('#btnIdMenuLate5MP_TableroMedico, [id$="btnIdMenuLate5MP_TableroMedico"]');
+        if (btnById) {
+          const st = getComputedStyle(btnById);
+          const r = btnById.getBoundingClientRect();
+          if (st.display !== 'none' && st.visibility !== 'hidden' && r.width > 5 && r.height > 5) return { ready: true, via: 'id' };
+        }
+        // Estrategia 2: buscar cualquier elemento del sidebar del Tablero con texto "Nota médica"
+        const items = document.querySelectorAll('[id*="MenuLate"], [id*="TableroMedico"], [role="option"], [role="listitem"], li, a, span, div');
         for (const el of items) {
           const txt = normalize(el.textContent || '');
           if (txt === 'nota medica' || txt === 'nota médica') {
             const st = getComputedStyle(el);
             const r = el.getBoundingClientRect();
-            if (st.display !== 'none' && st.visibility !== 'hidden' && r.width > 10 && r.height > 10) return true;
+            if (st.display !== 'none' && st.visibility !== 'hidden' && r.width > 10 && r.height > 10) return { ready: true, via: 'text' };
           }
         }
-        return false;
+        return { ready: false };
       });
-      if (found) {
-        console.log(`TABLERO_MEDICO_SIDEBAR_READY elapsed=${Date.now() - started}ms`);
+      if (found?.ready) {
+        console.log(`TABLERO_MEDICO_SIDEBAR_READY elapsed=${Date.now() - started}ms via=${found.via}`);
         return true;
       }
     } catch {}
@@ -10521,6 +10562,13 @@ function prioritizeMode2SlotCandidates(slots, options = {}) {
 
 async function openModuleFromExistingAppointmentInCalendar(page) {
   console.log(`MODULE_OPEN_FLOW_START search_weeks=${MODE2_MAX_SEARCH_WEEKS}`);
+
+  // Check inmediato: si el Tablero Médico ya está abierto, saltar directo
+  if (await isTableroMedicoTabActive(page)) {
+    console.log('MODULE_OPEN_TABLERO_ALREADY_ACTIVE skipping_agenda_scan');
+    return { ok: true, scanned: 0, attempted: 0, via: 'tablero_already_active' };
+  }
+
   let scanned = 0;
   const attempted = new Set();
   const minBaseDate = new Date();
@@ -10540,6 +10588,12 @@ async function openModuleFromExistingAppointmentInCalendar(page) {
     }
     await ensureWorkingHoursVisible(page);
     await waitForTimeoutRaw(page, 620);
+
+    // Check: si el Tablero Médico ya está abierto (por popup previo u otra razón)
+    if (await isTableroMedicoTabActive(page)) {
+      console.log(`MODULE_OPEN_TABLERO_ALREADY_ACTIVE week=${week}`);
+      return { ok: true, scanned, attempted: attempted.size, via: 'tablero_already_active' };
+    }
 
     // Si aparece recordatorio "Nueva cita asignada", click "Abrir módulo" directo
     const weekPopup = await dismissStaleP2HPopup(page, { clickAbrirModulo: true });
@@ -10603,6 +10657,12 @@ async function openModuleFromExistingAppointmentInCalendar(page) {
       console.log(
         `MODULE_OPEN_TRY slot=${i + 1}/${slots.length} scanned=${scanned} day=${slot.dayIso || '-'} status="${slot.statusHint || '-'}" number="${slot.appointmentNumber || ''}" text="${slot.text || ''}"`
       );
+
+      // Check: si el Tablero Médico ya está abierto
+      if (await isTableroMedicoTabActive(page)) {
+        console.log(`MODULE_OPEN_TABLERO_ALREADY_ACTIVE_SLOT slot=${i + 1}/${slots.length}`);
+        return { ok: true, scanned, attempted: attempted.size, via: 'tablero_already_active' };
+      }
 
       // Si aparece recordatorio "Nueva cita asignada", click "Abrir módulo" directo
       const slotPopup = await dismissStaleP2HPopup(page, { clickAbrirModulo: true });
