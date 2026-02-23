@@ -5297,15 +5297,47 @@ async function readNotaMedicaRequiredState(page) {
   }
 }
 
+async function waitForTableroMedicoSidebar(page, timeoutMs = 30000) {
+  const started = Date.now();
+  while ((Date.now() - started) < timeoutMs) {
+    if (isPageClosedSafe(page)) return false;
+    try {
+      const found = await page.evaluate(() => {
+        const normalize = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
+        const items = document.querySelectorAll('[role="option"], [role="listitem"], li, a, span, div');
+        for (const el of items) {
+          const txt = normalize(el.textContent || '');
+          if (txt === 'nota medica' || txt === 'nota médica') {
+            const st = getComputedStyle(el);
+            const r = el.getBoundingClientRect();
+            if (st.display !== 'none' && st.visibility !== 'hidden' && r.width > 10 && r.height > 10) return true;
+          }
+        }
+        return false;
+      });
+      if (found) {
+        console.log(`TABLERO_MEDICO_SIDEBAR_READY elapsed=${Date.now() - started}ms`);
+        return true;
+      }
+    } catch {}
+    await waitForTimeoutRaw(page, 800);
+  }
+  console.log(`TABLERO_MEDICO_SIDEBAR_TIMEOUT timeout=${timeoutMs}ms`);
+  return false;
+}
+
 async function ensureNotaMedicaReadyForFinalize(page, origin = '') {
   if (isPageClosedSafe(page)) return false;
 
-  let notaOpened = await openNotaMedicaFromSidebar(page, origin);
-  if (!notaOpened) {
-    console.log(`NOTA_MEDICA_RETRY_WAIT origin=${origin || '-'} reason=module_may_still_loading`);
-    await waitForTimeoutRaw(page, 4000);
-    notaOpened = await openNotaMedicaFromSidebar(page, origin);
+  // Paso 1: esperar a que el Tablero Médico cargue (sidebar visible con "Nota médica")
+  const sidebarReady = await waitForTableroMedicoSidebar(page, 30000);
+  if (!sidebarReady) {
+    console.log(`NOTA_MEDICA_FAIL origin=${origin || '-'} reason=tablero_medico_not_loaded`);
+    return false;
   }
+
+  // Paso 2: click en "Nota médica"
+  const notaOpened = await openNotaMedicaFromSidebar(page, origin);
   if (!notaOpened) return false;
 
   const initialState = await readNotaMedicaRequiredState(page);
