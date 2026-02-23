@@ -3469,6 +3469,49 @@ async function captureNotaFieldsByKeyboard(page, keys = [], textValue = '') {
   const total = Array.isArray(keys) ? keys.length : 0;
   for (const key of keys) {
     const candidates = Array.isArray(plan?.fields?.[key]) ? plan.fields[key] : [];
+    // Skip capture if field already has data
+    const hasExisting = await page.evaluate((fieldKey) => {
+      const normalize = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
+      const visible = (el) => {
+        if (!el) return false;
+        const st = getComputedStyle(el);
+        const r = el.getBoundingClientRect();
+        return st.display !== 'none' && st.visibility !== 'hidden' && r.width > 6 && r.height > 6;
+      };
+      const defs = {
+        consulta_por: ['consulta por'],
+        triage: ['triage'],
+        presente_enfermedad: ['presente enfermedad', 'enfermedad presente'],
+        apreciacion_diagnostica: ['apreciacion diagnostica'],
+        diagnostico_principal: ['diagnostico principal']
+      };
+      const patterns = defs[fieldKey] || [];
+      if (!patterns.length) return false;
+      const labels = Array.from(document.querySelectorAll('label,span,div,p,strong,td,th,li'))
+        .filter(visible).map((n) => ({ n, t: normalize(n.textContent || '') }));
+      let best = null;
+      for (const item of labels) {
+        const hits = patterns.filter((p) => item.t.includes(normalize(p))).length;
+        if (!hits) continue;
+        const score = hits * 100 - item.t.length;
+        if (!best || score > best.score) best = { node: item.n, score };
+      }
+      if (!best) return false;
+      const nearSel = 'textarea, input[type="text"], input:not([type]), [contenteditable="true"]';
+      const container = best.node.closest('.form-group, .form-row, .row, tr, td, section') || best.node.parentElement;
+      const controls = container ? Array.from(container.querySelectorAll(nearSel)).filter(visible) : [];
+      for (const ctrl of controls) {
+        let val = '';
+        if (ctrl instanceof HTMLTextAreaElement || ctrl instanceof HTMLInputElement) val = normalize(ctrl.value || '');
+        else if (ctrl.getAttribute('contenteditable') === 'true') val = normalize(ctrl.textContent || '');
+        if (val && val.length >= 3) return true;
+      }
+      return false;
+    }, key).catch(() => false);
+    if (hasExisting) {
+      captured += 1;
+      continue;
+    }
     let ok = false;
     for (let i = 0; i < candidates.length && i < 3 && !ok; i += 1) {
       ok = await keyboardCaptureAtPoint(page, candidates[i], textValue);
@@ -4270,6 +4313,14 @@ async function fillNotaMedicaAntecedentesAndGenerateIA(page, origin = '') {
           return false;
         }
       };
+      const readValue = (el) => {
+        if (!(el instanceof HTMLElement)) return '';
+        try {
+          if (el instanceof HTMLTextAreaElement || el instanceof HTMLInputElement) return normalize(el.value || '');
+          if (el.getAttribute('contenteditable') === 'true') return normalize(el.textContent || '');
+        } catch {}
+        return '';
+      };
       const setControlValue = (el, value) => {
         const readValue = (target) => {
           if (!(target instanceof HTMLElement)) return '';
@@ -4559,6 +4610,7 @@ async function fillNotaMedicaAntecedentesAndGenerateIA(page, origin = '') {
       const controlByKey = new Map();
       const missing = [];
       const usedControls = new Set();
+      const skippedExisting = [];
       const strictKeys = ['triage', 'presente_enfermedad', 'apreciacion_diagnostica'];
 
       for (const t of targets) {
@@ -4571,6 +4623,13 @@ async function fillNotaMedicaAntecedentesAndGenerateIA(page, origin = '') {
           continue;
         }
         controlByKey.set(t.key, ctrl);
+        const existing = readValue(ctrl);
+        if (existing && existing.length >= 3) {
+          filledMap.set(t.key, true);
+          usedControls.add(ctrl);
+          skippedExisting.push(t.key);
+          continue;
+        }
         const ok = setControlValue(ctrl, textValue);
         filledMap.set(t.key, Boolean(ok));
         if (ok) usedControls.add(ctrl);
@@ -4636,6 +4695,14 @@ async function fillNotaMedicaAntecedentesAndGenerateIA(page, origin = '') {
         for (const picked of fallback) {
           if (!(picked?.el instanceof HTMLElement)) continue;
           if (!isEditable(picked.el)) continue;
+          const existingFb = readValue(picked.el);
+          if (existingFb && existingFb.length >= 3) {
+            filledMap.set(key, true);
+            controlByKey.set(key, picked.el);
+            usedControls.add(picked.el);
+            skippedExisting.push(key);
+            break;
+          }
           const ok = setControlValue(picked.el, textValue);
           if (!ok) continue;
           filledMap.set(key, true);
@@ -4670,6 +4737,14 @@ async function fillNotaMedicaAntecedentesAndGenerateIA(page, origin = '') {
           // Evita pisar control ya asignado a otro campo sensible.
           const takenByOtherStrict = strictKeys.some((k) => k !== key && controlByKey.get(k) === ctrl);
           if (takenByOtherStrict) continue;
+          const existingHard = readValue(ctrl);
+          if (existingHard && existingHard.length >= 3) {
+            filledMap.set(key, true);
+            controlByKey.set(key, ctrl);
+            usedControls.add(ctrl);
+            skippedExisting.push(key);
+            break;
+          }
           const ok = setControlValue(ctrl, textValue);
           if (!ok) continue;
           filledMap.set(key, true);
@@ -4844,11 +4919,15 @@ async function fillNotaMedicaAntecedentesAndGenerateIA(page, origin = '') {
         filledCount,
         total: targets.length,
         clickedGenerar: generarClicked,
-        missing: missingFinal
+        missing: missingFinal,
+        skippedExisting
       };
     }, { textValue: NOTA_MEDICA_FIELDS_TEXT, clickGenerar: false });
 
     lastResult = result;
+    if (result?.skippedExisting?.length) {
+      console.log(`NOTA_MEDICA_FIELD_SKIP_EXISTING origin=${origin || '-'} skipped=${result.skippedExisting.join(',')}`);
+    }
     const okFill = result?.allFilled && result?.strictDistinctOk;
     let generarHumanOk = !AUTO_CLICK_GENERAR_IA_NOTA_MEDICA;
     let touchStats = { touched: 0, total: 0 };
@@ -6139,7 +6218,7 @@ async function forceClickModuloFromSavedSlotTooltip(page, slot, options = {}) {
 
       const pickTooltipWithModulo = () => {
         const roots = Array.from(
-          document.querySelectorAll('.k-widget.k-tooltip, .k-tooltip, .k-popup, [role="tooltip"], .k-animation-container')
+          document.querySelectorAll('.k-widget.k-tooltip, .k-tooltip, .k-popup, [role="tooltip"], .k-animation-container, .div_hos930AvisoPaciente')
         ).filter(visible);
         const scored = [];
         for (const root of roots) {
@@ -6237,16 +6316,32 @@ async function forceClickModuloFromSavedSlotTooltip(page, slot, options = {}) {
       const viaBase = result.via || 'force_tooltip';
       const mx = Number(result?.moduloPoint?.x);
       const my = Number(result?.moduloPoint?.y);
+      // Ensure ASP.NET postback fires and hide P2H popup
+      const postClickP2H = async () => {
+        try {
+          await page.evaluate(() => {
+            const btn = document.getElementById('ctl00_nc002_MP_HOS930_btnModulo');
+            if (btn instanceof HTMLElement) {
+              try { btn.click(); } catch {}
+              try { __doPostBack('ctl00$nc002$MP_HOS930$btnModulo', ''); } catch {}
+            }
+            const popup = document.querySelector('.div_hos930AvisoPaciente');
+            if (popup) popup.style.display = 'none';
+          });
+        } catch {}
+      };
       if (Number.isFinite(mx) && Number.isFinite(my)) {
         try {
           await page.mouse.move(mx, my);
           await waitForTimeoutRaw(page, 26);
           await page.mouse.click(mx, my, { delay: 18 });
+          await postClickP2H();
           console.log(`MODULO_CLICK_OK via=${viaBase}:mouse_xy`);
           return { ok: true, via: `${viaBase}:mouse_xy` };
         } catch {}
       }
       if (result.domClicked) {
+        await postClickP2H();
         console.log(`MODULO_CLICK_OK via=${viaBase}:dom_click`);
         return { ok: true, via: `${viaBase}:dom_click` };
       }
@@ -6297,9 +6392,25 @@ async function clickModuloFromSavedSlotQuickAction(page, slot, options = {}) {
         };
 
         const popups = Array.from(
-          document.querySelectorAll('.k-widget.k-tooltip, .k-tooltip, .k-popup, [role="tooltip"], .k-animation-container')
+          document.querySelectorAll('.k-widget.k-tooltip, .k-tooltip, .k-popup, [role="tooltip"], .k-animation-container, .div_hos930AvisoPaciente')
         ).filter(visible);
-        if (!popups.length) return { ok: false, via: 'quick_modal_not_visible' };
+        if (!popups.length) {
+          // Fallback directo P2H: buscar botón por ID específico
+          const directBtn = document.getElementById('ctl00_nc002_MP_HOS930_btnModulo');
+          if (directBtn instanceof HTMLElement) {
+            const directVisible = (() => {
+              const st = getComputedStyle(directBtn);
+              const r = directBtn.getBoundingClientRect();
+              return st.display !== 'none' && st.visibility !== 'hidden' && r.width > 20 && r.height > 16;
+            })();
+            if (directVisible) {
+              safeClick(directBtn);
+              try { __doPostBack('ctl00$nc002$MP_HOS930$btnModulo', ''); } catch {}
+              return { ok: true, via: 'direct_btn_modulo_p2h' };
+            }
+          }
+          return { ok: false, via: 'quick_modal_not_visible' };
+        }
 
         const wantedDigits = digitsOnly(appointmentNumber);
         const candidates = [];
@@ -6346,6 +6457,17 @@ async function clickModuloFromSavedSlotQuickAction(page, slot, options = {}) {
         const chosen = candidates[0];
         const clicked = safeClick(chosen.moduloBtn);
         if (!clicked) return { ok: false, via: 'quick_modulo_click_failed' };
+        // Trigger ASP.NET postback for P2H btnModulo
+        const btnModulo = document.getElementById('ctl00_nc002_MP_HOS930_btnModulo');
+        if (btnModulo instanceof HTMLElement) {
+          try { safeClick(btnModulo); } catch {}
+          try { __doPostBack('ctl00$nc002$MP_HOS930$btnModulo', ''); } catch {}
+        }
+        // Hide P2H popup so it doesn't block module load
+        try {
+          const p2hPopup = chosen.popup.closest('.div_hos930AvisoPaciente') || chosen.popup;
+          if (p2hPopup.classList?.contains('div_hos930AvisoPaciente')) p2hPopup.style.display = 'none';
+        } catch {}
         return { ok: true, via: 'quick_visible_modal_click' };
       }, { appointmentNumber, disallowFinalizada });
     } catch {
@@ -6467,7 +6589,7 @@ async function clickModuloFromSavedSlotQuickAction(page, slot, options = {}) {
       };
 
       const popups = Array.from(
-        document.querySelectorAll('.k-widget.k-tooltip, .k-tooltip, .k-popup, [role="tooltip"], .k-animation-container')
+        document.querySelectorAll('.k-widget.k-tooltip, .k-tooltip, .k-popup, [role="tooltip"], .k-animation-container, .div_hos930AvisoPaciente')
       )
         .filter(visible)
         .map((n) => {
@@ -6492,7 +6614,9 @@ async function clickModuloFromSavedSlotQuickAction(page, slot, options = {}) {
             x.txt.includes('registro') ||
             x.txt.includes('fecha') ||
             x.txt.includes('hora inicio') ||
-            x.txt.includes('hora fin');
+            x.txt.includes('hora fin') ||
+            x.txt.includes('paciente') ||
+            x.txt.includes('cita programada');
           return hasState && hasContext;
         });
       if (!popups.length) return { ok: false, reason: 'tooltip_not_found' };
@@ -6609,7 +6733,7 @@ async function isProgramadaQuickActionVisible(page) {
       };
 
       const popups = Array.from(
-        document.querySelectorAll('.k-widget.k-tooltip, .k-tooltip, .k-popup, [role="tooltip"], .k-animation-container')
+        document.querySelectorAll('.k-widget.k-tooltip, .k-tooltip, .k-popup, [role="tooltip"], .k-animation-container, .div_hos930AvisoPaciente')
       ).filter(visible);
 
       for (const popup of popups) {
@@ -9130,7 +9254,7 @@ async function readQuickActionStatus(page) {
       };
 
       const popups = Array.from(
-        document.querySelectorAll('.k-widget.k-tooltip, .k-tooltip, .k-popup, [role="tooltip"], .k-animation-container')
+        document.querySelectorAll('.k-widget.k-tooltip, .k-tooltip, .k-popup, [role="tooltip"], .k-animation-container, .div_hos930AvisoPaciente')
       ).filter(visible);
 
       const candidates = [];
@@ -10132,6 +10256,13 @@ async function openModuloFromExistingAppointmentSlot(page, slot, idx = 0, option
       `CANCEL_SLOT_MODULE_LOAD idx=${idx} attempt=${attempt} loaded=${loaded ? 1 : 0} click_via=${clickVia}`
     );
     if (loaded) {
+      // Cerrar popup P2H que puede quedar encima del módulo
+      try {
+        await page.evaluate(() => {
+          const popup = document.querySelector('.div_hos930AvisoPaciente');
+          if (popup) popup.style.display = 'none';
+        });
+      } catch {}
       return { ok: true, via: clickVia };
     }
 
