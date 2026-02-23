@@ -445,65 +445,70 @@ function isPageClosedSafe(page) {
 async function updateBotStatusOverlay(page, status, message) {
   if (isPageClosedSafe(page)) return;
   try {
-    await page.evaluate(({ status, message }) => {
+    // Esperar a que la página esté lista antes de inyectar
+    await page.waitForLoadState('domcontentloaded', { timeout: 3000 }).catch(() => {});
+    const injected = await page.evaluate(({ status, message }) => {
+      const root = document.body || document.documentElement;
+      if (!root) return false;
       const OVERLAY_ID = '__noyecodito_bot_overlay__';
       let overlay = document.getElementById(OVERLAY_ID);
       if (!overlay) {
         overlay = document.createElement('div');
         overlay.id = OVERLAY_ID;
-        overlay.style.cssText = `
-          position: fixed;
-          bottom: 12px;
-          right: 12px;
-          z-index: 2147483647;
-          padding: 10px 16px;
-          border-radius: 12px;
-          font-family: 'Segoe UI', Tahoma, sans-serif;
-          font-size: 13px;
-          font-weight: 600;
-          color: #fff;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-          pointer-events: none;
-          transition: all 0.3s ease;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          max-width: 380px;
-          backdrop-filter: blur(8px);
-          border: 1px solid rgba(255,255,255,0.2);
-        `;
-        document.body.appendChild(overlay);
+        Object.assign(overlay.style, {
+          position: 'fixed',
+          top: '4px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: '2147483647',
+          padding: '6px 14px',
+          borderRadius: '0 0 10px 10px',
+          fontFamily: "'Segoe UI', Tahoma, sans-serif",
+          fontSize: '12px',
+          fontWeight: '600',
+          color: '#fff',
+          boxShadow: '0 3px 12px rgba(0,0,0,0.35)',
+          pointerEvents: 'none',
+          transition: 'all 0.3s ease',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          maxWidth: '420px',
+          whiteSpace: 'nowrap',
+          backdropFilter: 'blur(6px)',
+          border: '1px solid rgba(255,255,255,0.25)',
+          borderTop: 'none'
+        });
+        root.appendChild(overlay);
+        // Inyectar animación CSS
+        const animId = '__noyecodito_pulse_anim__';
+        if (!document.getElementById(animId)) {
+          const styleEl = document.createElement('style');
+          styleEl.id = animId;
+          styleEl.textContent = '@keyframes noyecoditoPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.85;transform:scale(1.02)}}';
+          (document.head || root).appendChild(styleEl);
+        }
       }
-
       const configs = {
-        working:  { bg: 'linear-gradient(135deg, #0088ff, #00c6ff)', emoji: '\u{1F916}', pulse: true },
-        success:  { bg: 'linear-gradient(135deg, #00b894, #00cec9)', emoji: '\u2705',     pulse: false },
-        error:    { bg: 'linear-gradient(135deg, #e74c3c, #fd79a8)', emoji: '\u274C',     pulse: false },
-        waiting:  { bg: 'linear-gradient(135deg, #fdcb6e, #e17055)', emoji: '\u23F3',     pulse: true },
-        info:     { bg: 'linear-gradient(135deg, #6c5ce7, #a29bfe)', emoji: '\u{1F4CB}', pulse: false }
+        working:  { bg: 'linear-gradient(135deg, #0088ff, #00c6ff)', emoji: '\uD83E\uDD16', pulse: true },
+        success:  { bg: 'linear-gradient(135deg, #00b894, #00cec9)', emoji: '\u2705',       pulse: false },
+        error:    { bg: 'linear-gradient(135deg, #e74c3c, #fd79a8)', emoji: '\u274C',       pulse: false },
+        waiting:  { bg: 'linear-gradient(135deg, #fdcb6e, #e17055)', emoji: '\u23F3',       pulse: true },
+        info:     { bg: 'linear-gradient(135deg, #6c5ce7, #a29bfe)', emoji: '\uD83D\uDCCB', pulse: false }
       };
-
       const cfg = configs[status] || configs.info;
       overlay.style.background = cfg.bg;
-      overlay.innerHTML = `<span style="font-size:18px">${cfg.emoji}</span><span>Noyecodito ${message}</span>`;
-
-      // Animación de pulso para estados activos
-      const animId = '__noyecodito_pulse_anim__';
-      let styleEl = document.getElementById(animId);
-      if (!styleEl) {
-        styleEl = document.createElement('style');
-        styleEl.id = animId;
-        styleEl.textContent = `
-          @keyframes noyecoditoPulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.85; transform: scale(1.02); }
-          }
-        `;
-        document.head.appendChild(styleEl);
-      }
       overlay.style.animation = cfg.pulse ? 'noyecoditoPulse 2s ease-in-out infinite' : 'none';
+      overlay.innerHTML = '<span style="font-size:18px">' + cfg.emoji + '</span><span>Noyecodito ' + message + '</span>';
+      return true;
     }, { status, message });
-  } catch {}
+    if (injected) {
+      console.log(`BOT_OVERLAY status=${status} msg="${message}"`);
+    }
+  } catch (e) {
+    // No bloquear el flujo por error de overlay
+    console.log(`BOT_OVERLAY_ERR ${e?.message || 'unknown'}`);
+  }
 }
 
 function normalizeText(value) {
@@ -11386,6 +11391,7 @@ async function runSingleFlowAttempt(attempt, totalAttempts) {
     });
     const context = await browser.newContext({
       ignoreHTTPSErrors: true,
+      viewport: null, // Usar viewport nativo del navegador (se adapta al mover entre pantallas)
     });
     context.on('page', (p) => installScaledWaitForTimeout(p));
     const page = await context.newPage();
