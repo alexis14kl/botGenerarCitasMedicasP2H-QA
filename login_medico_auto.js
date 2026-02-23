@@ -10792,11 +10792,13 @@ async function openModuloFromExistingAppointmentSlot(page, slot, idx = 0, option
       continue;
     }
 
+    await updateBotStatusOverlay(page, 'working', 'esperando apertura Tablero Médico...');
     const loaded = await waitForModuloLoaded(page, `cancel_mode_slot_${idx}_attempt_${attempt}`, { autoPostModule: false });
     console.log(
       `CANCEL_SLOT_MODULE_LOAD idx=${idx} attempt=${attempt} loaded=${loaded ? 1 : 0} click_via=${clickVia}`
     );
     if (loaded) {
+      await updateBotStatusOverlay(page, 'success', 'Tablero Médico abierto!');
       // Cerrar popup P2H que puede quedar encima del módulo
       try {
         await page.evaluate(() => {
