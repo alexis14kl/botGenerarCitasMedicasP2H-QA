@@ -154,3 +154,140 @@
 [2026-02-23T18:26:57.385Z] [INFO] NOTA_MEDICA_FIELD_SKIP_EXISTING origin=mode2_existing_appointment skipped=triage,presente_enfermedad,apreciacion_diagnostica
 [2026-02-23T18:26:57.709Z] [INFO] NOTA_MEDICA_FIELDS_FILL_TIMEOUT origin=mode2_existing_appointment attempts=13 filled=1/5 strict=3/3 ready=0 missing=consulta_por,presente_enfermedad,apreciacion_diagnostica,diagnostico_principal
 [2026-02-23T18:26:57.710Z] [INFO] MODE2_NOTA_FINALIZAR_FAIL origin=mode2_existing_appointment step=nota_ready
+[2026-02-23T18:27:15.256Z] [INFO] BOT_OVERLAY status=error msg="falló en Nota médica"
+[2026-02-23T18:27:15.257Z] [INFO] MODE2_PATIENT_FAIL attempt=1 - cerrando tablero y buscando otra cita
+[2026-02-23T18:27:17.023Z] [INFO] BOT_OVERLAY status=waiting msg="reintentando... (1/5)"
+[2026-02-23T18:27:21.123Z] [INFO] CLOSE_TABLERO_TAB_FAIL
+[2026-02-23T18:27:21.938Z] [INFO] Paso 7: abrir módulo desde cita existente (intento 2/5)
+[2026-02-23T18:27:21.945Z] [INFO] BOT_OVERLAY status=working msg="buscando cita... (2/5)"
+[2026-02-23T18:27:21.945Z] [INFO] MODULE_OPEN_FLOW_START search_weeks=1
+[2026-02-23T18:27:21.959Z] [INFO] MODULE_OPEN_TABLERO_ALREADY_ACTIVE skipping_agenda_scan
+[2026-02-23T18:27:21.959Z] [INFO] MODULE_OPEN_RESULT ok=1 scanned=0 attempted=0 reason=- attempt=2
+[2026-02-23T18:27:21.990Z] [INFO] BOT_OVERLAY status=waiting msg="cargando módulo paciente..."
+[2026-02-23T18:27:22.190Z] [INFO] MODULO_PAGE_TARGET_OK page_idx=1/1 signal=token:nota medica elapsed=199ms
+[2026-02-23T18:27:22.209Z] [INFO] Paso 8: Nota médica (validar/completar) y finalizar cita (intento 2)
+[2026-02-23T18:27:22.227Z] [INFO] BOT_OVERLAY status=working msg="procesando Nota médica..."
+[2026-02-23T18:27:22.227Z] [INFO] MODE2_NOTA_FINALIZAR_START origin=mode2_existing_appointment
+[2026-02-23T18:27:22.250Z] [INFO] BOT_OVERLAY status=working msg="abriendo Nota médica..."
+[2026-02-23T18:27:22.276Z] [INFO] TABLERO_MEDICO_SIDEBAR_READY elapsed=25ms via=id
+[2026-02-23T18:27:25.526Z] [INFO] NOTA_MEDICA_CLICK_OK via=btn_id origin=mode2_existing_appointment elapsed=1037ms
+[2026-02-23T18:27:26.879Z] [INFO] NOTA_MEDICA_STATE_PRE origin=mode2_existing_appointment filled=5/5 missing=-
+[2026-02-23T18:27:28.996Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:27:29.579Z] [INFO] NOTA_MEDICA_READY_PRECHECK_REPAIR origin=mode2_existing_appointment generar=1 alerts=1
+[2026-02-23T18:27:29.580Z] [INFO] NOTA_MEDICA_FIELDS_FILL_START origin=mode2_existing_appointment click_generar=1
+[2026-02-23T18:27:32.629Z] [INFO] NOTA_MEDICA_FIELD_SKIP_EXISTING origin=mode2_existing_appointment skipped=consulta_por,triage,presente_enfermedad,apreciacion_diagnostica,diagnostico_principal
+[2026-02-23T18:27:36.819Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:27:36.952Z] [INFO] NOTA_MEDICA_GENERAR_RETRY_CAPTURE_ALERT origin=mode2_existing_appointment click_try=1
+[2026-02-23T18:27:44.719Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:27:45.095Z] [INFO] NOTA_MEDICA_GENERAR_RETRY_CAPTURE_ALERT origin=mode2_existing_appointment click_try=2
+[2026-02-23T18:27:49.479Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:27:49.583Z] [INFO] NOTA_MEDICA_GENERAR_RETRY_CAPTURE_ALERT origin=mode2_existing_appointment click_try=3
+[2026-02-23T18:27:54.423Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:27:54.856Z] [INFO] NOTA_MEDICA_GENERAR_RETRY_CAPTURE_ALERT origin=mode2_existing_appointment click_try=4
+[2026-02-23T18:27:56.538Z] [INFO] NOTA_MEDICA_FIELDS_FILL_TIMEOUT origin=mode2_existing_appointment attempts=1 filled=5/5 strict=3/3 ready=1 missing=
+[2026-02-23T18:27:56.539Z] [INFO] MODE2_NOTA_FINALIZAR_FAIL origin=mode2_existing_appointment step=nota_ready
+[2026-02-23T18:27:56.542Z] [INFO] BOT_OVERLAY status=error msg="falló en Nota médica"
+[2026-02-23T18:27:56.543Z] [INFO] MODE2_PATIENT_FAIL attempt=2 - cerrando tablero y buscando otra cita
+[2026-02-23T18:27:56.545Z] [INFO] BOT_OVERLAY status=waiting msg="reintentando... (2/5)"
+[2026-02-23T18:27:57.005Z] [INFO] CLOSE_TABLERO_TAB_FAIL
+[2026-02-23T18:27:57.821Z] [INFO] Paso 7: abrir módulo desde cita existente (intento 3/5)
+[2026-02-23T18:27:57.825Z] [INFO] BOT_OVERLAY status=working msg="buscando cita... (3/5)"
+[2026-02-23T18:27:57.826Z] [INFO] MODULE_OPEN_FLOW_START search_weeks=1
+[2026-02-23T18:27:57.832Z] [INFO] MODULE_OPEN_TABLERO_ALREADY_ACTIVE skipping_agenda_scan
+[2026-02-23T18:27:57.833Z] [INFO] MODULE_OPEN_RESULT ok=1 scanned=0 attempted=0 reason=- attempt=3
+[2026-02-23T18:27:57.836Z] [INFO] BOT_OVERLAY status=waiting msg="cargando módulo paciente..."
+[2026-02-23T18:27:58.029Z] [INFO] MODULO_PAGE_TARGET_OK page_idx=1/1 signal=token:nota medica elapsed=192ms
+[2026-02-23T18:27:58.044Z] [INFO] Paso 8: Nota médica (validar/completar) y finalizar cita (intento 3)
+[2026-02-23T18:27:58.050Z] [INFO] BOT_OVERLAY status=working msg="procesando Nota médica..."
+[2026-02-23T18:27:58.050Z] [INFO] MODE2_NOTA_FINALIZAR_START origin=mode2_existing_appointment
+[2026-02-23T18:27:58.062Z] [INFO] BOT_OVERLAY status=working msg="abriendo Nota médica..."
+[2026-02-23T18:27:58.067Z] [INFO] TABLERO_MEDICO_SIDEBAR_READY elapsed=4ms via=id
+[2026-02-23T18:27:58.255Z] [INFO] NOTA_MEDICA_ALREADY_ACTIVE origin=mode2_existing_appointment
+[2026-02-23T18:27:59.403Z] [INFO] NOTA_MEDICA_STATE_PRE origin=mode2_existing_appointment filled=5/5 missing=-
+[2026-02-23T18:28:00.218Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:28:00.596Z] [INFO] NOTA_MEDICA_READY_PRECHECK_REPAIR origin=mode2_existing_appointment generar=1 alerts=1
+[2026-02-23T18:28:00.596Z] [INFO] NOTA_MEDICA_FIELDS_FILL_START origin=mode2_existing_appointment click_generar=1
+[2026-02-23T18:28:02.296Z] [INFO] NOTA_MEDICA_FIELD_SKIP_EXISTING origin=mode2_existing_appointment skipped=consulta_por,triage,presente_enfermedad,apreciacion_diagnostica,diagnostico_principal
+[2026-02-23T18:28:06.272Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:28:06.382Z] [INFO] NOTA_MEDICA_GENERAR_RETRY_CAPTURE_ALERT origin=mode2_existing_appointment click_try=1
+[2026-02-23T18:28:10.488Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:28:10.657Z] [INFO] NOTA_MEDICA_GENERAR_RETRY_CAPTURE_ALERT origin=mode2_existing_appointment click_try=2
+[2026-02-23T18:28:18.230Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:28:18.424Z] [INFO] NOTA_MEDICA_GENERAR_RETRY_CAPTURE_ALERT origin=mode2_existing_appointment click_try=3
+[2026-02-23T18:28:23.279Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:28:23.467Z] [INFO] NOTA_MEDICA_GENERAR_RETRY_CAPTURE_ALERT origin=mode2_existing_appointment click_try=4
+[2026-02-23T18:28:25.179Z] [INFO] NOTA_MEDICA_FIELDS_FILL_TIMEOUT origin=mode2_existing_appointment attempts=1 filled=5/5 strict=3/3 ready=1 missing=
+[2026-02-23T18:28:25.180Z] [INFO] MODE2_NOTA_FINALIZAR_FAIL origin=mode2_existing_appointment step=nota_ready
+[2026-02-23T18:28:25.183Z] [INFO] BOT_OVERLAY status=error msg="falló en Nota médica"
+[2026-02-23T18:28:25.183Z] [INFO] MODE2_PATIENT_FAIL attempt=3 - cerrando tablero y buscando otra cita
+[2026-02-23T18:28:25.186Z] [INFO] BOT_OVERLAY status=waiting msg="reintentando... (3/5)"
+[2026-02-23T18:28:25.746Z] [INFO] CLOSE_TABLERO_TAB_FAIL
+[2026-02-23T18:28:26.561Z] [INFO] Paso 7: abrir módulo desde cita existente (intento 4/5)
+[2026-02-23T18:28:26.566Z] [INFO] BOT_OVERLAY status=working msg="buscando cita... (4/5)"
+[2026-02-23T18:28:26.566Z] [INFO] MODULE_OPEN_FLOW_START search_weeks=1
+[2026-02-23T18:28:26.571Z] [INFO] MODULE_OPEN_TABLERO_ALREADY_ACTIVE skipping_agenda_scan
+[2026-02-23T18:28:26.572Z] [INFO] MODULE_OPEN_RESULT ok=1 scanned=0 attempted=0 reason=- attempt=4
+[2026-02-23T18:28:26.575Z] [INFO] BOT_OVERLAY status=waiting msg="cargando módulo paciente..."
+[2026-02-23T18:28:26.729Z] [INFO] MODULO_PAGE_TARGET_OK page_idx=1/1 signal=token:nota medica elapsed=154ms
+[2026-02-23T18:28:26.774Z] [INFO] Paso 8: Nota médica (validar/completar) y finalizar cita (intento 4)
+[2026-02-23T18:28:26.785Z] [INFO] BOT_OVERLAY status=working msg="procesando Nota médica..."
+[2026-02-23T18:28:26.786Z] [INFO] MODE2_NOTA_FINALIZAR_START origin=mode2_existing_appointment
+[2026-02-23T18:28:26.790Z] [INFO] BOT_OVERLAY status=working msg="abriendo Nota médica..."
+[2026-02-23T18:28:26.797Z] [INFO] TABLERO_MEDICO_SIDEBAR_READY elapsed=7ms via=id
+[2026-02-23T18:28:26.903Z] [INFO] NOTA_MEDICA_ALREADY_ACTIVE origin=mode2_existing_appointment
+[2026-02-23T18:28:27.964Z] [INFO] NOTA_MEDICA_STATE_PRE origin=mode2_existing_appointment filled=5/5 missing=-
+[2026-02-23T18:28:29.060Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:28:29.571Z] [INFO] NOTA_MEDICA_READY_PRECHECK_REPAIR origin=mode2_existing_appointment generar=1 alerts=1
+[2026-02-23T18:28:29.571Z] [INFO] NOTA_MEDICA_FIELDS_FILL_START origin=mode2_existing_appointment click_generar=1
+[2026-02-23T18:28:32.212Z] [INFO] NOTA_MEDICA_FIELD_SKIP_EXISTING origin=mode2_existing_appointment skipped=consulta_por,triage,presente_enfermedad,apreciacion_diagnostica,diagnostico_principal
+[2026-02-23T18:28:36.397Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:28:36.747Z] [INFO] NOTA_MEDICA_GENERAR_RETRY_CAPTURE_ALERT origin=mode2_existing_appointment click_try=1
+[2026-02-23T18:28:43.276Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:28:43.390Z] [INFO] NOTA_MEDICA_GENERAR_RETRY_CAPTURE_ALERT origin=mode2_existing_appointment click_try=2
+[2026-02-23T18:28:50.431Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:28:50.722Z] [INFO] NOTA_MEDICA_GENERAR_RETRY_CAPTURE_ALERT origin=mode2_existing_appointment click_try=3
+[2026-02-23T18:28:57.478Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:28:57.646Z] [INFO] NOTA_MEDICA_GENERAR_RETRY_CAPTURE_ALERT origin=mode2_existing_appointment click_try=4
+[2026-02-23T18:29:00.239Z] [INFO] NOTA_MEDICA_FIELDS_FILL_TIMEOUT origin=mode2_existing_appointment attempts=1 filled=5/5 strict=3/3 ready=1 missing=
+[2026-02-23T18:29:00.240Z] [INFO] MODE2_NOTA_FINALIZAR_FAIL origin=mode2_existing_appointment step=nota_ready
+[2026-02-23T18:29:00.259Z] [INFO] BOT_OVERLAY status=error msg="falló en Nota médica"
+[2026-02-23T18:29:00.259Z] [INFO] MODE2_PATIENT_FAIL attempt=4 - cerrando tablero y buscando otra cita
+[2026-02-23T18:29:00.267Z] [INFO] BOT_OVERLAY status=waiting msg="reintentando... (4/5)"
+[2026-02-23T18:29:00.943Z] [INFO] CLOSE_TABLERO_TAB_FAIL
+[2026-02-23T18:29:01.745Z] [INFO] Paso 7: abrir módulo desde cita existente (intento 5/5)
+[2026-02-23T18:29:01.749Z] [INFO] BOT_OVERLAY status=working msg="buscando cita... (5/5)"
+[2026-02-23T18:29:01.749Z] [INFO] MODULE_OPEN_FLOW_START search_weeks=1
+[2026-02-23T18:29:01.757Z] [INFO] MODULE_OPEN_TABLERO_ALREADY_ACTIVE skipping_agenda_scan
+[2026-02-23T18:29:01.758Z] [INFO] MODULE_OPEN_RESULT ok=1 scanned=0 attempted=0 reason=- attempt=5
+[2026-02-23T18:29:01.764Z] [INFO] BOT_OVERLAY status=waiting msg="cargando módulo paciente..."
+[2026-02-23T18:29:01.979Z] [INFO] MODULO_PAGE_TARGET_OK page_idx=1/1 signal=token:nota medica elapsed=214ms
+[2026-02-23T18:29:02.039Z] [INFO] Paso 8: Nota médica (validar/completar) y finalizar cita (intento 5)
+[2026-02-23T18:29:02.068Z] [INFO] BOT_OVERLAY status=working msg="procesando Nota médica..."
+[2026-02-23T18:29:02.069Z] [INFO] MODE2_NOTA_FINALIZAR_START origin=mode2_existing_appointment
+[2026-02-23T18:29:02.074Z] [INFO] BOT_OVERLAY status=working msg="abriendo Nota médica..."
+[2026-02-23T18:29:02.081Z] [INFO] TABLERO_MEDICO_SIDEBAR_READY elapsed=7ms via=id
+[2026-02-23T18:29:02.320Z] [INFO] NOTA_MEDICA_ALREADY_ACTIVE origin=mode2_existing_appointment
+[2026-02-23T18:29:03.469Z] [INFO] NOTA_MEDICA_STATE_PRE origin=mode2_existing_appointment filled=5/5 missing=-
+[2026-02-23T18:29:04.415Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:29:05.009Z] [INFO] NOTA_MEDICA_READY_PRECHECK_REPAIR origin=mode2_existing_appointment generar=1 alerts=1
+[2026-02-23T18:29:05.009Z] [INFO] NOTA_MEDICA_FIELDS_FILL_START origin=mode2_existing_appointment click_generar=1
+[2026-02-23T18:29:07.818Z] [INFO] NOTA_MEDICA_FIELD_SKIP_EXISTING origin=mode2_existing_appointment skipped=consulta_por,triage,presente_enfermedad,apreciacion_diagnostica,diagnostico_principal
+[2026-02-23T18:29:13.596Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:29:13.751Z] [INFO] NOTA_MEDICA_GENERAR_RETRY_CAPTURE_ALERT origin=mode2_existing_appointment click_try=1
+[2026-02-23T18:29:18.613Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:29:18.808Z] [INFO] NOTA_MEDICA_GENERAR_RETRY_CAPTURE_ALERT origin=mode2_existing_appointment click_try=2
+[2026-02-23T18:29:24.097Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:29:24.258Z] [INFO] NOTA_MEDICA_GENERAR_RETRY_CAPTURE_ALERT origin=mode2_existing_appointment click_try=3
+[2026-02-23T18:29:29.446Z] [INFO] GENERAR_IA_CLICK_OK via=locator_tmp_attr
+[2026-02-23T18:29:29.817Z] [INFO] NOTA_MEDICA_GENERAR_RETRY_CAPTURE_ALERT origin=mode2_existing_appointment click_try=4
+[2026-02-23T18:29:32.784Z] [INFO] NOTA_MEDICA_FIELDS_FILL_TIMEOUT origin=mode2_existing_appointment attempts=1 filled=5/5 strict=3/3 ready=1 missing=
+[2026-02-23T18:29:32.785Z] [INFO] MODE2_NOTA_FINALIZAR_FAIL origin=mode2_existing_appointment step=nota_ready
+[2026-02-23T18:29:32.798Z] [INFO] BOT_OVERLAY status=error msg="falló en Nota médica"
+[2026-02-23T18:29:32.799Z] [INFO] MODE2_PATIENT_FAIL attempt=5 - cerrando tablero y buscando otra cita
+[2026-02-23T18:29:32.813Z] [INFO] BOT_OVERLAY status=waiting msg="reintentando... (5/5)"
+[2026-02-23T18:29:33.432Z] [INFO] CLOSE_TABLERO_TAB_FAIL
+[2026-02-23T18:29:34.244Z] [INFO] BOT_OVERLAY status=error msg="falló después de todos los intentos"
+[2026-02-23T18:29:34.264Z] [ERROR] LOGIN_ERROR: No se logró completar Nota médica y finalizar cita después de 5 intentos.
+[2026-02-23T18:29:34.274Z] [INFO] BOT_OVERLAY status=error msg="falló: No se logró completar Nota médica y finalizar cita después d"
+[2026-02-23T18:29:35.888Z] [INFO] Error capturado.
+[2026-02-23T18:29:35.888Z] [INFO] Navegador abierto 1800s para diagnostico de error.

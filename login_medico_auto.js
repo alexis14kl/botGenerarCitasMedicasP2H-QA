@@ -4666,6 +4666,7 @@ async function fillNotaMedicaAntecedentesAndGenerateIA(page, origin = '') {
   console.log(
     `NOTA_MEDICA_FIELDS_FILL_START origin=${origin || '-'} click_generar=${AUTO_CLICK_GENERAR_IA_NOTA_MEDICA ? 1 : 0}`
   );
+  await updateBotStatusOverlay(page, 'working', 'llenando campos Nota médica...');
 
   while (Date.now() < endBy) {
     attempts += 1;
@@ -5328,6 +5329,7 @@ async function fillNotaMedicaAntecedentesAndGenerateIA(page, origin = '') {
     let touchStats = { touched: 0, total: 0 };
     let captureStats = { captured: 0, total: 0 };
     if (AUTO_CLICK_GENERAR_IA_NOTA_MEDICA && result?.readyForGenerar && okFill) {
+      await updateBotStatusOverlay(page, 'working', 'click en Generar IA...');
       // Captura fuerte por teclado real para que el sistema marque los campos como "capturados".
       captureStats = await captureNotaFieldsByKeyboard(
         page,
@@ -5691,6 +5693,7 @@ async function ensureNotaMedicaReadyForFinalize(page, origin = '') {
   if (isPageClosedSafe(page)) return false;
 
   // Paso 1: esperar a que el Tablero Médico cargue (sidebar visible con "Nota médica")
+  await updateBotStatusOverlay(page, 'waiting', 'esperando Tablero Médico...');
   const sidebarReady = await waitForTableroMedicoSidebar(page, 60000);
   if (!sidebarReady) {
     console.log(`NOTA_MEDICA_FAIL origin=${origin || '-'} reason=tablero_medico_not_loaded`);
@@ -5698,18 +5701,21 @@ async function ensureNotaMedicaReadyForFinalize(page, origin = '') {
   }
 
   // Paso 2: click en "Nota médica"
+  await updateBotStatusOverlay(page, 'working', 'click en Nota médica...');
   const notaOpened = await openNotaMedicaFromSidebar(page, origin);
   if (!notaOpened) return false;
 
   // Paso 2.5: cerrar modal "Catálogo de diagnósticos" si se abrió accidentalmente
   await dismissCatalogoDiagnosticosModal(page);
 
+  await updateBotStatusOverlay(page, 'working', 'verificando campos...');
   const initialState = await readNotaMedicaRequiredState(page);
   console.log(
     `NOTA_MEDICA_STATE_PRE origin=${origin || '-'} filled=${initialState.filledCount || 0}/${initialState.total || 5} missing=${(initialState.missing || []).join(',') || '-'}`
   );
 
   if (initialState.allFilled) {
+    await updateBotStatusOverlay(page, 'working', 'campos llenos, click Generar IA...');
     const generarClicked = await clickGenerarIaByHumanAction(page);
     await waitForTimeoutRaw(page, 260);
     const hasAlerts = await hasNotaRequiredFieldAlerts(page);
