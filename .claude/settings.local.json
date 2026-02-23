@@ -1,0 +1,6 @@
+{
+  "enabledMcpjsonServers": [
+    "google-devtools"
+  ],
+  "enableAllProjectMcpServers": true
+}

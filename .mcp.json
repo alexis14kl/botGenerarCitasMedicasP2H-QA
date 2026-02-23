@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "google-devtools": {
+      "command": "node.exe",
+      "args": [
+        "C:\\Users\\NyGsoft\\mcp-google-devtools\\node_modules\\chrome-devtools-mcp\\build\\src\\index.js",
+        "--browserUrl",
+        "http://127.0.0.1:9333",
+        "--no-usage-statistics"
+      ]
+    }
+  }
+}
