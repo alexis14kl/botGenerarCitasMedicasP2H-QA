@@ -3668,10 +3668,10 @@ async function clickGenerarIaByHumanAction(page) {
   if (isPageClosedSafe(page)) return false;
   await scrollNotaMedicaToTop(page);
 
-  // Intento fuerte: localizar y clickear por DOM el botón de generar IA
-  // priorizando la zona derecha/debajo de "Presente enfermedad".
+  // Paso 1: detectar botones "Generar" y obtener el mejor candidato (solo detección, sin click)
+  let bestBtnId = null;
   try {
-    const strict = await page.evaluate(() => {
+    const detected = await page.evaluate(() => {
       const normalize = (s) =>
         (s || '')
           .toLowerCase()
@@ -3685,84 +3685,90 @@ async function clickGenerarIaByHumanAction(page) {
         const r = el.getBoundingClientRect();
         return st.display !== 'none' && st.visibility !== 'hidden' && r.width > 6 && r.height > 6;
       };
-      const rectDistance = (a, b) => {
-        if (!a || !b) return 99999;
-        const ax = a.left + a.width / 2;
-        const ay = a.top + a.height / 2;
-        const bx = b.left + b.width / 2;
-        const by = b.top + b.height / 2;
-        const dx = ax - bx;
-        const dy = ay - by;
-        return Math.sqrt(dx * dx + dy * dy);
-      };
-      const safeClick = (el) => {
-        if (!(el instanceof HTMLElement)) return false;
-        const r = el.getBoundingClientRect();
-        const cx = r.left + r.width / 2;
-        const cy = r.top + r.height / 2;
-        try {
-          el.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true, pointerType: 'mouse', clientX: cx, clientY: cy, button: 0, buttons: 1 }));
-        } catch {}
-        try {
-          el.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, clientX: cx, clientY: cy, button: 0, buttons: 1 }));
-          el.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true, clientX: cx, clientY: cy, button: 0, buttons: 1 }));
-          el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, clientX: cx, clientY: cy, button: 0, buttons: 1 }));
-        } catch {}
-        try {
-          el.click();
-          return true;
-        } catch {
-          return false;
-        }
-      };
 
       const labels = Array.from(document.querySelectorAll('label,span,div,p,strong,td,th,li,h1,h2,h3'))
         .filter(visible)
         .map((n) => ({ n, t: normalize(n.textContent || '') }));
-      const presentLabel = labels.find((x) => x.t.includes('presente enfermedad') || x.t.includes('enfermedad presente'))?.n || null;
-      const anchor = presentLabel instanceof HTMLElement ? presentLabel.getBoundingClientRect() : null;
+      const apreciacionLabel = labels.find((x) => x.t.includes('apreciacion diagnostica') || x.t.includes('apreciación diagnóstica'))?.n || null;
+      const anchor = apreciacionLabel instanceof HTMLElement ? apreciacionLabel.getBoundingClientRect() : null;
 
       const nodes = Array.from(
-        document.querySelectorAll('button,a,span,input[type="button"],input[type="submit"],input[type="image"],[role="button"]')
+        document.querySelectorAll('button,a,span,input[type="button"],input[type="submit"],[role="button"]')
       ).filter(visible);
 
       const candidates = [];
       for (const n of nodes) {
         const txt = normalize(
-          `${n.textContent || ''} ${n.getAttribute?.('title') || ''} ${n.getAttribute?.('aria-label') || ''} ${n.id || ''} ${n.getAttribute?.('name') || ''} ${n.className || ''}`
+          `${n.textContent || ''} ${n.getAttribute?.('title') || ''} ${n.getAttribute?.('aria-label') || ''} ${n.id || ''} ${n.className || ''}`
         );
-        const isGenerar = txt.includes('generar') || txt.includes(' ia ') || txt.endsWith(' ia') || txt.includes('inteligencia') || txt.includes('diagnostic') || txt.includes('apreciacion');
-        if (!isGenerar) continue;
+        if (!txt.includes('generar')) continue;
         const r = n.getBoundingClientRect();
         let score = 100;
-        if (txt.includes('generar')) score += 160;
-        if (txt.includes('ia') || txt.includes('inteligencia')) score += 120;
-        if (txt.includes('diagnostic') || txt.includes('apreciacion')) score += 60;
+        if (txt.includes('generar')) score += 200;
         if (anchor) {
-          const inRight = r.left >= (anchor.left + anchor.width * 0.28);
-          const inBelow = r.top >= (anchor.top - 10);
-          const inBand = r.top <= (anchor.top + 430);
-          if (inRight) score += 190;
-          if (inBelow) score += 130;
-          if (inBand) score += 90;
-          score += Math.max(0, 260 - rectDistance(anchor, r));
-          if (!(inRight && inBelow && inBand)) score -= 300;
+          const dy = Math.abs(r.top - anchor.top);
+          if (dy < 80) score += 300;
+          else if (dy < 200) score += 150;
         }
-        candidates.push({ n, score });
+        // Dar un id temporal para poder encontrarlo después con locator
+        if (!n.id) n.setAttribute('data-generar-ia-tmp', '1');
+        candidates.push({
+          score,
+          id: n.id || null,
+          hasTmpAttr: !n.id,
+          tag: n.tagName.toLowerCase(),
+          txt: txt.slice(0, 40)
+        });
       }
-
-      if (!candidates.length) return { ok: false, reason: 'no_candidate' };
+      if (!candidates.length) return { found: false };
       candidates.sort((a, b) => b.score - a.score);
-      const clicked = safeClick(candidates[0].n);
-      return clicked ? { ok: true } : { ok: false, reason: 'click_failed' };
+      return { found: true, best: candidates[0] };
     });
-    if (strict?.ok) {
-      await waitForTimeoutRaw(page, 240);
+
+    if (detected?.found && detected.best) {
+      bestBtnId = detected.best.id;
+    }
+  } catch {}
+
+  // Paso 2: click con Playwright locator (dispara postback Telerik correctamente)
+  // Estrategia 2a: por ID si lo tenemos
+  if (bestBtnId) {
+    try {
+      const loc = page.locator(`#${CSS.escape(bestBtnId)}`).first();
+      if ((await loc.count()) > 0 && (await loc.isVisible())) {
+        await loc.click({ force: true, timeout: 2000 });
+        await waitForTimeoutRaw(page, 300);
+        console.log(`GENERAR_IA_CLICK_OK via=locator_id id="${bestBtnId}"`);
+        return true;
+      }
+    } catch {}
+  }
+
+  // Estrategia 2b: por atributo temporal
+  try {
+    const tmpLoc = page.locator('[data-generar-ia-tmp="1"]').first();
+    if ((await tmpLoc.count()) > 0 && (await tmpLoc.isVisible())) {
+      await tmpLoc.click({ force: true, timeout: 2000 });
+      await waitForTimeoutRaw(page, 300);
+      console.log('GENERAR_IA_CLICK_OK via=locator_tmp_attr');
+      // Limpiar atributo temporal
+      try { await page.evaluate(() => { document.querySelectorAll('[data-generar-ia-tmp]').forEach(e => e.removeAttribute('data-generar-ia-tmp')); }); } catch {}
       return true;
     }
   } catch {}
 
-  // Fallback por coordenadas calculadas.
+  // Estrategia 2c: primer botón "Generar" visible con Playwright locator
+  try {
+    const loc = page.locator('button:has-text("Generar"), a:has-text("Generar"), [role="button"]:has-text("Generar")').first();
+    if ((await loc.count()) > 0 && (await loc.isVisible())) {
+      await loc.click({ force: true, timeout: 2000 });
+      await waitForTimeoutRaw(page, 300);
+      console.log('GENERAR_IA_CLICK_OK via=locator_text');
+      return true;
+    }
+  } catch {}
+
+  // Fallback por coordenadas calculadas
   const plan = await resolveNotaFieldPoints(page, ['presente_enfermedad', 'apreciacion_diagnostica']);
   const candidates = [];
   if (plan?.generar) candidates.push(plan.generar);
@@ -3776,20 +3782,13 @@ async function clickGenerarIaByHumanAction(page) {
       await page.mouse.move(c.x, c.y);
       await waitForTimeoutRaw(page, 30);
       await page.mouse.click(c.x, c.y, { delay: 26 });
-      await waitForTimeoutRaw(page, 240);
+      await waitForTimeoutRaw(page, 300);
+      console.log(`GENERAR_IA_CLICK_OK via=coordinates x=${c.x} y=${c.y}`);
       return true;
     } catch {}
   }
 
-  // Fallback de texto.
-  try {
-    const loc = page.locator('button:has-text("Generar"), a:has-text("Generar"), [role="button"]:has-text("Generar")').first();
-    if ((await loc.count()) > 0) {
-      await loc.click({ timeout: 1300, force: true });
-      await waitForTimeoutRaw(page, 240);
-      return true;
-    }
-  } catch {}
+  console.log('GENERAR_IA_CLICK_FAIL');
   return false;
 }
 
