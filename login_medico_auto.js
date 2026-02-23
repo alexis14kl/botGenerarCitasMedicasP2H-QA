@@ -287,8 +287,8 @@ const NOTA_MEDICA_DELAY_MS = (() => {
   return Math.min(15000, Math.max(0, Math.round(n)));
 })();
 const NOTA_MEDICA_CLICK_TIMEOUT_MS = (() => {
-  const n = Number(process.env.NOTA_MEDICA_CLICK_TIMEOUT_MS || '12000');
-  if (!Number.isFinite(n)) return 12000;
+  const n = Number(process.env.NOTA_MEDICA_CLICK_TIMEOUT_MS || '20000');
+  if (!Number.isFinite(n)) return 20000;
   return Math.min(60000, Math.max(2000, Math.round(n)));
 })();
 const AUTO_FILL_NOTA_MEDICA_FIELDS = process.env.AUTO_FILL_NOTA_MEDICA_FIELDS !== '0';
@@ -3213,29 +3213,66 @@ async function openNotaMedicaFromSidebar(page, origin = '') {
   while (Date.now() < endBy) {
     attempts += 1;
 
-    // Estrategia 1 (más directa): click por ID exacto del botón "Nota médica"
+    // Helper: verificar si Nota médica está activa (vista o form visible)
+    const checkNotaActive = async () => {
+      if (await isNotaMedicaViewActive(page)) return true;
+      // Fallback: verificar si los campos del form de Nota médica están visibles
+      try {
+        return await page.evaluate(() => {
+          const normalize = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
+          const labels = Array.from(document.querySelectorAll('label,span,div,p,strong,h2,h3,fieldset')).map(n => normalize(n.textContent || '')).filter(Boolean);
+          const blob = labels.join(' ');
+          return blob.includes('consulta por') && blob.includes('presente enfermedad');
+        });
+      } catch { return false; }
+    };
+
+    // Estrategia 1: click por ID exacto del botón "Nota médica"
     try {
       const btnLoc = page.locator('#btnIdMenuLate5MP_TableroMedico, [id$="btnIdMenuLate5MP_TableroMedico"]').first();
       if ((await btnLoc.count()) > 0 && (await btnLoc.isVisible())) {
         await btnLoc.click({ force: true, timeout: 2000 });
-        await waitForTimeoutRaw(page, 300);
-        if (await isNotaMedicaViewActive(page)) {
+        await waitForTimeoutRaw(page, 400);
+        if (await checkNotaActive()) {
           console.log(`NOTA_MEDICA_CLICK_OK via=btn_id origin=${origin || '-'} elapsed=${Date.now() - started}ms`);
           return true;
         }
       }
     } catch {}
 
-    // Estrategia 2: scoring por texto y posición
+    // Estrategia 2: click por estructura del sidebar (TabsHeader li[3])
+    try {
+      const tabsSelectors = [
+        '#TabsHeader ul li:nth-child(3) span',
+        '#TabsHeader ul li:nth-child(3) div',
+        '#TabsHeader ul li:nth-child(3)'
+      ];
+      for (const sel of tabsSelectors) {
+        const loc = page.locator(sel).first();
+        if ((await loc.count()) === 0) continue;
+        if (!(await loc.isVisible())) continue;
+        const txt = await loc.textContent().catch(() => '');
+        if (txt && /nota\s*m[eé]dica/i.test(txt)) {
+          await loc.click({ force: true, timeout: 2000 });
+          await waitForTimeoutRaw(page, 400);
+          if (await checkNotaActive()) {
+            console.log(`NOTA_MEDICA_CLICK_OK via=tabs_header_li3 origin=${origin || '-'} elapsed=${Date.now() - started}ms`);
+            return true;
+          }
+        }
+      }
+    } catch {}
+
+    // Estrategia 3: scoring por texto y posición
     if (await clickNotaMedicaInLeftMenu(page, origin, Date.now() - started)) return true;
 
-    // Estrategia 3: click por texto exacto regex
+    // Estrategia 4: click por texto exacto regex
     try {
       const target = page.locator('text=/^\\s*Nota\\s*M[eé]dica\\s*$/i').first();
       if ((await target.count()) > 0) {
         await target.click({ force: true, timeout: 900 });
-        await waitForTimeoutRaw(page, 190);
-        if (await isNotaMedicaViewActive(page)) {
+        await waitForTimeoutRaw(page, 300);
+        if (await checkNotaActive()) {
           console.log(`NOTA_MEDICA_CLICK_OK via=text-exact origin=${origin || '-'} elapsed=${Date.now() - started}ms`);
           return true;
         }
@@ -3248,7 +3285,7 @@ async function openNotaMedicaFromSidebar(page, origin = '') {
         `NOTA_MEDICA_CLICK_RETRY attempts=${attempts} origin=${origin || '-'} elapsed=${Date.now() - started}ms active="${menu.activeLabel || '-'}"`
       );
     }
-    await waitForTimeoutRaw(page, 180);
+    await waitForTimeoutRaw(page, 200);
   }
 
   const menu = await readAntecedentesMenuState(page);
@@ -5332,6 +5369,71 @@ async function isTableroMedicoTabActive(page) {
   } catch { return false; }
 }
 
+async function closeTableroMedicoTab(page) {
+  if (isPageClosedSafe(page)) return false;
+  try {
+    // Buscar la X de cierre del tab "Tablero Médico"
+    const closed = await page.evaluate(() => {
+      const normalize = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
+      // Buscar el tab de Tablero Médico y su botón X
+      const tabs = document.querySelectorAll('.rtsLI, [role="tab"]');
+      for (const tab of tabs) {
+        const txt = normalize(tab.textContent || '');
+        if (!txt.includes('tablero medico') && !txt.includes('tablero médico')) continue;
+        // Buscar el botón X dentro del tab
+        const closeBtn = tab.querySelector('.rtsClose, .rtsCloseButton, [class*="close"], a[title="Close"], button[title="Close"]');
+        if (closeBtn instanceof HTMLElement) {
+          closeBtn.click();
+          return { clicked: true, via: 'close_btn_in_tab' };
+        }
+      }
+      // Fallback: buscar cualquier X cercana al texto "Tablero Médico"
+      const links = document.querySelectorAll('a, button, span');
+      for (const el of links) {
+        const txt = normalize(el.textContent || '');
+        const title = normalize(el.getAttribute('title') || '');
+        if (txt === '×' || txt === 'x' || txt === '✕' || title === 'close') {
+          const r = el.getBoundingClientRect();
+          if (r.top < 100 && r.width > 5 && r.height > 5) {
+            el.click();
+            return { clicked: true, via: 'close_x_header' };
+          }
+        }
+      }
+      return { clicked: false };
+    });
+
+    if (!closed?.clicked) {
+      // Fallback: Playwright locator para la X del tab
+      const xLoc = page.locator('.rtsClose, [class*="rtsClose"]').first();
+      if ((await xLoc.count()) > 0) {
+        await xLoc.click({ force: true, timeout: 2000 });
+        console.log('CLOSE_TABLERO_TAB_OK via=locator_rtsClose');
+        await waitForTimeoutRaw(page, 500);
+        return true;
+      }
+    } else {
+      console.log(`CLOSE_TABLERO_TAB_OK via=${closed.via}`);
+      await waitForTimeoutRaw(page, 500);
+      return true;
+    }
+  } catch {}
+
+  // Último fallback: click en tab "Agenda médica" directamente
+  try {
+    const agendaLoc = page.locator('text=/Agenda\\s*m[eé]dica/i').first();
+    if ((await agendaLoc.count()) > 0) {
+      await agendaLoc.click({ force: true, timeout: 2000 });
+      console.log('CLOSE_TABLERO_TAB_OK via=click_agenda_tab');
+      await waitForTimeoutRaw(page, 500);
+      return true;
+    }
+  } catch {}
+
+  console.log('CLOSE_TABLERO_TAB_FAIL');
+  return false;
+}
+
 async function waitForTableroMedicoSidebar(page, timeoutMs = 30000) {
   const started = Date.now();
   while ((Date.now() - started) < timeoutMs) {
@@ -5373,7 +5475,7 @@ async function ensureNotaMedicaReadyForFinalize(page, origin = '') {
   if (isPageClosedSafe(page)) return false;
 
   // Paso 1: esperar a que el Tablero Médico cargue (sidebar visible con "Nota médica")
-  const sidebarReady = await waitForTableroMedicoSidebar(page, 30000);
+  const sidebarReady = await waitForTableroMedicoSidebar(page, 60000);
   if (!sidebarReady) {
     console.log(`NOTA_MEDICA_FAIL origin=${origin || '-'} reason=tablero_medico_not_loaded`);
     return false;
@@ -11041,8 +11143,29 @@ async function doLoginFlow(page) {
 async function runSingleFlowAttempt(attempt, totalAttempts) {
   let browser;
   try {
-    browser = await chromium.launch({ headless: false, slowMo: SLOW_MO_MS });
-    const context = await browser.newContext();
+    browser = await chromium.launch({
+      headless: false,
+      slowMo: SLOW_MO_MS,
+      args: [
+        '--disk-cache-size=1073741824',      // 1GB de cache en disco
+        '--media-cache-size=524288000',      // 500MB cache de media
+        '--aggressive-cache-discard=false',  // No descartar cache agresivamente
+        '--disable-background-timer-throttling', // No frenar timers en background
+        '--disable-renderer-backgrounding',  // No limitar rendimiento en background
+        '--disable-backgrounding-occluded-windows', // No frenar ventanas ocultas
+        '--max-connections-per-host=24',     // 24 conexiones paralelas (default 6)
+        '--disable-http2',                   // HTTP/1.1 permite más conexiones paralelas reales
+        '--disable-quic',                    // Desactivar QUIC para forzar TCP estable
+        '--no-pings',                        // No enviar pings innecesarios
+        '--disable-features=NetworkServiceInProcess2,IsolateOrigins', // Mejor manejo de red
+        '--enable-features=NetworkService,NetworkServiceInProcess,ParallelDownloading', // Descargas paralelas
+        '--renderer-process-limit=4',        // Más procesos de renderizado
+        '--disable-gpu-sandbox',             // Menos overhead de GPU
+      ]
+    });
+    const context = await browser.newContext({
+      ignoreHTTPSErrors: true,
+    });
     context.on('page', (p) => installScaledWaitForTimeout(p));
     const page = await context.newPage();
     installScaledWaitForTimeout(page);
@@ -11133,26 +11256,48 @@ async function runSingleFlowAttempt(attempt, totalAttempts) {
       }
       await dismissNetworkBanners(page);
       if (BOT_MAIN_MODE === '2') {
-        console.log('Paso 7: abrir módulo desde cita existente');
-        let moduleOpen;
-        if (earlyModuleOpened) {
-          moduleOpen = { ok: true, scanned: 0, attempted: 0, via: 'p2h_popup_direct' };
-        } else {
-          moduleOpen = await openModuleFromExistingAppointmentInCalendar(page);
+        const MODE2_MAX_PATIENT_RETRIES = 5;
+        let mode2Success = false;
+
+        for (let patientAttempt = 0; patientAttempt < MODE2_MAX_PATIENT_RETRIES; patientAttempt++) {
+          if (isPageClosedSafe(page)) break;
+
+          console.log(`Paso 7: abrir módulo desde cita existente (intento ${patientAttempt + 1}/${MODE2_MAX_PATIENT_RETRIES})`);
+          let moduleOpen;
+          if (patientAttempt === 0 && earlyModuleOpened) {
+            moduleOpen = { ok: true, scanned: 0, attempted: 0, via: 'p2h_popup_direct' };
+          } else {
+            moduleOpen = await openModuleFromExistingAppointmentInCalendar(page);
+          }
+          console.log(
+            `MODULE_OPEN_RESULT ok=${moduleOpen.ok ? 1 : 0} scanned=${moduleOpen.scanned || 0} attempted=${moduleOpen.attempted || 0} reason=${moduleOpen.reason || '-'} attempt=${patientAttempt + 1}`
+          );
+          if (!moduleOpen.ok) {
+            throw new Error('No se logró abrir el módulo de una cita existente.');
+          }
+          const target = await getLoadedModuloPage(page, 60000);
+          if (!target?.page) {
+            console.log(`MODE2_NO_MODULE_PAGE attempt=${patientAttempt + 1} - cerrando tablero y reintentando`);
+            await closeTableroMedicoTab(page);
+            await waitForTimeoutRaw(page, 600);
+            continue;
+          }
+          try { await target.page.bringToFront(); } catch {}
+          console.log(`Paso 8: Nota médica (validar/completar) y finalizar cita (intento ${patientAttempt + 1})`);
+          const notaFinalizada = await processNotaMedicaAndFinalizar(target.page, 'mode2_existing_appointment');
+          if (notaFinalizada) {
+            mode2Success = true;
+            break;
+          }
+
+          // Falló → cerrar Tablero Médico y volver a agenda para intentar otra cita
+          console.log(`MODE2_PATIENT_FAIL attempt=${patientAttempt + 1} - cerrando tablero y buscando otra cita`);
+          await closeTableroMedicoTab(page);
+          await waitForTimeoutRaw(page, 800);
         }
-        console.log(
-          `MODULE_OPEN_RESULT ok=${moduleOpen.ok ? 1 : 0} scanned=${moduleOpen.scanned || 0} attempted=${moduleOpen.attempted || 0} reason=${moduleOpen.reason || '-'}`
-        );
-        if (!moduleOpen.ok) {
-          throw new Error('No se logró abrir el módulo de una cita existente.');
-        }
-        const target = await getLoadedModuloPage(page, 10000);
-        if (!target?.page) throw new Error('No se detectó la página del módulo cargado.');
-        try { await target.page.bringToFront(); } catch {}
-        console.log('Paso 8: Nota médica (validar/completar) y finalizar cita');
-        const notaFinalizada = await processNotaMedicaAndFinalizar(target.page, 'mode2_existing_appointment');
-        if (!notaFinalizada) {
-          throw new Error('No se logró completar Nota médica y finalizar cita.');
+
+        if (!mode2Success) {
+          throw new Error(`No se logró completar Nota médica y finalizar cita después de ${MODE2_MAX_PATIENT_RETRIES} intentos.`);
         }
       } else if (AUTO_CREATE_APPOINTMENT) {
         console.log('Paso 7: crear cita (casilla libre + clave paciente + guardar)');
