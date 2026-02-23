@@ -260,8 +260,8 @@ const KEY_EXHAUST_REVIEW_HOLD_MS = (() => {
   return Math.min(24 * 60 * 60 * 1000, Math.max(10000, Math.round(n)));
 })();
 const MODULE_LOAD_POLL_TIMEOUT_MS = (() => {
-  const n = Number(process.env.MODULE_LOAD_POLL_TIMEOUT_MS || '45000');
-  if (!Number.isFinite(n)) return 45000;
+  const n = Number(process.env.MODULE_LOAD_POLL_TIMEOUT_MS || '90000');
+  if (!Number.isFinite(n)) return 90000;
   return Math.min(3 * 60 * 1000, Math.max(5000, Math.round(n)));
 })();
 const MODULE_LOAD_POLL_INTERVAL_MS = (() => {
