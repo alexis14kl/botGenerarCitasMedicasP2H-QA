@@ -1549,6 +1549,56 @@ async function ensureCalendarOnCurrentWeek(page, options = {}) {
   return finalOk;
 }
 
+async function dismissNetworkBanners(page) {
+  try {
+    const count = await page.evaluate(() => {
+      const normalize = (s) =>
+        (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
+      let dismissed = 0;
+      // Buscar banners/toasts de intermitencia, error de red, etc.
+      const candidates = Array.from(
+        document.querySelectorAll('.k-notification, .toast, .alert, [role="alert"], .notification, .banner, .swal2-container, .ajs-message')
+      );
+      // También buscar divs con fondo naranja/rojo posicionados arriba
+      const allDivs = Array.from(document.querySelectorAll('div, aside, section'));
+      for (const el of allDivs) {
+        const r = el.getBoundingClientRect();
+        if (r.width < 150 || r.height < 30 || r.height > 200) continue;
+        const st = getComputedStyle(el);
+        const bg = st.backgroundColor;
+        // Detectar fondos naranja/rojo/warning
+        const isWarningBg = bg.includes('rgb(255, 1') || bg.includes('rgb(255, 8') || bg.includes('rgb(230,') || bg.includes('rgb(243,') || bg.includes('orange');
+        if (isWarningBg && !candidates.includes(el)) candidates.push(el);
+      }
+      for (const el of candidates) {
+        const txt = normalize(el.textContent || '');
+        if (txt.includes('intermitencia') || txt.includes('intermitente') || txt.includes('conexion') || txt.includes('red')) {
+          const st = getComputedStyle(el);
+          const r = el.getBoundingClientRect();
+          if (st.display === 'none' || st.visibility === 'hidden' || r.width < 50) continue;
+          // Buscar botón de cerrar
+          const closeBtn = el.querySelector('.close, .btn-close, [aria-label="close"], [aria-label="Close"], button');
+          if (closeBtn instanceof HTMLElement) {
+            closeBtn.click();
+            dismissed += 1;
+          } else {
+            el.style.display = 'none';
+            dismissed += 1;
+          }
+        }
+      }
+      return dismissed;
+    });
+    if (count > 0) {
+      console.log(`DISMISS_NETWORK_BANNERS_OK count=${count}`);
+      await page.waitForTimeout(200);
+    }
+    return count;
+  } catch {
+    return 0;
+  }
+}
+
 async function dismissStaleP2HPopup(page) {
   try {
     const dismissed = await page.evaluate(() => {
@@ -10922,14 +10972,16 @@ async function runSingleFlowAttempt(attempt, totalAttempts) {
       console.log('Paso 6: seleccionar Práctica médica y asegurar calendario');
       // Espera generosa para que el portal cargue completamente tras login
       await page.waitForTimeout(3000);
+      await dismissNetworkBanners(page);
       await ensureCalendarContext(page);
       if (BOT_MAIN_MODE !== '2' || MODE2_AUTO_FILTER) {
         await applyAgendaFilter(page);
       }
       await ensureWorkingHoursVisible(page);
       await ensureCalendarOnCurrentWeek(page, { applyFilter: BOT_MAIN_MODE !== '2' || MODE2_AUTO_FILTER });
-      // Cerrar popup "Nueva cita asignada" si se abrió accidentalmente al inicializar el calendario
+      // Cerrar popup "Nueva cita asignada" y banners de red si aparecieron al inicializar
       await dismissStaleP2HPopup(page);
+      await dismissNetworkBanners(page);
       if (BOT_MAIN_MODE === '2') {
         console.log('Paso 7: abrir módulo desde cita existente');
         const moduleOpen = await openModuleFromExistingAppointmentInCalendar(page);
