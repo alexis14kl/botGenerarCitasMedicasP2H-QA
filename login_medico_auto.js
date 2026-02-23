@@ -5373,10 +5373,12 @@ async function fillNotaMedicaAntecedentesAndGenerateIA(page, origin = '') {
   }
 
   const missingText = Array.isArray(lastResult?.missing) ? lastResult.missing.join(',') : '-';
+  const timeoutButReady = Boolean(lastResult?.allFilled && lastResult?.readyForGenerar);
   console.log(
-    `NOTA_MEDICA_FIELDS_FILL_TIMEOUT origin=${origin || '-'} attempts=${attempts} filled=${lastResult?.filledCount || 0}/${lastResult?.total || 5} strict=${lastResult?.strictDistinctCount || 0}/3 ready=${lastResult?.readyForGenerar ? 1 : 0} missing=${missingText}`
+    `NOTA_MEDICA_FIELDS_FILL_TIMEOUT origin=${origin || '-'} attempts=${attempts} filled=${lastResult?.filledCount || 0}/${lastResult?.total || 5} strict=${lastResult?.strictDistinctCount || 0}/3 ready=${lastResult?.readyForGenerar ? 1 : 0} missing=${missingText} accept_as_ready=${timeoutButReady ? 1 : 0}`
   );
-  return false;
+  // Si los campos están todos llenos y ready, aceptar como éxito aunque Generar IA haya fallado
+  return timeoutButReady;
 }
 
 async function readNotaMedicaRequiredState(page) {
@@ -5718,7 +5720,14 @@ async function ensureNotaMedicaReadyForFinalize(page, origin = '') {
     `NOTA_MEDICA_STATE_PRE origin=${origin || '-'} filled=${initialState.filledCount || 0}/${initialState.total || 5} missing=${(initialState.missing || []).join(',') || '-'}`
   );
 
-  if (initialState.allFilled) {
+  if (initialState.allFilled && initialState.values?.diagnostico_principal) {
+    // Campos ya tienen data y Diagnóstico principal existe → no tocar nada, no clickear Generar IA
+    const diagSnippet = (initialState.values.diagnostico_principal || '').slice(0, 40);
+    await updateBotStatusOverlay(page, 'success', `campos llenos (${initialState.filledCount}/${initialState.total}), diagnóstico OK`);
+    console.log(`NOTA_MEDICA_READY_PRECHECK_OK origin=${origin || '-'} via=existing_data_skip_generar diag="${diagSnippet}"`);
+    return true;
+  } else if (initialState.allFilled) {
+    // Todos llenos pero sin diagnóstico principal → intentar Generar IA
     await updateBotStatusOverlay(page, 'working', `campos llenos (${initialState.filledCount}/${initialState.total}), click Generar IA...`);
     const generarClicked = await clickGenerarIaByHumanAction(page);
     await waitForTimeoutRaw(page, 260);
@@ -10911,6 +10920,9 @@ function prioritizeMode2SlotCandidates(slots, options = {}) {
 async function openModuleFromExistingAppointmentInCalendar(page) {
   console.log(`MODULE_OPEN_FLOW_START search_weeks=${MODE2_MAX_SEARCH_WEEKS}`);
 
+  // Limpiar modal "Catálogo de diagnósticos" residual de intentos previos
+  await dismissCatalogoDiagnosticosModal(page);
+
   // Check inmediato: si el Tablero Médico ya está abierto, saltar directo
   if (await isTableroMedicoTabActive(page)) {
     console.log('MODULE_OPEN_TABLERO_ALREADY_ACTIVE skipping_agenda_scan');
@@ -11026,6 +11038,8 @@ async function openModuleFromExistingAppointmentInCalendar(page) {
         await closeNuevaCitaModalIfOpen(page);
         await waitForTimeoutRaw(page, 120);
       }
+      // Cerrar "Catálogo de diagnósticos" si quedó abierto de un intento previo
+      await dismissCatalogoDiagnosticosModal(page);
 
       const opened = await openModuloFromExistingAppointmentSlot(page, slot, scanned, {
         requireVisibleQuickStatus: true,
@@ -11051,7 +11065,8 @@ async function openModuleFromExistingAppointmentInCalendar(page) {
       }
 
       console.log(`MODULE_OPEN_SKIP scanned=${scanned} reason=${opened.reason || 'unknown'}`);
-      // Si el Tablero Médico quedó abierto del intento anterior, cerrarlo
+      // Cerrar modales residuales antes del siguiente intento
+      await dismissCatalogoDiagnosticosModal(page);
       if (await isTableroMedicoTabActive(page)) {
         console.log('MODULE_OPEN_SKIP_CLOSE_TABLERO cleaning residual tablero tab');
         await closeTableroMedicoTab(page);
@@ -11546,9 +11561,10 @@ async function runSingleFlowAttempt(attempt, totalAttempts) {
             break;
           }
 
-          // Falló → cerrar Tablero Médico y volver a agenda para intentar otra cita
+          // Falló → cerrar modales residuales, Tablero Médico y volver a agenda
           console.log(`MODE2_PATIENT_FAIL attempt=${patientAttempt + 1} - cerrando tablero y buscando otra cita`);
           await updateBotStatusOverlay(page, 'waiting', `reintentando... (${patientAttempt + 1}/${MODE2_MAX_PATIENT_RETRIES})`);
+          await dismissCatalogoDiagnosticosModal(page);
           await closeTableroMedicoTab(page);
           await waitForTimeoutRaw(page, 800);
         }
