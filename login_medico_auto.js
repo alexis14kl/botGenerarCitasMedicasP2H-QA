@@ -6347,8 +6347,59 @@ async function ensurePlanTratamientoAndGenerate(page, origin = '') {
   }
   if (isPageClosedSafe(page)) return false;
 
-  // Paso 1: Verificar si existen registros reales en el Plan de tratamiento
-  // (items listados de Imagenología, Laboratorio, Receta, Medicamento)
+  // Paso 0: Cerrar modales residuales y asegurar que estamos en "Nota médica"
+  try { await dismissCatalogoDiagnosticosModal(page); } catch {}
+  await waitForTimeoutRaw(page, 300);
+
+  // Verificar que la sección "Nota médica" está activa en el sidebar
+  const onNotaMedica = await page.evaluate(() => {
+    const items = document.querySelectorAll('a, span, div, li');
+    for (const el of items) {
+      const t = (el.textContent || '').trim().toLowerCase();
+      if (t === 'nota médica' || t === 'nota medica') {
+        const cl = (el.className || '') + ' ' + (el.parentElement?.className || '');
+        if (cl.includes('active') || cl.includes('selected') || cl.includes('k-selected') || cl.includes('current')) return true;
+        // Check color/style que indique activo
+        const st = getComputedStyle(el);
+        if (st.color === 'rgb(0, 123, 255)' || st.fontWeight === '700' || st.fontWeight === 'bold') return true;
+      }
+    }
+    return false;
+  });
+  if (!onNotaMedica) {
+    console.log('PLAN_TRATAMIENTO_NOT_ON_NOTA_MEDICA - re-abriendo Nota médica');
+    await openNotaMedicaFromSidebar(page, 'plan_tratamiento_reopen');
+    await waitForTimeoutRaw(page, 1500);
+  }
+
+  // Paso 1: Scroll hacia "Plan de tratamiento" para que sea visible
+  await page.evaluate(() => {
+    const normalize = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+    const els = document.querySelectorAll('div, span, label, strong, h1, h2, h3, h4, p');
+    for (const el of els) {
+      if (normalize(el.textContent || '').includes('plan de tratamiento')) {
+        el.scrollIntoView({ behavior: 'auto', block: 'center' });
+        break;
+      }
+    }
+  });
+  await waitForTimeoutRaw(page, 500);
+
+  // Paso 2: Click "Mostrar plan" PRIMERO para cargar registros en el DOM
+  // (los registros de img/lab/receta NO aparecen hasta que se clickea este botón)
+  await updateBotStatusOverlay(page, 'working', 'click en Mostrar plan para cargar registros...');
+  const mostrarPlanClicked = await _clickMostrarPlanButton(page);
+  console.log(`PLAN_MOSTRAR_PLAN_INITIAL origin=${origin || '-'} clicked=${mostrarPlanClicked ? 1 : 0}`);
+  if (mostrarPlanClicked) {
+    await waitForTimeoutRaw(page, 2500); // Esperar a que cargue el contenido del plan
+  } else {
+    await waitForTimeoutRaw(page, 800);
+  }
+
+  // Cerrar catálogo de diagnósticos si se abrió por error
+  try { await dismissCatalogoDiagnosticosModal(page); } catch {}
+
+  // Paso 2: Ahora sí verificar si hay registros reales cargados
   await updateBotStatusOverlay(page, 'working', 'verificando registros en Plan de tratamiento...');
 
   const planRecords = await page.evaluate(() => {
@@ -6363,39 +6414,51 @@ async function ensurePlanTratamientoAndGenerate(page, origin = '') {
         break;
       }
     }
-    // Buscar items de registros médicos en toda la página (son items listados)
-    const recordKeywords = ['imagenolog', 'laboratorio', 'receta', 'medicamento', 'ultrasonograf', 'radiograf', 'resonancia', 'tomograf'];
+    // Buscar items de registros médicos (ya deberían estar cargados tras "Mostrar plan")
+    const recordKeywords = ['imagenolog', 'laboratorio', 'receta', 'medicamento', 'ultrasonograf', 'radiograf', 'resonancia', 'tomograf', 'mamograf', 'ecocardiograma', 'tac '];
     let recordCount = 0;
     const foundRecords = [];
-    // Buscar en elementos que parezcan items de lista dentro del plan
-    const candidates = planSection
-      ? planSection.querySelectorAll('div, span, li, tr, td, p')
-      : document.querySelectorAll('[id*="plan" i] div, [id*="plan" i] span, [id*="plan" i] li, [id*="plan" i] td');
-    for (const el of candidates) {
-      const t = normalize(el.textContent || '');
-      if (t.length < 4 || t.length > 500) continue;
+    // Buscar en la sección del plan o en textareas/campos cercanos
+    const searchIn = planSection
+      ? planSection.querySelectorAll('div, span, li, tr, td, p, textarea, input')
+      : document.querySelectorAll('[id*="plan" i] div, [id*="plan" i] span, [id*="plan" i] textarea');
+    for (const el of searchIn) {
+      // Leer textContent Y value (para textareas)
+      const txt = normalize(el.textContent || '');
+      const val = normalize(el instanceof HTMLTextAreaElement ? (el.value || '') : '');
+      const combined = txt + ' ' + val;
+      if (combined.length < 4) continue;
       for (const kw of recordKeywords) {
-        if (t.includes(kw)) {
+        if (combined.includes(kw)) {
           const r = el.getBoundingClientRect();
           if (r.width > 20 && r.height > 5) {
             recordCount++;
-            if (foundRecords.length < 5) foundRecords.push(t.slice(0, 60));
+            if (foundRecords.length < 5) foundRecords.push(combined.slice(0, 80));
           }
           break;
         }
       }
     }
-    // Fallback: buscar botones de sección (btnSolIma, btnSolLab, btnReceta) que tengan contadores
-    const btnIma = document.querySelector('[id$="btnSolIma"]');
-    const btnLab = document.querySelector('[id$="btnSolLab"]');
-    const btnRec = document.querySelector('[id$="btnReceta"]');
-    const hasBtns = !!(btnIma || btnLab || btnRec);
-    return { recordCount, foundRecords, hasBtns, hasPlanSection: !!planSection };
+    // Fallback: leer el textarea de plan directamente por su valor
+    const planTextareas = document.querySelectorAll('textarea');
+    for (const ta of planTextareas) {
+      const val = normalize(ta.value || '');
+      if (val.length < 10) continue;
+      // Si el textarea tiene contenido con keywords de registros
+      for (const kw of recordKeywords) {
+        if (val.includes(kw) && !foundRecords.some(r => r.includes(kw))) {
+          recordCount++;
+          if (foundRecords.length < 5) foundRecords.push(`textarea: ${val.slice(0, 80)}`);
+          break;
+        }
+      }
+    }
+    return { recordCount, foundRecords };
   });
 
-  console.log(`PLAN_RECORDS_CHECK origin=${origin || '-'} records=${planRecords.recordCount} section=${planRecords.hasPlanSection ? 1 : 0} btns=${planRecords.hasBtns ? 1 : 0} items=${JSON.stringify(planRecords.foundRecords || [])}`);
+  console.log(`PLAN_RECORDS_CHECK origin=${origin || '-'} records=${planRecords.recordCount} mostrar_plan=${mostrarPlanClicked ? 1 : 0} items=${JSON.stringify(planRecords.foundRecords || [])}`);
 
-  // Si hay registros reales → plan OK, no hacer nada más
+  // Si hay registros reales → plan OK
   if (planRecords.recordCount > 0) {
     await updateBotStatusOverlay(page, 'success', `Plan tiene ${planRecords.recordCount} registro(s)`);
     console.log(`PLAN_TRATAMIENTO_HAS_RECORDS origin=${origin || '-'} count=${planRecords.recordCount}`);
@@ -6886,8 +6949,8 @@ async function processNotaMedicaAndFinalizar(page, origin = '') {
   }
   await updateBotStatusOverlay(page, 'success', 'Plan generado!');
 
-  // Intentar Finalizar con reintentos (no volver a validar campos/plan si ya están OK)
-  const FINALIZAR_MAX_RETRIES = 3;
+  // Intentar Finalizar con reintentos (incluye recuperación si el plan no se generó)
+  const FINALIZAR_MAX_RETRIES = 5;
   for (let fAttempt = 1; fAttempt <= FINALIZAR_MAX_RETRIES; fAttempt++) {
     if (isPageClosedSafe(page)) return false;
 
@@ -6909,6 +6972,53 @@ async function processNotaMedicaAndFinalizar(page, origin = '') {
     await updateBotStatusOverlay(page, 'working', 'esperando diálogo de confirmación...');
     await waitForTimeoutRaw(page, 1200);
 
+    // ── Detectar alerta "No se ha generado el plan de tratamiento" ──
+    const planAlert = await page.evaluate(() => {
+      const norm = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+      // Buscar alertas naranjas/rojas visibles con texto sobre plan de tratamiento
+      const candidates = document.querySelectorAll('div, span, p, [class*="alert"], [class*="notification"], [class*="toast"], [class*="message"]');
+      for (const el of candidates) {
+        const t = norm(el.textContent || '');
+        if (t.includes('no se ha generado el plan') || t.includes('seleccionar mostrar plan') || (t.includes('plan de tratamiento') && t.includes('generado'))) {
+          const r = el.getBoundingClientRect();
+          const st = getComputedStyle(el);
+          if (r.width > 50 && r.height > 20 && st.display !== 'none' && st.visibility !== 'hidden') {
+            return { found: true, text: t.slice(0, 100) };
+          }
+        }
+      }
+      return { found: false };
+    });
+
+    if (planAlert.found) {
+      console.log(`FINALIZAR_PLAN_ALERT_DETECTED origin=${origin || '-'} attempt=${fAttempt} text="${planAlert.text}"`);
+      await updateBotStatusOverlay(page, 'warning', 'plan no generado, volviendo a Nota médica...');
+      // Volver a Nota médica, scroll al plan, click "Mostrar plan", reintentar
+      await openNotaMedicaFromSidebar(page, 'plan_alert_recovery');
+      await waitForTimeoutRaw(page, 1500);
+      // Scroll a Plan de tratamiento
+      await page.evaluate(() => {
+        const norm = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        const els = document.querySelectorAll('div, span, label, strong, p');
+        for (const el of els) {
+          if (norm(el.textContent || '').includes('plan de tratamiento')) {
+            el.scrollIntoView({ behavior: 'auto', block: 'center' });
+            break;
+          }
+        }
+      });
+      await waitForTimeoutRaw(page, 500);
+      // Click "Mostrar plan"
+      const reClickPlan = await _clickMostrarPlanButton(page);
+      console.log(`FINALIZAR_PLAN_RECOVERY_MOSTRAR_PLAN clicked=${reClickPlan ? 1 : 0}`);
+      await waitForTimeoutRaw(page, 2500);
+      // Si no hay registros de img/lab/receta, necesitamos agregarlos
+      // Re-ejecutar el flujo completo de plan
+      await ensurePlanTratamientoAndGenerate(page, 'plan_alert_recovery');
+      await waitForTimeoutRaw(page, 1000);
+      continue; // Reintentar finalizar
+    }
+
     // Reintentar confirmar diálogo hasta 3 veces (puede tardar en aparecer)
     let confirmed = false;
     for (let cAttempt = 1; cAttempt <= 3; cAttempt++) {
@@ -6919,6 +7029,28 @@ async function processNotaMedicaAndFinalizar(page, origin = '') {
     }
 
     if (!confirmed) {
+      // Verificar si es la alerta de plan (puede aparecer con delay)
+      const lateAlert = await page.evaluate(() => {
+        const norm = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        const els = document.querySelectorAll('div, span, p, [class*="alert"], [class*="notification"]');
+        for (const el of els) {
+          const t = norm(el.textContent || '');
+          if (t.includes('no se ha generado el plan') || t.includes('seleccionar mostrar plan')) {
+            const r = el.getBoundingClientRect();
+            if (r.width > 50 && r.height > 20) return true;
+          }
+        }
+        return false;
+      });
+      if (lateAlert) {
+        console.log(`FINALIZAR_LATE_PLAN_ALERT origin=${origin || '-'} attempt=${fAttempt}`);
+        await openNotaMedicaFromSidebar(page, 'late_plan_alert');
+        await waitForTimeoutRaw(page, 1500);
+        await ensurePlanTratamientoAndGenerate(page, 'late_plan_alert');
+        await waitForTimeoutRaw(page, 1000);
+        continue;
+      }
+
       console.log(`FINALIZAR_CONFIRM_FAIL origin=${origin || '-'} attempt=${fAttempt} - diálogo no confirmado`);
       await updateBotStatusOverlay(page, 'warning', 'no se pudo confirmar Sí, reintentando...');
       if (fAttempt < FINALIZAR_MAX_RETRIES) {
