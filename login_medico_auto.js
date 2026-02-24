@@ -6950,46 +6950,45 @@ async function _completarFlujoImagenologia(page, origin = '') {
   console.log(`IMA_FLOW_CATALOG_CLICK clicked=${clickedCat ? 1 : 0}`);
   if (!clickedCat) { await _clickImaModalButton(page, 'Salir'); return false; }
 
-  // 3. Esperar popup catálogo (#gridGlobalCatalog) y clickear flecha de primera fila
+  // 3. Esperar popup catálogo (#gridGlobalCatalog) y clickear flecha de primera fila (UNA sola vez)
   await updateBotStatusOverlay(page, 'working', 'seleccionando estudio...');
   await waitForTimeoutRaw(page, 1500);
   let selected = false;
+  // Primero esperar a que el grid exista y tenga filas
   const catStart = Date.now();
-  while (!selected && (Date.now() - catStart) < 10000) {
-    selected = await page.evaluate(() => {
-      // Buscar botón flecha en td.k-command-cell.tkGridFirstCell del #gridGlobalCatalog
+  let gridReady = false;
+  while (!gridReady && (Date.now() - catStart) < 10000) {
+    gridReady = await page.evaluate(() => {
       const grid = document.querySelector('#gridGlobalCatalog');
-      if (grid) {
-        const arrows = grid.querySelectorAll('td.k-command-cell.tkGridFirstCell');
-        for (const arrow of arrows) {
-          const r = arrow.getBoundingClientRect();
-          if (r.width < 10 || r.height < 10) continue;
-          const st = getComputedStyle(arrow);
-          if (st.display === 'none' || st.visibility === 'hidden') continue;
-          // Clickear el link/botón dentro de la celda, o la celda directamente
-          const inner = arrow.querySelector('a, button, [role="button"]');
-          if (inner) { inner.click(); return true; }
-          arrow.click();
-          return true;
-        }
-      }
-      // Fallback: buscar cualquier grid con celdas de comando
-      const cells = document.querySelectorAll('.k-grid td.k-command-cell');
-      for (const cell of cells) {
-        const r = cell.getBoundingClientRect();
-        if (r.width < 10 || r.height < 10) continue;
-        const st = getComputedStyle(cell);
-        if (st.display === 'none' || st.visibility === 'hidden') continue;
-        const inner = cell.querySelector('a, button, [role="button"]');
-        if (inner) { inner.click(); return true; }
-        cell.click();
-        return true;
-      }
-      return false;
+      if (!grid) return false;
+      const rows = grid.querySelectorAll('tbody tr');
+      return rows.length > 0;
     });
-    if (!selected) await waitForTimeoutRaw(page, 600);
+    if (!gridReady) await waitForTimeoutRaw(page, 600);
   }
-  // Fallback Playwright: locator directo en #gridGlobalCatalog
+  if (!gridReady) {
+    console.log('IMA_FLOW_CATALOG_GRID_NOT_FOUND');
+    await _clickImaModalButton(page, 'Salir');
+    return false;
+  }
+  // Click UNA sola vez en la flecha de la primera fila
+  selected = await page.evaluate(() => {
+    const grid = document.querySelector('#gridGlobalCatalog');
+    if (!grid) return false;
+    const arrows = grid.querySelectorAll('td.k-command-cell.tkGridFirstCell');
+    for (const arrow of arrows) {
+      const r = arrow.getBoundingClientRect();
+      if (r.width < 10 || r.height < 10) continue;
+      const st = getComputedStyle(arrow);
+      if (st.display === 'none' || st.visibility === 'hidden') continue;
+      const inner = arrow.querySelector('a, button, [role="button"]');
+      if (inner) { inner.click(); return true; }
+      arrow.click();
+      return true;
+    }
+    return false;
+  });
+  // Fallback Playwright (solo si evaluate falló)
   if (!selected) {
     try {
       const arrow = page.locator('#gridGlobalCatalog td.k-command-cell.tkGridFirstCell a, #gridGlobalCatalog td.k-command-cell.tkGridFirstCell button').first();
@@ -7000,7 +6999,7 @@ async function _completarFlujoImagenologia(page, origin = '') {
       }
     } catch {}
   }
-  // Fallback 2: click por coordenadas en primera fila
+  // Fallback 2: click por coordenadas (solo si todo lo anterior falló)
   if (!selected) {
     try {
       const info = await page.evaluate(() => {
@@ -7018,25 +7017,56 @@ async function _completarFlujoImagenologia(page, origin = '') {
   }
   console.log(`IMA_FLOW_ITEM_SELECT selected=${selected ? 1 : 0}`);
   if (!selected) { await _clickImaModalButton(page, 'Salir'); return false; }
-  await waitForTimeoutRaw(page, 800);
 
-  // 4. Click "Agregar"
+  // 3b. Esperar a que el catálogo se cierre y el campo Estudio se llene
+  await waitForTimeoutRaw(page, 2000);
+  const estudioLoaded = await page.evaluate(() => {
+    // Verificar que el catálogo popup se cerró
+    const grid = document.querySelector('#gridGlobalCatalog');
+    const gridVisible = grid && grid.offsetParent !== null;
+    // Verificar que el campo Estudio tiene valor
+    const inputs = document.querySelectorAll('input[id*="lab_txt_4"], input[id*="Estudio"], input[name*="Estudio"]');
+    for (const inp of inputs) {
+      if (inp.value && inp.value.trim().length > 0) return { ready: true, catalogClosed: !gridVisible, estudio: inp.value.trim() };
+    }
+    return { ready: false, catalogClosed: !gridVisible };
+  });
+  console.log(`IMA_FLOW_ESTUDIO_CHECK ready=${estudioLoaded.ready ? 1 : 0} catalogClosed=${estudioLoaded.catalogClosed ? 1 : 0} val=${estudioLoaded.estudio || '-'}`);
+  // Si el catálogo sigue abierto, esperar más
+  if (!estudioLoaded.catalogClosed) {
+    await waitForTimeoutRaw(page, 2500);
+  }
+
+  // 4. Click "Agregar" (solo después de confirmar que el estudio se cargó)
   await updateBotStatusOverlay(page, 'working', 'click en Agregar...');
+  await waitForTimeoutRaw(page, 500);
   const agregar = await _clickImaModalButton(page, 'Agregar');
   console.log(`IMA_FLOW_AGREGAR clicked=${agregar ? 1 : 0}`);
-  await waitForTimeoutRaw(page, 1000);
+  await waitForTimeoutRaw(page, 1500);
 
-  // 5. Click "Guardar"
+  // 5. Verificar que el estudio se agregó a la lista antes de guardar
+  await updateBotStatusOverlay(page, 'working', 'verificando estudio agregado...');
+  const estudiosAgregados = await page.evaluate(() => {
+    const txt = document.body.innerText || '';
+    return !txt.includes('No hay estudios agregados');
+  });
+  console.log(`IMA_FLOW_ESTUDIOS_AGREGADOS has_items=${estudiosAgregados ? 1 : 0}`);
+  if (!estudiosAgregados) {
+    console.log('IMA_FLOW_WARN no items after Agregar, waiting extra...');
+    await waitForTimeoutRaw(page, 2000);
+  }
+
+  // 6. Click "Guardar"
   await updateBotStatusOverlay(page, 'working', 'click en Guardar...');
   const guardar = await _clickImaModalButton(page, 'Guardar');
   console.log(`IMA_FLOW_GUARDAR clicked=${guardar ? 1 : 0}`);
-  await waitForTimeoutRaw(page, 1500);
+  await waitForTimeoutRaw(page, 2500);
 
-  // 6. Click "Salir"
+  // 7. Click "Salir"
   await updateBotStatusOverlay(page, 'working', 'cerrando modal...');
   const salir = await _clickImaModalButton(page, 'Salir');
   console.log(`IMA_FLOW_SALIR clicked=${salir ? 1 : 0}`);
-  await waitForTimeoutRaw(page, 1200);
+  await waitForTimeoutRaw(page, 1500);
 
   console.log(`IMA_FLOW_COMPLETE origin=${origin || '-'} cat=${clickedCat ? 1 : 0} sel=${selected ? 1 : 0} add=${agregar ? 1 : 0} save=${guardar ? 1 : 0} exit=${salir ? 1 : 0}`);
   return true;
