@@ -2863,6 +2863,8 @@ async function readModuloLoadState(page) {
         if (!isActive) {
           try { tab.click(); } catch {}
         }
+        // Limpiar selección de texto que puede quedar por el click
+        try { window.getSelection()?.removeAllRanges(); } catch {}
         break;
       }
     }
@@ -11648,11 +11650,12 @@ async function runSingleFlowAttempt(attempt, totalAttempts) {
           if (isPageClosedSafe(page)) break;
 
           console.log(`Paso 7: abrir módulo desde cita existente (intento ${patientAttempt + 1}/${MODE2_MAX_PATIENT_RETRIES})`);
-          await updateBotStatusOverlay(page, 'working', `buscando cita... (${patientAttempt + 1}/${MODE2_MAX_PATIENT_RETRIES})`);
           let moduleOpen;
           if (patientAttempt === 0 && earlyModuleOpened) {
+            await updateBotStatusOverlay(page, 'working', 'esperando apertura Tablero Médico...');
             moduleOpen = { ok: true, scanned: 0, attempted: 0, via: 'p2h_popup_direct' };
           } else {
+            await updateBotStatusOverlay(page, 'working', `buscando cita... (${patientAttempt + 1}/${MODE2_MAX_PATIENT_RETRIES})`);
             moduleOpen = await openModuleFromExistingAppointmentInCalendar(page);
           }
           console.log(
@@ -11662,8 +11665,8 @@ async function runSingleFlowAttempt(attempt, totalAttempts) {
             await updateBotStatusOverlay(page, 'error', 'no se pudo abrir módulo');
             throw new Error('No se logró abrir el módulo de una cita existente.');
           }
-          await updateBotStatusOverlay(page, 'waiting', 'cargando módulo paciente...');
-          const target = await getLoadedModuloPage(page, 60000);
+          await updateBotStatusOverlay(page, 'waiting', 'esperando apertura Tablero Médico...');
+          const target = await getLoadedModuloPage(page, 90000);
           if (!target?.page) {
             console.log(`MODE2_NO_MODULE_PAGE attempt=${patientAttempt + 1} - cerrando tablero y reintentando`);
             await closeTableroMedicoTab(page);
@@ -11674,7 +11677,38 @@ async function runSingleFlowAttempt(attempt, totalAttempts) {
 
           // Esperar a que el Tablero Médico se estabilice antes de operar
           await updateBotStatusOverlay(target.page, 'working', 'estabilizando Tablero Médico...');
-          await waitForTimeoutRaw(target.page, 3000);
+          await waitForTimeoutRaw(target.page, 4000);
+
+          // Inyectar CSS que deshabilita selección de texto (excepto inputs/textareas)
+          // y limpiar cualquier selección residual
+          try {
+            await target.page.evaluate(() => {
+              // Inyectar estilo anti-selección si no existe
+              if (!document.getElementById('bot-no-select-style')) {
+                const style = document.createElement('style');
+                style.id = 'bot-no-select-style';
+                style.textContent = `
+                  *, *::before, *::after {
+                    -webkit-user-select: none !important;
+                    -moz-user-select: none !important;
+                    -ms-user-select: none !important;
+                    user-select: none !important;
+                  }
+                  input, textarea, [contenteditable="true"], [contenteditable=""],
+                  input *, textarea *, [contenteditable="true"] *, [contenteditable=""] * {
+                    -webkit-user-select: text !important;
+                    -moz-user-select: text !important;
+                    -ms-user-select: text !important;
+                    user-select: text !important;
+                  }
+                `;
+                document.head.appendChild(style);
+              }
+              // Limpiar selección existente
+              try { window.getSelection()?.removeAllRanges(); } catch {}
+              try { document.activeElement?.blur(); } catch {}
+            });
+          } catch {}
 
           console.log(`Paso 8: Nota médica (validar/completar) y finalizar cita (intento ${patientAttempt + 1})`);
           await updateBotStatusOverlay(target.page, 'working', 'procesando Nota médica...');
