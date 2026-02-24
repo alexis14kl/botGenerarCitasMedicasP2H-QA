@@ -4683,6 +4683,35 @@ async function fillNotaMedicaAntecedentesAndGenerateIA(page, origin = '') {
   }
   if (isPageClosedSafe(page)) return false;
 
+  // ── Verificar que estamos en la sección "Nota médica" antes de llenar campos ──
+  const onNotaMedica = await page.evaluate(() => {
+    const sideItems = document.querySelectorAll('.k-panelbar .k-item, .k-panelbar li, [class*="sidebar"] a, [class*="sidebar"] li, nav a, nav li');
+    for (const item of sideItems) {
+      const t = (item.textContent || '').trim().toLowerCase();
+      if (t.includes('nota m') || t.includes('nota medica')) {
+        const isActive = item.classList.contains('k-state-selected') || item.classList.contains('k-state-active') ||
+          item.classList.contains('active') || item.classList.contains('k-state-highlight') ||
+          item.querySelector('.k-state-selected, .k-state-active, .active') !== null;
+        if (isActive) return true;
+        // Verificar por color de fondo diferente
+        const st = getComputedStyle(item);
+        if (st.backgroundColor && st.backgroundColor !== 'rgba(0, 0, 0, 0)' && st.backgroundColor !== 'transparent') return true;
+      }
+    }
+    // Fallback: buscar campos específicos de Nota médica en el DOM visible
+    const notaFields = document.querySelectorAll('[id*="notamedica"], [id*="NotaMedica"], textarea[id*="diagnostico"], [id*="motivo_consulta"]');
+    for (const f of notaFields) {
+      const r = f.getBoundingClientRect();
+      if (r.width > 30 && r.height > 15) return true;
+    }
+    return false;
+  });
+  if (!onNotaMedica) {
+    console.log(`NOTA_MEDICA_FIELDS_FILL_WRONG_SECTION origin=${origin || '-'} - re-abriendo Nota médica`);
+    await openNotaMedicaFromSidebar(page, 'fill_fields_reopen');
+    await waitForTimeoutRaw(page, 1500);
+  }
+
   const started = Date.now();
   const endBy = started + NOTA_MEDICA_FIELDS_FILL_TIMEOUT_MS;
   let attempts = 0;
@@ -7332,15 +7361,28 @@ async function processNotaMedicaAndFinalizar(page, origin = '') {
     await waitForTimeoutRaw(page, 1200);
 
     // ── Detectar alerta "No se ha generado el plan de tratamiento" ──
-    // Buscar en TODOS los diálogos visibles (alertify, k-window, modal, etc.)
+    // SOLO buscar en alertify y diálogos pequeños, NO en .k-window (que es el módulo completo)
+    // SOLO textos de ERROR específicos, no "plan de tratamiento" genérico
     const planAlert = await page.evaluate(() => {
       const norm = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-      // Buscar en diálogos visibles (alertify, modals, ventanas Kendo, etc.)
-      const dialogSel = '.alertify, .k-window, .k-dialog, .modal, [role="dialog"], .swal2-popup, .ui-dialog, [class*="alert"], [class*="notification"], [class*="toast"], [class*="message"], div, span, p';
-      const candidates = document.querySelectorAll(dialogSel);
-      for (const el of candidates) {
+      // Buscar en alertify, toasts, notificaciones (NO en .k-window que es el módulo)
+      const dialogSel = '.alertify, .k-dialog, [role="alertdialog"], .swal2-popup, .ui-dialog, [class*="notification"], [class*="toast"]';
+      const dialogs = document.querySelectorAll(dialogSel);
+      for (const el of dialogs) {
         const t = norm(el.textContent || '');
-        if (t.includes('no se ha generado el plan') || t.includes('seleccionar mostrar plan') || (t.includes('plan') && t.includes('tratamiento') && (t.includes('generado') || t.includes('generar')))) {
+        if (t.includes('no se ha generado el plan') || t.includes('seleccionar mostrar plan')) {
+          const r = el.getBoundingClientRect();
+          const st = getComputedStyle(el);
+          if (r.width > 50 && r.height > 20 && st.display !== 'none' && st.visibility !== 'hidden') {
+            return { found: true, text: t.slice(0, 120) };
+          }
+        }
+      }
+      // También buscar en alertas naranjas/rojas visibles (divs con clase alert)
+      const alerts = document.querySelectorAll('[class*="alert"]:not(.alertify), [class*="message"], .k-notification');
+      for (const el of alerts) {
+        const t = norm(el.textContent || '');
+        if (t.includes('no se ha generado el plan') || t.includes('seleccionar mostrar plan')) {
           const r = el.getBoundingClientRect();
           const st = getComputedStyle(el);
           if (r.width > 50 && r.height > 20 && st.display !== 'none' && st.visibility !== 'hidden') {
@@ -7405,9 +7447,10 @@ async function processNotaMedicaAndFinalizar(page, origin = '') {
 
     if (!confirmed) {
       // Verificar si es la alerta de plan (puede aparecer con delay)
+      // Solo buscar en alertify/diálogos/notificaciones, NO en toda la página
       const lateAlert = await page.evaluate(() => {
         const norm = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-        const els = document.querySelectorAll('div, span, p, [class*="alert"], [class*="notification"]');
+        const els = document.querySelectorAll('.alertify, .k-dialog, [role="alertdialog"], [class*="notification"], [class*="toast"], .k-notification');
         for (const el of els) {
           const t = norm(el.textContent || '');
           if (t.includes('no se ha generado el plan') || t.includes('seleccionar mostrar plan')) {
@@ -11446,7 +11489,9 @@ async function confirmCancellationDialog(page) {
   try {
     let clicked = false;
 
-    // ── PRE-CHECK: Verificar que el diálogo NO es la alerta de plan de tratamiento ──
+    // ── PRE-CHECK: Verificar que el diálogo top NO es la alerta de plan ──
+    // SOLO buscar texto de ERROR específico, no "plan de tratamiento" genérico
+    // porque el módulo (.k-window) contiene "Plan de tratamiento" como sección
     const isPlanAlert = await page.evaluate(() => {
       const norm = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
       const visible = (el) => {
@@ -11455,10 +11500,12 @@ async function confirmCancellationDialog(page) {
         const r = el.getBoundingClientRect();
         return st.display !== 'none' && st.visibility !== 'hidden' && r.width > 30 && r.height > 15;
       };
-      const dialogs = Array.from(document.querySelectorAll('.alertify, .k-window, .k-dialog, [role="dialog"]')).filter(visible);
+      // Solo buscar en alertify y diálogos pequeños (no en .k-window que es el módulo completo)
+      const dialogs = Array.from(document.querySelectorAll('.alertify, .k-dialog, [role="alertdialog"], .swal2-popup, .ui-dialog')).filter(visible);
       for (const d of dialogs) {
         const t = norm(d.textContent || '');
-        if (t.includes('no se ha generado el plan') || t.includes('plan de tratamiento') || t.includes('seleccionar mostrar plan')) {
+        // Solo textos de ERROR específicos del plan
+        if (t.includes('no se ha generado el plan') || t.includes('seleccionar mostrar plan')) {
           return true;
         }
       }
@@ -11479,7 +11526,7 @@ async function confirmCancellationDialog(page) {
           const d = document.querySelector('div.alertify');
           return (d?.textContent || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().slice(0, 150);
         });
-        if (dialogText.includes('plan de tratamiento') || dialogText.includes('no se ha generado')) {
+        if (dialogText.includes('no se ha generado el plan') || dialogText.includes('seleccionar mostrar plan')) {
           console.log('CANCEL_CONFIRM_ALERTIFY_IS_PLAN_ALERT - skipping');
         } else {
           await ajsOk.first().click({ timeout: 3000 });
@@ -11518,9 +11565,10 @@ async function confirmCancellationDialog(page) {
           return bz - az;
         })[0];
 
-        // SEGURIDAD: si el diálogo contiene texto de plan de tratamiento, NO confirmar
+        // SEGURIDAD: si el diálogo top es alerta de plan, NO confirmar
+        // Solo bloquear por texto de ERROR específico, no "plan de tratamiento" genérico
         const dialogText = normalize(top.textContent || '');
-        if (dialogText.includes('plan de tratamiento') || dialogText.includes('no se ha generado el plan') || dialogText.includes('seleccionar mostrar plan')) {
+        if (dialogText.includes('no se ha generado el plan') || dialogText.includes('seleccionar mostrar plan')) {
           return { isPlanAlert: true };
         }
 
