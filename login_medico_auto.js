@@ -3327,6 +3327,34 @@ async function openNotaMedicaFromSidebar(page, origin = '') {
       } catch { return false; }
     };
 
+    // Estrategia 0: click directo por texto exacto en el sidebar con evaluate
+    try {
+      const clicked0 = await page.evaluate(() => {
+        const norm = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        // Buscar todos los elementos del sidebar con texto "Nota médica"
+        const candidates = document.querySelectorAll('li, a, div, span, [role="menuitem"], [role="tab"]');
+        for (const el of candidates) {
+          const t = norm(el.textContent || '');
+          // Match exacto "nota medica" (no "nota medica + otros textos largos")
+          if (t !== 'nota medica' && !t.match(/^nota\s*m[eé]dica$/)) continue;
+          const r = el.getBoundingClientRect();
+          if (r.width < 50 || r.height < 15 || r.left > 350) continue;
+          const st = getComputedStyle(el);
+          if (st.display === 'none' || st.visibility === 'hidden') continue;
+          el.click();
+          return true;
+        }
+        return false;
+      });
+      if (clicked0) {
+        await waitForTimeoutRaw(page, 600);
+        if (await checkNotaActive()) {
+          console.log(`NOTA_MEDICA_CLICK_OK via=evaluate_exact origin=${origin || '-'} elapsed=${Date.now() - started}ms`);
+          return true;
+        }
+      }
+    } catch {}
+
     // Estrategia 1: click por ID exacto del botón "Nota médica"
     try {
       const btnLoc = page.locator('#btnIdMenuLate5MP_TableroMedico, [id$="btnIdMenuLate5MP_TableroMedico"]').first();
@@ -3340,23 +3368,18 @@ async function openNotaMedicaFromSidebar(page, origin = '') {
       }
     } catch {}
 
-    // Estrategia 2: click por estructura del sidebar (TabsHeader li[3])
+    // Estrategia 2: click por estructura del sidebar (buscar en TODOS los li del TabsHeader)
     try {
-      const tabsSelectors = [
-        '#TabsHeader ul li:nth-child(3) span',
-        '#TabsHeader ul li:nth-child(3) div',
-        '#TabsHeader ul li:nth-child(3)'
-      ];
-      for (const sel of tabsSelectors) {
-        const loc = page.locator(sel).first();
-        if ((await loc.count()) === 0) continue;
-        if (!(await loc.isVisible())) continue;
-        const txt = await loc.textContent().catch(() => '');
-        if (txt && /nota\s*m[eé]dica/i.test(txt)) {
-          await loc.click({ force: true, timeout: 2000 });
+      const tabsItems = page.locator('#TabsHeader ul li');
+      const itemCount = await tabsItems.count();
+      for (let i = 0; i < itemCount; i++) {
+        const item = tabsItems.nth(i);
+        const txt = await item.textContent().catch(() => '');
+        if (txt && /nota\s*m[eé]dica/i.test(txt.trim()) && !/estudios|medicamentos|constancia/i.test(txt.trim())) {
+          await item.click({ force: true, timeout: 2000 });
           await waitForTimeoutRaw(page, 400);
           if (await checkNotaActive()) {
-            console.log(`NOTA_MEDICA_CLICK_OK via=tabs_header_li3 origin=${origin || '-'} elapsed=${Date.now() - started}ms`);
+            console.log(`NOTA_MEDICA_CLICK_OK via=tabs_header_scan idx=${i} origin=${origin || '-'} elapsed=${Date.now() - started}ms`);
             return true;
           }
         }
@@ -7482,64 +7505,99 @@ async function processNotaMedicaAndFinalizar(page, origin = '') {
     await updateBotStatusOverlay(page, 'working', 'esperando confirmación del sistema...');
     const feedback = await waitForCancellationFeedback(page, 5500);
     console.log(
-      `MODE2_NOTA_FINALIZAR_OK origin=${origin || '-'} clicked=1 confirmed=${confirmed ? 1 : 0} feedback=${feedback ? 1 : 0} attempt=${fAttempt}`
+      `MODE2_NOTA_FINALIZAR_CONFIRM origin=${origin || '-'} clicked=1 confirmed=${confirmed ? 1 : 0} feedback=${feedback ? 1 : 0} attempt=${fAttempt}`
     );
 
-    // ── Click "Continuar" en modal "Seleccionar iniciar descanso" ──
-    await updateBotStatusOverlay(page, 'working', 'esperando modal Continuar...');
+    // ── Verificar que la cita REALMENTE se finalizó ──
     await waitForTimeoutRaw(page, 1500);
+    const reallyFinalized = await page.evaluate(() => {
+      const norm = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+      const bodyText = norm(document.body.innerText || '');
+      // Indicadores de finalización real:
+      // 1. Modal "Seleccionar iniciar descanso" / botón "Continuar" visible
+      const hasContinuar = !!document.querySelector('[id$="btnContinuar"]');
+      // 2. Texto de "descanso" o "iniciar descanso"
+      const hasDescanso = bodyText.includes('iniciar descanso') || bodyText.includes('seleccionar iniciar');
+      // 3. Tab "Tablero Médico" ya no existe (módulo se cerró)
+      const tableroTab = document.querySelector('.k-tabstrip-items .k-item');
+      const tableroGone = !tableroTab || !tableroTab.textContent?.includes('Tablero');
+      // 4. Alerta de éxito visible (toast/notification)
+      const hasSuccess = bodyText.includes('finalizada') || bodyText.includes('finalizado') || bodyText.includes('exito');
+      // 5. Diálogo "¿Desea finalizar?" ya NO está visible (se cerró después de confirmar)
+      const dialogStillOpen = !!document.querySelector('.alertify:not([style*="display: none"])');
+      const dialogText = norm(document.querySelector('.alertify')?.textContent || '');
+      const isFinalizarDialogGone = !dialogStillOpen || !dialogText.includes('desea finalizar');
 
-    let continuarClicked = false;
-    for (let cntAttempt = 1; cntAttempt <= 5; cntAttempt++) {
-      if (isPageClosedSafe(page)) break;
+      return {
+        hasContinuar,
+        hasDescanso,
+        tableroGone,
+        hasSuccess,
+        isFinalizarDialogGone,
+        confirmed: hasContinuar || hasDescanso || tableroGone || hasSuccess
+      };
+    });
+    console.log(`FINALIZAR_VERIFY real=${reallyFinalized.confirmed ? 1 : 0} continuar=${reallyFinalized.hasContinuar ? 1 : 0} descanso=${reallyFinalized.hasDescanso ? 1 : 0} tableroGone=${reallyFinalized.tableroGone ? 1 : 0} success=${reallyFinalized.hasSuccess ? 1 : 0} dialogGone=${reallyFinalized.isFinalizarDialogGone ? 1 : 0}`);
 
-      // Intento directo por ID exacto
-      try {
-        const btnContinuar = page.locator('#ctl00_nc003_MP_TableroMedico_v10NotaMedicaMP_mp_segop_btnContinuar');
-        const cnt = await btnContinuar.count();
-        if (cnt > 0) {
-          await btnContinuar.click({ timeout: 3000 });
-          continuarClicked = true;
-          console.log(`CONTINUAR_CLICK_OK via=id attempt=${cntAttempt}`);
-          break;
-        }
-      } catch {}
-
-      // Intento por selector parcial ID
-      try {
-        const btnPartial = page.locator('[id$="btnContinuar"] button, [id$="btnContinuar"]');
-        const cnt2 = await btnPartial.count();
-        if (cnt2 > 0) {
-          await btnPartial.first().click({ timeout: 3000 });
-          continuarClicked = true;
-          console.log(`CONTINUAR_CLICK_OK via=partial_id attempt=${cntAttempt}`);
-          break;
-        }
-      } catch {}
-
-      // Intento por texto "Continuar"
-      try {
-        const btnText = page.locator('button:has-text("Continuar")');
-        const cnt3 = await btnText.count();
-        if (cnt3 > 0) {
-          await btnText.first().click({ timeout: 3000 });
-          continuarClicked = true;
-          console.log(`CONTINUAR_CLICK_OK via=text attempt=${cntAttempt}`);
-          break;
-        }
-      } catch {}
-
-      console.log(`CONTINUAR_WAIT attempt=${cntAttempt}/5`);
-      await waitForTimeoutRaw(page, 800);
+    if (!reallyFinalized.confirmed && !feedback) {
+      // NO hay evidencia de finalización real → falso positivo, reintentar
+      console.log(`FINALIZAR_FALSE_POSITIVE origin=${origin || '-'} attempt=${fAttempt} - sin evidencia de finalización`);
+      await updateBotStatusOverlay(page, 'warning', 'finalización no confirmada, reintentando...');
+      if (fAttempt < FINALIZAR_MAX_RETRIES) {
+        await waitForTimeoutRaw(page, 1500);
+        continue;
+      }
+      await updateBotStatusOverlay(page, 'error', 'falló verificación de finalización');
+      return false;
     }
 
-    if (continuarClicked) {
+    // ── Click "Continuar" en modal "Seleccionar iniciar descanso" ──
+    if (reallyFinalized.hasContinuar || reallyFinalized.hasDescanso) {
+      await updateBotStatusOverlay(page, 'working', 'click en Continuar...');
       await waitForTimeoutRaw(page, 500);
-      await updateBotStatusOverlay(page, 'success', 'cita finalizada exitosamente!');
-    } else {
-      console.log('CONTINUAR_NOT_FOUND - modal may not have appeared');
-      await updateBotStatusOverlay(page, 'success', 'cita finalizada!');
+
+      let continuarClicked = false;
+      for (let cntAttempt = 1; cntAttempt <= 5; cntAttempt++) {
+        if (isPageClosedSafe(page)) break;
+
+        try {
+          const btnContinuar = page.locator('#ctl00_nc003_MP_TableroMedico_v10NotaMedicaMP_mp_segop_btnContinuar');
+          if ((await btnContinuar.count()) > 0) {
+            await btnContinuar.click({ timeout: 3000 });
+            continuarClicked = true;
+            console.log(`CONTINUAR_CLICK_OK via=id attempt=${cntAttempt}`);
+            break;
+          }
+        } catch {}
+
+        try {
+          const btnPartial = page.locator('[id$="btnContinuar"] button, [id$="btnContinuar"]');
+          if ((await btnPartial.count()) > 0) {
+            await btnPartial.first().click({ timeout: 3000 });
+            continuarClicked = true;
+            console.log(`CONTINUAR_CLICK_OK via=partial_id attempt=${cntAttempt}`);
+            break;
+          }
+        } catch {}
+
+        try {
+          const btnText = page.locator('button:has-text("Continuar")');
+          if ((await btnText.count()) > 0) {
+            await btnText.first().click({ timeout: 3000 });
+            continuarClicked = true;
+            console.log(`CONTINUAR_CLICK_OK via=text attempt=${cntAttempt}`);
+            break;
+          }
+        } catch {}
+
+        console.log(`CONTINUAR_WAIT attempt=${cntAttempt}/5`);
+        await waitForTimeoutRaw(page, 800);
+      }
+      console.log(`CONTINUAR_RESULT clicked=${continuarClicked ? 1 : 0}`);
     }
+
+    await updateBotStatusOverlay(page, 'success', 'cita finalizada exitosamente!');
+    console.log(`MODE2_NOTA_FINALIZAR_OK origin=${origin || '-'} attempt=${fAttempt}`);
     return true;
   }
 
