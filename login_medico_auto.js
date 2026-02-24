@@ -11671,6 +11671,11 @@ async function runSingleFlowAttempt(attempt, totalAttempts) {
             continue;
           }
           try { await target.page.bringToFront(); } catch {}
+
+          // Esperar a que el Tablero Médico se estabilice antes de operar
+          await updateBotStatusOverlay(target.page, 'working', 'estabilizando Tablero Médico...');
+          await waitForTimeoutRaw(target.page, 3000);
+
           console.log(`Paso 8: Nota médica (validar/completar) y finalizar cita (intento ${patientAttempt + 1})`);
           await updateBotStatusOverlay(target.page, 'working', 'procesando Nota médica...');
           const notaFinalizada = await processNotaMedicaAndFinalizar(target.page, 'mode2_existing_appointment');
