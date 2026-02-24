@@ -3332,25 +3332,49 @@ async function openNotaMedicaFromSidebar(page, origin = '') {
     };
 
     // Estrategia 0: click directo por texto exacto en el sidebar con evaluate
+    // Busca TODOS los elementos en el sidebar izquierdo (left < 260) cuyo texto directo sea "Nota médica"
     try {
       const clicked0 = await page.evaluate(() => {
-        const norm = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-        // Buscar todos los elementos del sidebar con texto "Nota médica"
-        const candidates = document.querySelectorAll('li, a, div, span, [role="menuitem"], [role="tab"]');
-        for (const el of candidates) {
-          const t = norm(el.textContent || '');
-          // Match exacto "nota medica" (no "nota medica + otros textos largos")
-          if (t !== 'nota medica' && !t.match(/^nota\s*m[eé]dica$/)) continue;
-          const r = el.getBoundingClientRect();
-          if (r.width < 50 || r.height < 15 || r.left > 350) continue;
+        const norm = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
+        const visible = (el) => {
           const st = getComputedStyle(el);
-          if (st.display === 'none' || st.visibility === 'hidden') continue;
-          el.click();
-          return true;
+          const r = el.getBoundingClientRect();
+          return st.display !== 'none' && st.visibility !== 'hidden' && r.width > 30 && r.height > 10;
+        };
+        // Buscar en todos los li, a, span, div del sidebar
+        const candidates = document.querySelectorAll('li, a, div, span, [role="menuitem"], [role="tab"], [role="button"]');
+        const matches = [];
+        for (const el of candidates) {
+          if (!visible(el)) continue;
+          const r = el.getBoundingClientRect();
+          // Solo sidebar izquierdo (left < 260)
+          if (r.left > 260) continue;
+          // Texto directo del elemento (no de hijos profundos)
+          const directText = norm(Array.from(el.childNodes).filter(n => n.nodeType === 3).map(n => n.textContent).join(''));
+          const fullText = norm(el.textContent || '');
+          // Match: texto directo o fullText debe ser exactamente "nota medica"
+          const isExactDirect = directText === 'nota medica' || /^nota\s*m[eé]dica$/.test(directText);
+          const isExactFull = fullText === 'nota medica' || /^nota\s*m[eé]dica$/.test(fullText);
+          // También acepta si fullText empieza con "nota medica" y es corto (< 20 chars)
+          const isShortMatch = fullText.length < 20 && (fullText.startsWith('nota medica') || /^nota\s*m[eé]dica/.test(fullText));
+          if (!isExactDirect && !isExactFull && !isShortMatch) continue;
+          // NO debe contener texto de otros items del menú
+          if (/signos|vitales|alergias|estudios|medicamentos|constancia|referencias|calificar|comentarios|antecedentes|tiempo|problemas/i.test(fullText)) continue;
+          let score = 0;
+          if (isExactDirect) score += 500;
+          if (isExactFull) score += 400;
+          if (isShortMatch) score += 200;
+          if (el.tagName === 'LI') score += 100;
+          if (el.tagName === 'A') score += 80;
+          matches.push({ el, score, tag: el.tagName, text: fullText.slice(0, 30) });
         }
-        return false;
+        if (matches.length === 0) return { ok: false };
+        matches.sort((a, b) => b.score - a.score);
+        matches[0].el.click();
+        return { ok: true, tag: matches[0].tag, text: matches[0].text, score: matches[0].score, count: matches.length };
       });
-      if (clicked0) {
+      if (clicked0?.ok) {
+        console.log(`NOTA_MEDICA_EVAL_CLICK tag=${clicked0.tag} text="${clicked0.text}" score=${clicked0.score} matches=${clicked0.count}`);
         await waitForTimeoutRaw(page, 600);
         if (await checkNotaActive()) {
           console.log(`NOTA_MEDICA_CLICK_OK via=evaluate_exact origin=${origin || '-'} elapsed=${Date.now() - started}ms`);
@@ -7243,7 +7267,27 @@ async function _completarFlujoImagenologia(page, origin = '') {
 async function clickFinalizarCitaInModule(page) {
   if (isPageClosedSafe(page)) return false;
 
-  // Paso 1: detectar btnResolver y quitar disabled si es necesario (solo detección)
+  // Paso 0: selector EXACTO del botón Finalizar (wrapper > a)
+  try {
+    const clicked0 = await page.evaluate(() => {
+      // Buscar el wrapper cuyo ID termina en btnResolver_wrapper
+      const wrapper = document.querySelector('[id$="btnResolver_wrapper"]');
+      if (wrapper) {
+        const a = wrapper.querySelector('a');
+        if (a) { a.click(); return { ok: true, via: 'wrapper_a', id: wrapper.id }; }
+        wrapper.click();
+        return { ok: true, via: 'wrapper_direct', id: wrapper.id };
+      }
+      return { ok: false };
+    });
+    if (clicked0?.ok) {
+      await waitForTimeoutRaw(page, 300);
+      console.log(`FINALIZAR_CLICK_OK via=${clicked0.via} id=${(clicked0.id || '').slice(-60)}`);
+      return true;
+    }
+  } catch {}
+
+  // Paso 1: detectar btnResolver (sin _wrapper) y quitar disabled si es necesario
   try {
     const detected = await page.evaluate(() => {
       const btn = document.querySelector('[id$="btnResolver"]');
@@ -7262,7 +7306,6 @@ async function clickFinalizarCitaInModule(page) {
     });
 
     if (detected?.found && detected?.visible) {
-      // Paso 2: click con Playwright locator (dispara postback Telerik correctamente)
       const loc = page.locator('[id$="btnResolver"]').first();
       try {
         await loc.click({ force: true, timeout: 2000 });
@@ -7280,6 +7323,7 @@ async function clickFinalizarCitaInModule(page) {
 
   // Estrategia 2: selectores directos por texto (fallback)
   const directSelectors = [
+    '[id$="btnResolver_wrapper"] a',
     'button:has-text("Finalizar cita"), a:has-text("Finalizar cita"), [role="button"]:has-text("Finalizar cita")',
     '[title*="finalizar" i], [aria-label*="finalizar" i]'
   ];
