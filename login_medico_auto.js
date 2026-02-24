@@ -5788,78 +5788,49 @@ async function ensureNotaMedicaReadyForFinalize(page, origin = '') {
   }
   await waitForTimeoutRaw(page, 1200);
 
-  // Validar botón "Generar IA" (junto a Apreciación diagnóstica)
-  const generarBtnState = await page.evaluate(() => {
-    const normalize = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
-    const visible = (el) => {
-      if (!el) return false;
-      const st = getComputedStyle(el);
-      const r = el.getBoundingClientRect();
-      return st.display !== 'none' && st.visibility !== 'hidden' && r.width > 6 && r.height > 6;
-    };
-    const nodes = Array.from(
-      document.querySelectorAll('button, a, span, input[type="button"], input[type="submit"], [role="button"]')
-    ).filter(visible);
-    for (const n of nodes) {
-      const txt = normalize(`${n.textContent || ''} ${n.getAttribute?.('title') || ''} ${n.getAttribute?.('aria-label') || ''}`);
-      if (!txt.includes('generar')) continue;
-      const isDisabled = n.hasAttribute('disabled') ||
-        n.getAttribute('aria-disabled') === 'true' ||
-        n.classList.contains('aspNetDisabled') ||
-        n.classList.contains('k-state-disabled') ||
-        n.classList.contains('disabled') ||
-        (n.style && n.style.pointerEvents === 'none');
-      return { found: true, disabled: isDisabled, id: n.id || null, txt: txt.slice(0, 40) };
-    }
-    return { found: false, disabled: false };
+  // Validar si el input "Diagnóstico principal" (mp_nm_DiagP_wrapper) ya tiene data
+  const diagInputData = await page.evaluate(() => {
+    // Buscar el wrapper del diagnóstico principal
+    const wrapper = document.querySelector('[id$="mp_nm_DiagP_wrapper"]');
+    if (!wrapper) return { found: false, hasData: false, text: '' };
+    // El texto puede estar en el wrapper, en un input hijo, o en un span hijo
+    const txt = (wrapper.textContent || wrapper.innerText || '').trim();
+    const input = wrapper.querySelector('input');
+    const inputVal = input ? (input.value || '').trim() : '';
+    const data = inputVal || txt;
+    return { found: true, hasData: data.length > 0, text: data.slice(0, 60) };
   });
-  console.log(`GENERAR_IA_BTN_CHECK origin=${origin || '-'} found=${generarBtnState.found ? 1 : 0} disabled=${generarBtnState.disabled ? 1 : 0} id="${generarBtnState.id || '-'}"`);
+  console.log(`DIAG_INPUT_CHECK origin=${origin || '-'} found=${diagInputData.found ? 1 : 0} hasData=${diagInputData.hasData ? 1 : 0} text="${diagInputData.text}"`);
 
-  if (generarBtnState.found && generarBtnState.disabled) {
-    // Botón deshabilitado = diagnóstico ya fue generado
-    await updateBotStatusOverlay(page, 'success', 'paciente con diagnóstico generado');
-    console.log(`GENERAR_IA_BTN_ALREADY_DISABLED origin=${origin || '-'} - diagnóstico ya generado`);
+  if (diagInputData.found && diagInputData.hasData) {
+    // Input tiene data = diagnóstico ya existe → no generar
+    await updateBotStatusOverlay(page, 'success', `diagnóstico existente: "${diagInputData.text.slice(0, 35)}..."`);
+    console.log(`DIAG_ALREADY_EXISTS origin=${origin || '-'} text="${diagInputData.text}"`);
     await waitForTimeoutRaw(page, 1200);
-  } else if (generarBtnState.found && !generarBtnState.disabled) {
-    // Botón habilitado = necesita generar diagnóstico → click y esperar
+  } else {
+    // Input vacío = necesita generar diagnóstico → click y esperar
     await updateBotStatusOverlay(page, 'working', 'generando diagnóstico con IA...');
-    console.log(`GENERAR_IA_BTN_CLICK origin=${origin || '-'} - clickeando Generar IA`);
+    console.log(`DIAG_EMPTY_GENERATING origin=${origin || '-'}`);
     const generarClicked = await clickGenerarIaByHumanAction(page);
     if (generarClicked) {
-      // Esperar a que el botón "Generar IA" quede deshabilitado (= IA terminó de generar)
+      // Esperar hasta que el input tenga data (= IA terminó de generar)
       const generarStart = Date.now();
-      const GENERAR_IA_WAIT_MS = 30000; // 30s máximo para generación IA
+      const GENERAR_IA_WAIT_MS = 30000;
       let diagGenerated = false;
       let lastLog = 0;
       while ((Date.now() - generarStart) < GENERAR_IA_WAIT_MS) {
         if (isPageClosedSafe(page)) break;
-        // Verificar si botón quedó deshabilitado (indicador definitivo de generación completa)
-        const btnCheck = await page.evaluate(() => {
-          const normalize = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
-          const visible = (el) => {
-            if (!el) return false;
-            const st = getComputedStyle(el);
-            const r = el.getBoundingClientRect();
-            return st.display !== 'none' && st.visibility !== 'hidden' && r.width > 6 && r.height > 6;
-          };
-          const nodes = Array.from(
-            document.querySelectorAll('button, a, span, input[type="button"], input[type="submit"], [role="button"]')
-          ).filter(visible);
-          for (const n of nodes) {
-            const txt = normalize(`${n.textContent || ''} ${n.getAttribute?.('title') || ''} ${n.getAttribute?.('aria-label') || ''}`);
-            if (!txt.includes('generar')) continue;
-            const isDisabled = n.hasAttribute('disabled') ||
-              n.getAttribute('aria-disabled') === 'true' ||
-              n.classList.contains('aspNetDisabled') ||
-              n.classList.contains('k-state-disabled') ||
-              n.classList.contains('disabled') ||
-              (n.style && n.style.pointerEvents === 'none');
-            return { disabled: isDisabled };
-          }
-          return { disabled: false };
+        // Verificar si el input ya tiene data
+        const check = await page.evaluate(() => {
+          const w = document.querySelector('[id$="mp_nm_DiagP_wrapper"]');
+          if (!w) return { hasData: false };
+          const txt = (w.textContent || w.innerText || '').trim();
+          const input = w.querySelector('input');
+          const val = input ? (input.value || '').trim() : '';
+          return { hasData: (val || txt).length > 0 };
         });
 
-        if (btnCheck.disabled) {
+        if (check.hasData) {
           diagGenerated = true;
           break;
         }
@@ -5884,10 +5855,6 @@ async function ensureNotaMedicaReadyForFinalize(page, origin = '') {
       await updateBotStatusOverlay(page, 'warning', 'no se pudo clickear Generar IA');
       console.log(`GENERAR_IA_BTN_CLICK_FAIL origin=${origin || '-'}`);
     }
-    await waitForTimeoutRaw(page, 1200);
-  } else {
-    await updateBotStatusOverlay(page, 'warning', 'botón Generar IA no encontrado');
-    console.log(`GENERAR_IA_BTN_NOT_FOUND origin=${origin || '-'}`);
     await waitForTimeoutRaw(page, 1200);
   }
 
@@ -11973,8 +11940,16 @@ async function runSingleFlowAttempt(attempt, totalAttempts) {
                 console.log(`PASO6_TABLERO_DETECTED_AFTER_CALENDAR_FAIL signal=${retryState.signal || 'tab'}`);
               }
             } catch {}
+
+            // En Modo 2: si el calendario falla, no es fatal - podemos buscar citas sin él
+            if (!earlyModuleOpened) {
+              console.log(`PASO6_CALENDAR_FAIL_MODE2_CONTINUE err=${(e.message || '').slice(0, 60)}`);
+              await updateBotStatusOverlay(page, 'warning', 'calendario no cargó, intentando buscar citas...');
+              // No lanzar error, continuar al flujo de búsqueda
+            }
+          } else {
+            throw e;
           }
-          if (!earlyModuleOpened) throw e;
         }
         if (BOT_MAIN_MODE !== '2' || MODE2_AUTO_FILTER) {
           await applyAgendaFilter(page);
