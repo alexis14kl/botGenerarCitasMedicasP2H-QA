@@ -6825,6 +6825,193 @@ async function _clickMostrarPlanButton(page) {
   return false;
 }
 
+// ── Click directo en btnSolIma (Imagenología) en la toolbar ──
+async function _clickBtnSolImaDirecto(page) {
+  if (isPageClosedSafe(page)) return false;
+  // El botón está en la toolbar superior del Tablero Médico
+  // ID completo: ctl00_nc003_MP_TableroMedico_v10NotaMedicaMP_MPTableroMedico_panelNotaMed_mpTabMed_btnSolIma
+
+  // Intento 1: Playwright locator por ID parcial
+  try {
+    const btn = page.locator('[id$="btnSolIma"]');
+    if ((await btn.count()) > 0) {
+      await btn.first().scrollIntoViewIfNeeded({ timeout: 2000 });
+      await btn.first().click({ timeout: 4000 });
+      console.log('BTNSOLIMA_DIRECTO_OK via=locator');
+      return true;
+    }
+  } catch (e) {
+    console.log(`BTNSOLIMA_DIRECTO_LOCATOR_ERR ${(e.message || '').slice(0, 60)}`);
+  }
+
+  // Intento 2: Wrapper (a o button dentro del wrapper)
+  try {
+    const wrap = page.locator('[id$="btnSolIma_wrapper"] a, [id$="btnSolIma_wrapper"] button, [id$="btnSolIma_wrapper"]');
+    if ((await wrap.count()) > 0) {
+      await wrap.first().click({ timeout: 4000 });
+      console.log('BTNSOLIMA_DIRECTO_OK via=wrapper');
+      return true;
+    }
+  } catch (e) {
+    console.log(`BTNSOLIMA_DIRECTO_WRAPPER_ERR ${(e.message || '').slice(0, 60)}`);
+  }
+
+  // Intento 3: evaluate + mouse.click por coordenadas
+  try {
+    const info = await page.evaluate(() => {
+      const sels = [
+        '[id$="btnSolIma"]',
+        '[id$="btnSolIma_wrapper"] a',
+        '[id$="btnSolIma_wrapper"] button',
+        '[id$="btnSolIma_wrapper"]',
+      ];
+      for (const sel of sels) {
+        const el = document.querySelector(sel);
+        if (!el) continue;
+        const r = el.getBoundingClientRect();
+        if (r.width > 5 && r.height > 5) {
+          const st = getComputedStyle(el);
+          if (st.display !== 'none' && st.visibility !== 'hidden') {
+            return { x: r.x + r.width / 2, y: r.y + r.height / 2, id: el.id || sel };
+          }
+        }
+      }
+      return null;
+    });
+    if (info) {
+      await page.mouse.click(info.x, info.y);
+      console.log(`BTNSOLIMA_DIRECTO_OK via=mouse id=${info.id}`);
+      return true;
+    }
+  } catch (e) {
+    console.log(`BTNSOLIMA_DIRECTO_MOUSE_ERR ${(e.message || '').slice(0, 60)}`);
+  }
+
+  console.log('BTNSOLIMA_DIRECTO_FAIL');
+  return false;
+}
+
+// ── Flujo completo de Imagenología: catálogo → seleccionar → agregar → guardar → salir ──
+async function _completarFlujoImagenologia(page, origin = '') {
+  if (isPageClosedSafe(page)) return false;
+
+  // 1. Verificar modal abierto (polling 8s)
+  await updateBotStatusOverlay(page, 'working', 'esperando modal Imagenología...');
+  let modalOpen = false;
+  const mStart = Date.now();
+  while (!modalOpen && (Date.now() - mStart) < 8000) {
+    modalOpen = await page.evaluate(() => {
+      const catBtn = document.querySelector('[id$="mp_lab_txt_4_catalogButton"]');
+      if (catBtn) {
+        const r = catBtn.getBoundingClientRect();
+        if (r.width > 5 && r.height > 5) return true;
+      }
+      const wins = document.querySelectorAll('.k-window, [role="dialog"]');
+      for (const w of wins) {
+        const t = (w.textContent || '').toLowerCase();
+        if (t.includes('imagenolog') || t.includes('solicitud de estudio')) {
+          const r = w.getBoundingClientRect();
+          if (r.width > 100 && r.height > 100) return true;
+        }
+      }
+      return false;
+    });
+    if (!modalOpen) await waitForTimeoutRaw(page, 500);
+  }
+  if (!modalOpen) {
+    console.log(`IMA_FLOW_MODAL_NOT_FOUND origin=${origin || '-'}`);
+    await updateBotStatusOverlay(page, 'warning', 'modal Imagenología no abrió');
+    return false;
+  }
+  console.log(`IMA_FLOW_MODAL_OPEN origin=${origin || '-'}`);
+
+  // 2. Click catálogo Estudio (botón "...")
+  await updateBotStatusOverlay(page, 'working', 'click en catálogo Estudio...');
+  await waitForTimeoutRaw(page, 600);
+  let clickedCat = false;
+  try {
+    const catBtn = page.locator('[id$="mp_lab_txt_4_catalogButton"]');
+    if ((await catBtn.count()) > 0) {
+      await catBtn.first().click({ timeout: 4000 });
+      clickedCat = true;
+    }
+  } catch {}
+  if (!clickedCat) {
+    try {
+      const info = await page.evaluate(() => {
+        const el = document.querySelector('[id$="mp_lab_txt_4_catalogButton"]');
+        if (!el) return null;
+        const r = el.getBoundingClientRect();
+        return r.width > 5 ? { x: r.x + r.width / 2, y: r.y + r.height / 2 } : null;
+      });
+      if (info) { await page.mouse.click(info.x, info.y); clickedCat = true; }
+    } catch {}
+  }
+  console.log(`IMA_FLOW_CATALOG_CLICK clicked=${clickedCat ? 1 : 0}`);
+  if (!clickedCat) { await _clickImaModalButton(page, 'Salir'); return false; }
+
+  // 3. Esperar popup catálogo y seleccionar primer item
+  await updateBotStatusOverlay(page, 'working', 'seleccionando estudio...');
+  await waitForTimeoutRaw(page, 1500);
+  let selected = false;
+  const catStart = Date.now();
+  while (!selected && (Date.now() - catStart) < 10000) {
+    selected = await page.evaluate(() => {
+      // Buscar grids/tablas/listas en popups visibles
+      const containers = document.querySelectorAll('.k-grid tbody, .k-listbox, [role="listbox"], .k-animation-container table tbody, .k-popup table tbody');
+      for (const cont of containers) {
+        const st = getComputedStyle(cont);
+        if (st.display === 'none' || st.visibility === 'hidden') continue;
+        const rows = cont.querySelectorAll('tr, li, [role="option"]');
+        for (const row of rows) {
+          const r = row.getBoundingClientRect();
+          if (r.width < 30 || r.height < 10) continue;
+          const txt = (row.textContent || '').trim();
+          if (txt.length < 2 || txt.includes('No hay registros')) continue;
+          row.click();
+          return true;
+        }
+      }
+      return false;
+    });
+    if (!selected) await waitForTimeoutRaw(page, 600);
+  }
+  // Fallback: doble click con Playwright
+  if (!selected) {
+    try {
+      const row = page.locator('.k-grid tbody tr, .k-popup tbody tr').first();
+      if ((await row.count()) > 0) {
+        await row.dblclick({ timeout: 3000 });
+        selected = true;
+      }
+    } catch {}
+  }
+  console.log(`IMA_FLOW_ITEM_SELECT selected=${selected ? 1 : 0}`);
+  if (!selected) { await _clickImaModalButton(page, 'Salir'); return false; }
+  await waitForTimeoutRaw(page, 800);
+
+  // 4. Click "Agregar"
+  await updateBotStatusOverlay(page, 'working', 'click en Agregar...');
+  const agregar = await _clickImaModalButton(page, 'Agregar');
+  console.log(`IMA_FLOW_AGREGAR clicked=${agregar ? 1 : 0}`);
+  await waitForTimeoutRaw(page, 1000);
+
+  // 5. Click "Guardar"
+  await updateBotStatusOverlay(page, 'working', 'click en Guardar...');
+  const guardar = await _clickImaModalButton(page, 'Guardar');
+  console.log(`IMA_FLOW_GUARDAR clicked=${guardar ? 1 : 0}`);
+  await waitForTimeoutRaw(page, 1500);
+
+  // 6. Click "Salir"
+  await updateBotStatusOverlay(page, 'working', 'cerrando modal...');
+  const salir = await _clickImaModalButton(page, 'Salir');
+  console.log(`IMA_FLOW_SALIR clicked=${salir ? 1 : 0}`);
+  await waitForTimeoutRaw(page, 1200);
+
+  console.log(`IMA_FLOW_COMPLETE origin=${origin || '-'} cat=${clickedCat ? 1 : 0} sel=${selected ? 1 : 0} add=${agregar ? 1 : 0} save=${guardar ? 1 : 0} exit=${salir ? 1 : 0}`);
+  return true;
+}
+
 async function clickFinalizarCitaInModule(page) {
   if (isPageClosedSafe(page)) return false;
 
@@ -6992,11 +7179,28 @@ async function processNotaMedicaAndFinalizar(page, origin = '') {
 
     if (planAlert.found) {
       console.log(`FINALIZAR_PLAN_ALERT_DETECTED origin=${origin || '-'} attempt=${fAttempt} text="${planAlert.text}"`);
-      await updateBotStatusOverlay(page, 'warning', 'plan no generado, volviendo a Nota médica...');
-      // Volver a Nota médica, scroll al plan, click "Mostrar plan", reintentar
+      await updateBotStatusOverlay(page, 'warning', 'plan no generado, abriendo Imagenología...');
+
+      // Paso A: Asegurar que estamos en Nota médica
       await openNotaMedicaFromSidebar(page, 'plan_alert_recovery');
       await waitForTimeoutRaw(page, 1500);
-      // Scroll a Plan de tratamiento
+
+      // Paso B: Click DIRECTO en btnSolIma (botón de Imagenología en la toolbar)
+      await updateBotStatusOverlay(page, 'working', 'click en botón Imagenología (toolbar)...');
+      const imaClicked = await _clickBtnSolImaDirecto(page);
+      console.log(`PLAN_RECOVERY_BTNSOLIMA clicked=${imaClicked ? 1 : 0}`);
+
+      if (imaClicked) {
+        // Paso C: Esperar modal de imagenología
+        await waitForTimeoutRaw(page, 2000);
+        // Paso D: Click catálogo Estudio → seleccionar primer item → Agregar → Guardar → Salir
+        await _completarFlujoImagenologia(page, origin);
+        await waitForTimeoutRaw(page, 1500);
+      }
+
+      // Paso E: Volver a Nota médica y scroll al plan
+      await openNotaMedicaFromSidebar(page, 'post_ima_recovery');
+      await waitForTimeoutRaw(page, 1500);
       await page.evaluate(() => {
         const norm = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
         const els = document.querySelectorAll('div, span, label, strong, p');
@@ -7008,14 +7212,11 @@ async function processNotaMedicaAndFinalizar(page, origin = '') {
         }
       });
       await waitForTimeoutRaw(page, 500);
-      // Click "Mostrar plan"
+
+      // Paso F: Click "Mostrar plan" para cargar registros
       const reClickPlan = await _clickMostrarPlanButton(page);
-      console.log(`FINALIZAR_PLAN_RECOVERY_MOSTRAR_PLAN clicked=${reClickPlan ? 1 : 0}`);
+      console.log(`PLAN_RECOVERY_MOSTRAR_PLAN clicked=${reClickPlan ? 1 : 0}`);
       await waitForTimeoutRaw(page, 2500);
-      // Si no hay registros de img/lab/receta, necesitamos agregarlos
-      // Re-ejecutar el flujo completo de plan
-      await ensurePlanTratamientoAndGenerate(page, 'plan_alert_recovery');
-      await waitForTimeoutRaw(page, 1000);
       continue; // Reintentar finalizar
     }
 
