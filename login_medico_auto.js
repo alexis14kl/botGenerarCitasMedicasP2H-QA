@@ -5740,51 +5740,154 @@ async function ensureNotaMedicaReadyForFinalize(page, origin = '') {
     `NOTA_MEDICA_STATE_PRE origin=${origin || '-'} filled=${initialState.filledCount || 0}/${initialState.total || 5} missing=${(initialState.missing || []).join(',') || '-'}`
   );
 
-  if (initialState.allFilled && initialState.values?.diagnostico_principal) {
-    // Campos ya tienen data y Diagnóstico principal existe → no tocar nada, no clickear Generar IA
-    const diagSnippet = (initialState.values.diagnostico_principal || '').slice(0, 40);
-    await updateBotStatusOverlay(page, 'success', `campos llenos (${initialState.filledCount}/${initialState.total}), diagnóstico OK`);
-    console.log(`NOTA_MEDICA_READY_PRECHECK_OK origin=${origin || '-'} via=existing_data_skip_generar diag="${diagSnippet}"`);
-    return true;
-  } else if (initialState.allFilled) {
-    // Todos llenos pero sin diagnóstico principal → intentar Generar IA
-    await updateBotStatusOverlay(page, 'working', `campos llenos (${initialState.filledCount}/${initialState.total}), click Generar IA...`);
-    const generarClicked = await clickGenerarIaByHumanAction(page);
-    await waitForTimeoutRaw(page, 260);
-    const hasAlerts = await hasNotaRequiredFieldAlerts(page);
-    if (generarClicked && !hasAlerts) {
-      await updateBotStatusOverlay(page, 'success', 'Generar IA OK');
-      console.log(`NOTA_MEDICA_READY_PRECHECK_OK origin=${origin || '-'} via=existing_data`);
-      return true;
-    }
-    await updateBotStatusOverlay(page, 'waiting', 'reparando campos...');
-    console.log(`NOTA_MEDICA_READY_PRECHECK_REPAIR origin=${origin || '-'} generar=${generarClicked ? 1 : 0} alerts=${hasAlerts ? 1 : 0}`);
+  // Validar campo "Consulta por" y mostrar estado en overlay
+  const consultaPorValue = (initialState.values?.consulta_por || '').trim();
+  if (consultaPorValue) {
+    const snippet = consultaPorValue.slice(0, 35);
+    await updateBotStatusOverlay(page, 'success', `"Consulta por" lleno: "${snippet}..."`);
+    console.log(`CONSULTA_POR_CHECK origin=${origin || '-'} status=filled value="${snippet}"`);
   } else {
-    await updateBotStatusOverlay(page, 'working', `faltan ${initialState.missing?.length || '?'} campos, llenando...`);
+    await updateBotStatusOverlay(page, 'warning', '"Consulta por" está vacío');
+    console.log(`CONSULTA_POR_CHECK origin=${origin || '-'} status=empty`);
+  }
+  await waitForTimeoutRaw(page, 1200);
+
+  // Validar campo "Triage" y mostrar estado en overlay
+  const triageValue = (initialState.values?.triage || '').trim();
+  if (triageValue) {
+    const snippet = triageValue.slice(0, 35);
+    await updateBotStatusOverlay(page, 'success', `"Triage" lleno: "${snippet}..."`);
+    console.log(`TRIAGE_CHECK origin=${origin || '-'} status=filled value="${snippet}"`);
+  } else {
+    await updateBotStatusOverlay(page, 'warning', '"Triage" está vacío');
+    console.log(`TRIAGE_CHECK origin=${origin || '-'} status=empty`);
+  }
+  await waitForTimeoutRaw(page, 1200);
+
+  // Validar campo "Presente enfermedad" y mostrar estado en overlay
+  const presenteEnfValue = (initialState.values?.presente_enfermedad || '').trim();
+  if (presenteEnfValue) {
+    const snippet = presenteEnfValue.slice(0, 35);
+    await updateBotStatusOverlay(page, 'success', `"Presente enfermedad" lleno: "${snippet}..."`);
+    console.log(`PRESENTE_ENFERMEDAD_CHECK origin=${origin || '-'} status=filled value="${snippet}"`);
+  } else {
+    await updateBotStatusOverlay(page, 'warning', '"Presente enfermedad" está vacío');
+    console.log(`PRESENTE_ENFERMEDAD_CHECK origin=${origin || '-'} status=empty`);
+  }
+  await waitForTimeoutRaw(page, 1200);
+
+  // Validar campo "Apreciación diagnóstica" y mostrar estado en overlay
+  const apreciacionValue = (initialState.values?.apreciacion_diagnostica || '').trim();
+  if (apreciacionValue) {
+    const snippet = apreciacionValue.slice(0, 35);
+    await updateBotStatusOverlay(page, 'success', `"Apreciación diagnóstica" lleno: "${snippet}..."`);
+    console.log(`APRECIACION_DIAGNOSTICA_CHECK origin=${origin || '-'} status=filled value="${snippet}"`);
+  } else {
+    await updateBotStatusOverlay(page, 'warning', '"Apreciación diagnóstica" está vacío');
+    console.log(`APRECIACION_DIAGNOSTICA_CHECK origin=${origin || '-'} status=empty`);
+  }
+  await waitForTimeoutRaw(page, 1200);
+
+  // Validar botón "Generar IA" (junto a Apreciación diagnóstica)
+  const generarBtnState = await page.evaluate(() => {
+    const normalize = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
+    const visible = (el) => {
+      if (!el) return false;
+      const st = getComputedStyle(el);
+      const r = el.getBoundingClientRect();
+      return st.display !== 'none' && st.visibility !== 'hidden' && r.width > 6 && r.height > 6;
+    };
+    const nodes = Array.from(
+      document.querySelectorAll('button, a, span, input[type="button"], input[type="submit"], [role="button"]')
+    ).filter(visible);
+    for (const n of nodes) {
+      const txt = normalize(`${n.textContent || ''} ${n.getAttribute?.('title') || ''} ${n.getAttribute?.('aria-label') || ''}`);
+      if (!txt.includes('generar')) continue;
+      const isDisabled = n.hasAttribute('disabled') ||
+        n.getAttribute('aria-disabled') === 'true' ||
+        n.classList.contains('aspNetDisabled') ||
+        n.classList.contains('k-state-disabled') ||
+        n.classList.contains('disabled') ||
+        (n.style && n.style.pointerEvents === 'none');
+      return { found: true, disabled: isDisabled, id: n.id || null, txt: txt.slice(0, 40) };
+    }
+    return { found: false, disabled: false };
+  });
+  console.log(`GENERAR_IA_BTN_CHECK origin=${origin || '-'} found=${generarBtnState.found ? 1 : 0} disabled=${generarBtnState.disabled ? 1 : 0} id="${generarBtnState.id || '-'}"`);
+
+  if (generarBtnState.found && generarBtnState.disabled) {
+    // Botón deshabilitado = diagnóstico ya fue generado
+    await updateBotStatusOverlay(page, 'success', 'paciente con diagnóstico generado');
+    console.log(`GENERAR_IA_BTN_ALREADY_DISABLED origin=${origin || '-'} - diagnóstico ya generado`);
+    await waitForTimeoutRaw(page, 1200);
+  } else if (generarBtnState.found && !generarBtnState.disabled) {
+    // Botón habilitado = necesita generar diagnóstico → click y esperar
+    await updateBotStatusOverlay(page, 'working', 'generando diagnóstico con IA...');
+    console.log(`GENERAR_IA_BTN_CLICK origin=${origin || '-'} - clickeando Generar IA`);
+    const generarClicked = await clickGenerarIaByHumanAction(page);
+    if (generarClicked) {
+      // Esperar a que el diagnóstico se genere (polling hasta que el campo se llene o timeout)
+      const generarStart = Date.now();
+      const GENERAR_IA_WAIT_MS = 15000;
+      let diagGenerated = false;
+      while ((Date.now() - generarStart) < GENERAR_IA_WAIT_MS) {
+        const checkState = await readNotaMedicaRequiredState(page);
+        if (checkState.values?.diagnostico_principal) {
+          diagGenerated = true;
+          break;
+        }
+        await sleepRaw(800);
+      }
+      if (diagGenerated) {
+        await updateBotStatusOverlay(page, 'success', 'diagnóstico generado por IA!');
+        console.log(`GENERAR_IA_RESULT origin=${origin || '-'} status=generated elapsed=${Date.now() - generarStart}ms`);
+      } else {
+        await updateBotStatusOverlay(page, 'warning', 'diagnóstico no se generó a tiempo');
+        console.log(`GENERAR_IA_RESULT origin=${origin || '-'} status=timeout elapsed=${Date.now() - generarStart}ms`);
+      }
+    } else {
+      await updateBotStatusOverlay(page, 'warning', 'no se pudo clickear Generar IA');
+      console.log(`GENERAR_IA_BTN_CLICK_FAIL origin=${origin || '-'}`);
+    }
+    await waitForTimeoutRaw(page, 1200);
+  } else {
+    await updateBotStatusOverlay(page, 'warning', 'botón Generar IA no encontrado');
+    console.log(`GENERAR_IA_BTN_NOT_FOUND origin=${origin || '-'}`);
+    await waitForTimeoutRaw(page, 1200);
   }
 
-  const filled = await fillNotaMedicaAntecedentesAndGenerateIA(page, origin);
-  if (!filled) {
-    await updateBotStatusOverlay(page, 'error', 'falló llenando campos');
-    return false;
+  // Validar campo "Diagnóstico principal" (resultado de Generar IA)
+  const finalState = await readNotaMedicaRequiredState(page);
+  const diagValue = (finalState.values?.diagnostico_principal || '').trim();
+  if (diagValue) {
+    const snippet = diagValue.slice(0, 35);
+    await updateBotStatusOverlay(page, 'success', `"Diagnóstico principal" lleno: "${snippet}..."`);
+    console.log(`DIAGNOSTICO_PRINCIPAL_CHECK origin=${origin || '-'} status=filled value="${snippet}"`);
+  } else {
+    await updateBotStatusOverlay(page, 'warning', '"Diagnóstico principal" está vacío');
+    console.log(`DIAGNOSTICO_PRINCIPAL_CHECK origin=${origin || '-'} status=empty`);
   }
-  await updateBotStatusOverlay(page, 'success', 'campos llenados OK');
+  await waitForTimeoutRaw(page, 1200);
 
-  const postState = await readNotaMedicaRequiredState(page);
-  let postAlerts = await hasNotaRequiredFieldAlerts(page);
-  if (postState.allFilled && postAlerts) {
-    const retryGenerar = await clickGenerarIaByHumanAction(page);
-    await waitForTimeoutRaw(page, 260);
-    postAlerts = await hasNotaRequiredFieldAlerts(page);
-    console.log(
-      `NOTA_MEDICA_READY_POST_REGEN origin=${origin || '-'} clicked=${retryGenerar ? 1 : 0} alerts=${postAlerts ? 1 : 0}`
-    );
-  }
-
+  // Verificar estado final de todos los campos
   console.log(
-    `NOTA_MEDICA_STATE_POST origin=${origin || '-'} filled=${postState.filledCount || 0}/${postState.total || 5} missing=${(postState.missing || []).join(',') || '-'} alerts=${postAlerts ? 1 : 0}`
+    `NOTA_MEDICA_STATE_FINAL origin=${origin || '-'} filled=${finalState.filledCount || 0}/${finalState.total || 5} missing=${(finalState.missing || []).join(',') || '-'}`
   );
-  return Boolean(postState.allFilled && !postAlerts);
+  const allFieldsReady = finalState.allFilled && diagValue;
+  if (allFieldsReady) {
+    await updateBotStatusOverlay(page, 'success', `todos los campos listos (${finalState.filledCount}/${finalState.total})`);
+    console.log(`NOTA_MEDICA_READY_OK origin=${origin || '-'} via=refactored_flow`);
+  } else {
+    // Fallback: intentar llenado automático si faltan campos
+    await updateBotStatusOverlay(page, 'working', `faltan ${finalState.missing?.length || '?'} campos, llenando...`);
+    const filled = await fillNotaMedicaAntecedentesAndGenerateIA(page, origin);
+    if (!filled) {
+      await updateBotStatusOverlay(page, 'error', 'falló llenando campos');
+      return false;
+    }
+    await updateBotStatusOverlay(page, 'success', 'campos llenados OK');
+  }
+  return true;
 }
 
 async function resolvePlanTratamientoPoints(page) {
@@ -6095,9 +6198,17 @@ async function clickGenerarPlanButton(page, points = []) {
   if (isPageClosedSafe(page)) return false;
 
   const selectors = [
+    // Selector directo por ID parcial (el más confiable)
+    '[id$="btnMostrarPlan"]',
+    '[id$="btnMostrarPlan"] > div',
+    // Selectores por texto "Mostrar plan"
+    'button:has-text("Mostrar plan"), a:has-text("Mostrar plan"), [role="button"]:has-text("Mostrar plan")',
+    'button:has-text("Mostrar Plan"), a:has-text("Mostrar Plan"), [role="button"]:has-text("Mostrar Plan")',
+    // Selectores por texto "Generar plan" (fallback)
     'button:has-text("Generar plan"), a:has-text("Generar plan"), [role="button"]:has-text("Generar plan")',
     'button:has-text("Generar Plan"), a:has-text("Generar Plan"), [role="button"]:has-text("Generar Plan")',
-    '[title*="generar plan" i], [aria-label*="generar plan" i], [id*="generarplan" i], [name*="generarplan" i]'
+    '[title*="generar plan" i], [aria-label*="generar plan" i], [id*="generarplan" i], [name*="generarplan" i]',
+    '[title*="mostrar plan" i], [aria-label*="mostrar plan" i], [id*="mostrarplan" i]'
   ];
   for (const sel of selectors) {
     try {
@@ -6161,9 +6272,13 @@ async function clickGenerarPlanButton(page, points = []) {
         );
         if (!txt) continue;
         let score = 0;
-        if (txt.includes('generar plan')) score += 500;
+        if (txt.includes('mostrar plan')) score += 600;
+        else if (txt.includes('mostrar') && txt.includes('plan')) score += 460;
+        else if (txt.includes('generar plan')) score += 500;
         else if (txt.includes('generar') && txt.includes('plan')) score += 360;
         else if (txt.includes('generar') && txt.includes('tratamiento')) score += 300;
+        // Bonus por ID que contiene btnMostrarPlan
+        if ((n.id || '').toLowerCase().includes('mostrarplan')) score += 700;
         if (score <= 0) continue;
         scored.push({ n, score });
       }
@@ -6225,53 +6340,96 @@ async function ensurePlanTratamientoAndGenerate(page, origin = '') {
   }
   if (isPageClosedSafe(page)) return false;
 
-  const started = Date.now();
-  const endBy = started + PLAN_TRATAMIENTO_GENERAR_TIMEOUT_MS;
-  let tries = 0;
-
-  while (Date.now() < endBy) {
-    tries += 1;
-    const state = await readPlanTratamientoState(page);
-    if (!state.fieldFound) {
-      console.log(`PLAN_TRATAMIENTO_FIELD_NOT_FOUND try=${tries} origin=${origin || '-'}`);
-      await waitForTimeoutRaw(page, 220);
-      continue;
+  // Paso 1: Buscar el campo "Plan de tratamiento"
+  await updateBotStatusOverlay(page, 'working', 'buscando campo Plan de tratamiento...');
+  let state = await readPlanTratamientoState(page);
+  if (!state.fieldFound) {
+    // Reintentar unos segundos por si el campo aún no renderiza
+    const fieldStart = Date.now();
+    while (!state.fieldFound && (Date.now() - fieldStart) < 6000) {
+      await waitForTimeoutRaw(page, 500);
+      state = await readPlanTratamientoState(page);
     }
-
-    if (!state.filled) {
-      const plan = await resolvePlanTratamientoPoints(page);
-      let filled = false;
-      const fieldPoints = Array.isArray(plan?.fieldCandidates) ? plan.fieldCandidates : [];
-      for (let i = 0; i < fieldPoints.length && i < 6 && !filled; i += 1) {
-        filled = await keyboardCaptureAtPoint(page, fieldPoints[i], PLAN_TRATAMIENTO_TEXT);
-      }
-      await waitForTimeoutRaw(page, 120);
-      const postFill = await readPlanTratamientoState(page);
-      filled = Boolean(postFill.filled);
-      console.log(
-        `PLAN_TRATAMIENTO_FILL try=${tries} filled=${filled ? 1 : 0} len=${postFill.valueLength || 0}`
-      );
-      if (!filled) {
-        await waitForTimeoutRaw(page, 220);
-        continue;
-      }
-    }
-
-    const plan = await resolvePlanTratamientoPoints(page);
-    const clickedGenerar = await clickGenerarPlanButton(page, Array.isArray(plan?.generarCandidates) ? plan.generarCandidates : []);
-    const hasPlanAlert = await hasPlanTratamientoRequiredAlert(page);
-    console.log(
-      `PLAN_TRATAMIENTO_GENERAR try=${tries} clicked=${clickedGenerar ? 1 : 0} alert=${hasPlanAlert ? 1 : 0}`
-    );
-    if (clickedGenerar && !hasPlanAlert) {
-      console.log(`PLAN_TRATAMIENTO_READY_OK origin=${origin || '-'} tries=${tries}`);
-      return true;
-    }
-
-    await waitForTimeoutRaw(page, 220);
+  }
+  if (!state.fieldFound) {
+    await updateBotStatusOverlay(page, 'warning', 'campo Plan de tratamiento no encontrado');
+    console.log(`PLAN_TRATAMIENTO_FIELD_NOT_FOUND origin=${origin || '-'}`);
+    await waitForTimeoutRaw(page, 1200);
+    return false;
   }
 
-  console.log(`PLAN_TRATAMIENTO_READY_TIMEOUT origin=${origin || '-'} timeout=${PLAN_TRATAMIENTO_GENERAR_TIMEOUT_MS}ms`);
+  // Paso 2: Validar si está vacío o lleno
+  if (state.filled) {
+    await updateBotStatusOverlay(page, 'success', `"Plan de tratamiento" lleno (${state.valueLength} chars)`);
+    console.log(`PLAN_TRATAMIENTO_CHECK origin=${origin || '-'} status=filled len=${state.valueLength}`);
+  } else {
+    await updateBotStatusOverlay(page, 'warning', '"Plan de tratamiento" está vacío, escribiendo...');
+    console.log(`PLAN_TRATAMIENTO_CHECK origin=${origin || '-'} status=empty`);
+    await waitForTimeoutRaw(page, 800);
+
+    // Paso 3: Escribir plan corto hardcodeado
+    const plan = await resolvePlanTratamientoPoints(page);
+    let filled = false;
+    const fieldPoints = Array.isArray(plan?.fieldCandidates) ? plan.fieldCandidates : [];
+    for (let i = 0; i < fieldPoints.length && i < 6 && !filled; i += 1) {
+      filled = await keyboardCaptureAtPoint(page, fieldPoints[i], PLAN_TRATAMIENTO_TEXT);
+    }
+    await waitForTimeoutRaw(page, 200);
+    const postFill = await readPlanTratamientoState(page);
+    filled = Boolean(postFill.filled);
+    console.log(`PLAN_TRATAMIENTO_FILL origin=${origin || '-'} filled=${filled ? 1 : 0} len=${postFill.valueLength || 0}`);
+
+    if (filled) {
+      await updateBotStatusOverlay(page, 'success', 'Plan de tratamiento escrito!');
+    } else {
+      await updateBotStatusOverlay(page, 'warning', 'no se pudo escribir Plan de tratamiento');
+      console.log(`PLAN_TRATAMIENTO_FILL_FAIL origin=${origin || '-'}`);
+      await waitForTimeoutRaw(page, 1200);
+      return false;
+    }
+  }
+  await waitForTimeoutRaw(page, 1200);
+
+  // Paso 4: Click en "Mostrar plan" / "Generar plan"
+  await updateBotStatusOverlay(page, 'working', 'click en Mostrar plan...');
+  const planPoints = await resolvePlanTratamientoPoints(page);
+  const clickedGenerar = await clickGenerarPlanButton(page, Array.isArray(planPoints?.generarCandidates) ? planPoints.generarCandidates : []);
+  const hasPlanAlert = await hasPlanTratamientoRequiredAlert(page);
+  console.log(`PLAN_TRATAMIENTO_GENERAR origin=${origin || '-'} clicked=${clickedGenerar ? 1 : 0} alert=${hasPlanAlert ? 1 : 0} plan_filled=${state.filled ? 1 : 0}`);
+
+  // Si el click fue exitoso, considerar OK (ignorar alertas si el plan ya tenía contenido)
+  if (clickedGenerar) {
+    if (hasPlanAlert && !state.filled) {
+      // Alerta real: el campo estaba vacío y hay un error de validación
+      await updateBotStatusOverlay(page, 'warning', 'alerta en Plan, reintentando...');
+      console.log(`PLAN_TRATAMIENTO_ALERT_REAL origin=${origin || '-'} - plan estaba vacío`);
+    } else {
+      // Click OK y plan tenía contenido → éxito (ignorar alerta falsa)
+      await updateBotStatusOverlay(page, 'success', 'Plan generado!');
+      console.log(`PLAN_TRATAMIENTO_READY_OK origin=${origin || '-'} alert_ignored=${hasPlanAlert ? 1 : 0}`);
+      await waitForTimeoutRaw(page, 1200);
+      return true;
+    }
+  }
+
+  // Reintento si falló el click
+  if (!clickedGenerar) {
+    await updateBotStatusOverlay(page, 'warning', 'reintentando click en Mostrar plan...');
+    await waitForTimeoutRaw(page, 500);
+    const retryPoints = await resolvePlanTratamientoPoints(page);
+    const retryClick = await clickGenerarPlanButton(page, Array.isArray(retryPoints?.generarCandidates) ? retryPoints.generarCandidates : []);
+    console.log(`PLAN_TRATAMIENTO_GENERAR_RETRY origin=${origin || '-'} clicked=${retryClick ? 1 : 0}`);
+    if (retryClick) {
+      await updateBotStatusOverlay(page, 'success', 'Plan generado!');
+      console.log(`PLAN_TRATAMIENTO_READY_OK origin=${origin || '-'} via=retry`);
+      await waitForTimeoutRaw(page, 1200);
+      return true;
+    }
+  }
+
+  await updateBotStatusOverlay(page, 'error', 'falló generando Plan de tratamiento');
+  console.log(`PLAN_TRATAMIENTO_READY_FAIL origin=${origin || '-'}`);
+  await waitForTimeoutRaw(page, 1200);
   return false;
 }
 
@@ -6399,22 +6557,39 @@ async function processNotaMedicaAndFinalizar(page, origin = '') {
   }
   await updateBotStatusOverlay(page, 'success', 'Plan generado!');
 
-  await updateBotStatusOverlay(page, 'working', 'click en Finalizar...');
-  const clickedFinalizar = await clickFinalizarCitaInModuleWithRetry(page);
-  if (!clickedFinalizar) {
-    console.log(`MODE2_NOTA_FINALIZAR_FAIL origin=${origin || '-'} step=click_finalizar`);
-    await updateBotStatusOverlay(page, 'error', 'falló al click Finalizar');
-    return false;
-  }
-  await updateBotStatusOverlay(page, 'working', 'confirmando Finalizar...');
+  // Intentar Finalizar con reintentos (no volver a validar campos/plan si ya están OK)
+  const FINALIZAR_MAX_RETRIES = 3;
+  for (let fAttempt = 1; fAttempt <= FINALIZAR_MAX_RETRIES; fAttempt++) {
+    if (isPageClosedSafe(page)) return false;
 
-  const confirmed = await confirmCancellationDialog(page);
-  const feedback = await waitForCancellationFeedback(page, 5500);
-  console.log(
-    `MODE2_NOTA_FINALIZAR_OK origin=${origin || '-'} clicked=1 confirmed=${confirmed ? 1 : 0} feedback=${feedback ? 1 : 0}`
-  );
-  await updateBotStatusOverlay(page, 'success', 'cita finalizada exitosamente!');
-  return true;
+    await updateBotStatusOverlay(page, 'working', fAttempt === 1 ? 'click en Finalizar...' : `reintentando Finalizar... (${fAttempt}/${FINALIZAR_MAX_RETRIES})`);
+    console.log(`FINALIZAR_ATTEMPT origin=${origin || '-'} attempt=${fAttempt}/${FINALIZAR_MAX_RETRIES}`);
+
+    const clickedFinalizar = await clickFinalizarCitaInModuleWithRetry(page);
+    if (!clickedFinalizar) {
+      console.log(`FINALIZAR_CLICK_FAIL origin=${origin || '-'} attempt=${fAttempt}`);
+      if (fAttempt < FINALIZAR_MAX_RETRIES) {
+        await updateBotStatusOverlay(page, 'warning', 'no se pudo clickear Finalizar, reintentando...');
+        await waitForTimeoutRaw(page, 1500);
+        continue;
+      }
+      await updateBotStatusOverlay(page, 'error', 'falló al click Finalizar');
+      return false;
+    }
+
+    await updateBotStatusOverlay(page, 'working', 'confirmando Finalizar...');
+    const confirmed = await confirmCancellationDialog(page);
+    const feedback = await waitForCancellationFeedback(page, 5500);
+    console.log(
+      `MODE2_NOTA_FINALIZAR_OK origin=${origin || '-'} clicked=1 confirmed=${confirmed ? 1 : 0} feedback=${feedback ? 1 : 0} attempt=${fAttempt}`
+    );
+    await updateBotStatusOverlay(page, 'success', 'cita finalizada exitosamente!');
+    return true;
+  }
+
+  console.log(`MODE2_NOTA_FINALIZAR_FAIL origin=${origin || '-'} step=finalizar_all_retries`);
+  await updateBotStatusOverlay(page, 'error', 'falló al finalizar después de reintentos');
+  return false;
 }
 
 async function holdBrowserForReview(page, reason = 'validacion visual', holdMs = REVIEW_HOLD_MS) {
