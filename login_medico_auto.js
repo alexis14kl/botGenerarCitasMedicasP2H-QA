@@ -535,7 +535,11 @@ function shouldRestartFromLogin(errorMessage) {
     'socket hang up',
     'net::err',
     'frame was detached',
-    'stale'
+    'stale',
+    'no se pudo seleccionar empresa',
+    'no se pudo seleccionar departamento',
+    'no se pudo completar login',
+    'no se detecto sesion iniciada'
   ];
   return patterns.some((p) => msg.includes(p));
 }
