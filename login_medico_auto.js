@@ -1266,6 +1266,11 @@ async function ensureCalendarContext(page) {
     }
   }
 
+  // En Modo 2: no matar el bot, solo advertir y continuar
+  if (BOT_MAIN_MODE === '2') {
+    console.log('PASO6_CALENDAR_FAIL_MODE2_CONTINUE - calendario no disponible, continuando flujo');
+    return;
+  }
   throw new Error('No se pudo asegurar calendario en Paso 6.');
 }
 
@@ -6342,34 +6347,65 @@ async function ensurePlanTratamientoAndGenerate(page, origin = '') {
   }
   if (isPageClosedSafe(page)) return false;
 
-  // Paso 1: Buscar el campo "Plan de tratamiento"
-  await updateBotStatusOverlay(page, 'working', 'buscando campo Plan de tratamiento...');
-  let state = await readPlanTratamientoState(page);
-  if (!state.fieldFound) {
-    const fieldStart = Date.now();
-    while (!state.fieldFound && (Date.now() - fieldStart) < 6000) {
-      await waitForTimeoutRaw(page, 500);
-      state = await readPlanTratamientoState(page);
-    }
-  }
-  if (!state.fieldFound) {
-    await updateBotStatusOverlay(page, 'warning', 'campo Plan de tratamiento no encontrado');
-    console.log(`PLAN_TRATAMIENTO_FIELD_NOT_FOUND origin=${origin || '-'}`);
-    await waitForTimeoutRaw(page, 1200);
-    return false;
-  }
+  // Paso 1: Verificar si existen registros reales en el Plan de tratamiento
+  // (items listados de Imagenología, Laboratorio, Receta, Medicamento)
+  await updateBotStatusOverlay(page, 'working', 'verificando registros en Plan de tratamiento...');
 
-  // Paso 2: Validar si ya tiene data
-  if (state.filled) {
-    await updateBotStatusOverlay(page, 'success', `"Plan de tratamiento" lleno (${state.valueLength} chars)`);
-    console.log(`PLAN_TRATAMIENTO_CHECK origin=${origin || '-'} status=filled len=${state.valueLength}`);
+  const planRecords = await page.evaluate(() => {
+    const normalize = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
+    // Buscar la sección "Plan de tratamiento" en el DOM
+    const allText = document.querySelectorAll('div, span, td, li, p, label, strong');
+    let planSection = null;
+    for (const el of allText) {
+      const t = normalize(el.textContent || '');
+      if (t.includes('plan de tratamiento') && el.getBoundingClientRect().width > 50) {
+        planSection = el.closest('div[class], section, td, [id]') || el.parentElement;
+        break;
+      }
+    }
+    // Buscar items de registros médicos en toda la página (son items listados)
+    const recordKeywords = ['imagenolog', 'laboratorio', 'receta', 'medicamento', 'ultrasonograf', 'radiograf', 'resonancia', 'tomograf'];
+    let recordCount = 0;
+    const foundRecords = [];
+    // Buscar en elementos que parezcan items de lista dentro del plan
+    const candidates = planSection
+      ? planSection.querySelectorAll('div, span, li, tr, td, p')
+      : document.querySelectorAll('[id*="plan" i] div, [id*="plan" i] span, [id*="plan" i] li, [id*="plan" i] td');
+    for (const el of candidates) {
+      const t = normalize(el.textContent || '');
+      if (t.length < 4 || t.length > 500) continue;
+      for (const kw of recordKeywords) {
+        if (t.includes(kw)) {
+          const r = el.getBoundingClientRect();
+          if (r.width > 20 && r.height > 5) {
+            recordCount++;
+            if (foundRecords.length < 5) foundRecords.push(t.slice(0, 60));
+          }
+          break;
+        }
+      }
+    }
+    // Fallback: buscar botones de sección (btnSolIma, btnSolLab, btnReceta) que tengan contadores
+    const btnIma = document.querySelector('[id$="btnSolIma"]');
+    const btnLab = document.querySelector('[id$="btnSolLab"]');
+    const btnRec = document.querySelector('[id$="btnReceta"]');
+    const hasBtns = !!(btnIma || btnLab || btnRec);
+    return { recordCount, foundRecords, hasBtns, hasPlanSection: !!planSection };
+  });
+
+  console.log(`PLAN_RECORDS_CHECK origin=${origin || '-'} records=${planRecords.recordCount} section=${planRecords.hasPlanSection ? 1 : 0} btns=${planRecords.hasBtns ? 1 : 0} items=${JSON.stringify(planRecords.foundRecords || [])}`);
+
+  // Si hay registros reales → plan OK, no hacer nada más
+  if (planRecords.recordCount > 0) {
+    await updateBotStatusOverlay(page, 'success', `Plan tiene ${planRecords.recordCount} registro(s)`);
+    console.log(`PLAN_TRATAMIENTO_HAS_RECORDS origin=${origin || '-'} count=${planRecords.recordCount}`);
     await waitForTimeoutRaw(page, 600);
     return true;
   }
 
-  // Paso 3: Plan vacío → click en btnSolIma (Imagenología) para crear registro
-  await updateBotStatusOverlay(page, 'working', 'Plan vacío, abriendo Imagenología (btnSolIma)...');
-  console.log(`PLAN_TRATAMIENTO_CHECK origin=${origin || '-'} status=empty action=click_btnSolIma`);
+  // Paso 2: No hay registros → click en btnSolIma (Imagenología) para crear registro
+  await updateBotStatusOverlay(page, 'working', 'Plan sin registros, abriendo Imagenología (btnSolIma)...');
+  console.log(`PLAN_TRATAMIENTO_NO_RECORDS origin=${origin || '-'} action=click_btnSolIma`);
   await waitForTimeoutRaw(page, 600);
 
   let clickedIma = false;
@@ -6513,17 +6549,217 @@ async function ensurePlanTratamientoAndGenerate(page, origin = '') {
     }
   }
 
-  if (clickedEstudio) {
-    await updateBotStatusOverlay(page, 'success', 'catálogo Estudio abierto');
-    await waitForTimeoutRaw(page, 1200);
-  } else {
+  if (!clickedEstudio) {
     await updateBotStatusOverlay(page, 'warning', 'no se pudo abrir catálogo Estudio');
     console.log(`PLAN_IMA_ESTUDIO_CATALOG_FAIL origin=${origin || '-'}`);
     await waitForTimeoutRaw(page, 1000);
+    // Intentar cerrar el modal y continuar
+    await _clickImaModalButton(page, 'Salir');
+    await waitForTimeoutRaw(page, 800);
+    console.log(`PLAN_TRATAMIENTO_READY_OK origin=${origin || '-'} clicked_ima=1 modal=1 estudio=0`);
+    return true;
   }
 
-  console.log(`PLAN_TRATAMIENTO_READY_OK origin=${origin || '-'} clicked_ima=1 modal=1 estudio=${clickedEstudio ? 1 : 0}`);
+  // Paso 6: Esperar catálogo popup y seleccionar primer item
+  await updateBotStatusOverlay(page, 'working', 'seleccionando estudio del catálogo...');
+  await waitForTimeoutRaw(page, 1500);
+
+  let selectedItem = false;
+  const catStart = Date.now();
+  while (!selectedItem && (Date.now() - catStart) < 10000) {
+    selectedItem = await page.evaluate(() => {
+      // Buscar popup/grid de catálogo visible (puede ser k-window, k-animation-container, etc.)
+      const grids = document.querySelectorAll('.k-grid, .k-listbox, .k-list, table, [role="listbox"], [role="grid"]');
+      for (const grid of grids) {
+        const st = getComputedStyle(grid);
+        if (st.display === 'none' || st.visibility === 'hidden') continue;
+        const r = grid.getBoundingClientRect();
+        if (r.width < 80 || r.height < 30) continue;
+        // Buscar filas/items clickeables
+        const rows = grid.querySelectorAll('tr[data-uid], tr.k-master-row, tr.k-alt, li.k-item, li.k-list-item, [role="option"], [role="row"], tbody tr');
+        for (const row of rows) {
+          const rr = row.getBoundingClientRect();
+          if (rr.width < 30 || rr.height < 10) continue;
+          const txt = (row.textContent || '').trim();
+          if (txt.length < 2) continue;
+          // Click en la primera fila visible
+          row.click();
+          return true;
+        }
+      }
+      // Fallback: buscar items en cualquier popup/ventana abierta recientemente
+      const popups = document.querySelectorAll('.k-animation-container, .k-popup, .k-window');
+      for (const popup of popups) {
+        const st = getComputedStyle(popup);
+        if (st.display === 'none' || st.visibility === 'hidden') continue;
+        const items = popup.querySelectorAll('tr, li, div[role="option"], .k-item');
+        for (const item of items) {
+          const rr = item.getBoundingClientRect();
+          if (rr.width < 30 || rr.height < 10) continue;
+          const txt = (item.textContent || '').trim();
+          if (txt.length < 2) continue;
+          item.click();
+          return true;
+        }
+      }
+      return false;
+    });
+    if (!selectedItem) await waitForTimeoutRaw(page, 600);
+  }
+
+  if (selectedItem) {
+    console.log(`PLAN_IMA_CATALOG_ITEM_SELECTED origin=${origin || '-'}`);
+    await waitForTimeoutRaw(page, 800);
+  } else {
+    // Fallback: intentar doble click con Playwright en primera fila de grid visible
+    try {
+      const gridRow = page.locator('.k-grid tbody tr, .k-listbox li, [role="listbox"] [role="option"]').first();
+      if ((await gridRow.count()) > 0) {
+        await gridRow.dblclick({ timeout: 3000 });
+        selectedItem = true;
+        console.log(`PLAN_IMA_CATALOG_ITEM_SELECTED origin=${origin || '-'} via=playwright_dblclick`);
+        await waitForTimeoutRaw(page, 800);
+      }
+    } catch (e) {
+      console.log(`PLAN_IMA_CATALOG_SELECT_FALLBACK_ERR ${(e.message || '').slice(0, 80)}`);
+    }
+  }
+
+  if (!selectedItem) {
+    console.log(`PLAN_IMA_CATALOG_SELECT_FAIL origin=${origin || '-'}`);
+    await updateBotStatusOverlay(page, 'warning', 'no se pudo seleccionar estudio');
+    await _clickImaModalButton(page, 'Salir');
+    await waitForTimeoutRaw(page, 800);
+    console.log(`PLAN_TRATAMIENTO_READY_OK origin=${origin || '-'} clicked_ima=1 modal=1 estudio=1 item=0`);
+    return true;
+  }
+
+  // Paso 7: Click en "Agregar"
+  await updateBotStatusOverlay(page, 'working', 'click en Agregar...');
+  await waitForTimeoutRaw(page, 600);
+  const clickedAgregar = await _clickImaModalButton(page, 'Agregar');
+  console.log(`PLAN_IMA_AGREGAR origin=${origin || '-'} clicked=${clickedAgregar ? 1 : 0}`);
+  await waitForTimeoutRaw(page, 1000);
+
+  // Paso 8: Click en "Guardar"
+  await updateBotStatusOverlay(page, 'working', 'click en Guardar...');
+  await waitForTimeoutRaw(page, 600);
+  const clickedGuardar = await _clickImaModalButton(page, 'Guardar');
+  console.log(`PLAN_IMA_GUARDAR origin=${origin || '-'} clicked=${clickedGuardar ? 1 : 0}`);
+  await waitForTimeoutRaw(page, 1500);
+
+  // Paso 9: Click en "Salir" para cerrar el modal
+  await updateBotStatusOverlay(page, 'working', 'cerrando modal Imagenología...');
+  await waitForTimeoutRaw(page, 600);
+  const clickedSalir = await _clickImaModalButton(page, 'Salir');
+  console.log(`PLAN_IMA_SALIR origin=${origin || '-'} clicked=${clickedSalir ? 1 : 0}`);
+  await waitForTimeoutRaw(page, 1500);
+
+  // Paso 10: Volver a verificar registros y generar plan (click en "Mostrar plan"/"Generar plan")
+  await updateBotStatusOverlay(page, 'working', 'generando plan de tratamiento...');
+  await waitForTimeoutRaw(page, 1000);
+
+  // Click en botón Mostrar plan / Generar plan
+  const planBtnClicked = await _clickMostrarPlanButton(page);
+  console.log(`PLAN_IMA_GENERAR_PLAN origin=${origin || '-'} clicked=${planBtnClicked ? 1 : 0}`);
+  await waitForTimeoutRaw(page, 1500);
+
+  console.log(`PLAN_TRATAMIENTO_READY_OK origin=${origin || '-'} clicked_ima=1 modal=1 estudio=1 item=1 agregar=${clickedAgregar ? 1 : 0} guardar=${clickedGuardar ? 1 : 0} salir=${clickedSalir ? 1 : 0} plan=${planBtnClicked ? 1 : 0}`);
   return true;
+}
+
+// ── Helpers para modal de Imagenología ──
+
+async function _clickImaModalButton(page, buttonText) {
+  if (isPageClosedSafe(page)) return false;
+  try {
+    // Intento 1: locator por texto exacto
+    const btn = page.locator(`button:has-text("${buttonText}"), a:has-text("${buttonText}"), [role="button"]:has-text("${buttonText}")`);
+    const cnt = await btn.count();
+    if (cnt > 0) {
+      await btn.first().click({ timeout: 4000 });
+      console.log(`IMA_MODAL_BTN_OK text="${buttonText}" via=locator`);
+      return true;
+    }
+  } catch (e) {
+    console.log(`IMA_MODAL_BTN_LOCATOR_ERR text="${buttonText}" ${(e.message || '').slice(0, 60)}`);
+  }
+  try {
+    // Intento 2: evaluate DOM - buscar botón por texto en diálogos visibles
+    const info = await page.evaluate((txt) => {
+      const norm = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+      const target = norm(txt);
+      const btns = document.querySelectorAll('button, a.k-button, [role="button"], input[type="button"]');
+      for (const b of btns) {
+        const t = norm(b.textContent || b.value || '');
+        if (!t.includes(target)) continue;
+        const r = b.getBoundingClientRect();
+        if (r.width < 5 || r.height < 5) continue;
+        const st = getComputedStyle(b);
+        if (st.display === 'none' || st.visibility === 'hidden') continue;
+        return { x: r.x + r.width / 2, y: r.y + r.height / 2, id: b.id || '' };
+      }
+      return null;
+    }, buttonText);
+    if (info) {
+      await page.mouse.click(info.x, info.y);
+      console.log(`IMA_MODAL_BTN_OK text="${buttonText}" via=mouse id=${info.id}`);
+      return true;
+    }
+  } catch (e) {
+    console.log(`IMA_MODAL_BTN_MOUSE_ERR text="${buttonText}" ${(e.message || '').slice(0, 60)}`);
+  }
+  console.log(`IMA_MODAL_BTN_FAIL text="${buttonText}"`);
+  return false;
+}
+
+async function _clickMostrarPlanButton(page) {
+  if (isPageClosedSafe(page)) return false;
+  // Buscar botón "Mostrar plan" o "Generar plan" por ID o texto
+  const selectors = [
+    '[id$="btnMostrarPlan"]',
+    '[id$="btnMostrarPlan"] > div',
+    'button:has-text("Mostrar plan")', 'a:has-text("Mostrar plan")',
+    'button:has-text("Generar plan")', 'a:has-text("Generar plan")',
+    '[id$="btnGenerarPlan"]',
+  ];
+  for (const sel of selectors) {
+    try {
+      const loc = page.locator(sel).first();
+      if ((await loc.count()) === 0) continue;
+      if (!(await loc.isVisible())) continue;
+      await loc.click({ force: true, timeout: 3000 });
+      console.log(`MOSTRAR_PLAN_BTN_OK via="${sel}"`);
+      return true;
+    } catch {}
+  }
+  // Fallback: evaluate DOM
+  try {
+    const info = await page.evaluate(() => {
+      const norm = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+      const btns = document.querySelectorAll('button, a, [role="button"], div[onclick]');
+      for (const b of btns) {
+        const t = norm(b.textContent || '');
+        if (t.includes('mostrar plan') || t.includes('generar plan')) {
+          const r = b.getBoundingClientRect();
+          if (r.width > 5 && r.height > 5) {
+            const st = getComputedStyle(b);
+            if (st.display !== 'none' && st.visibility !== 'hidden') {
+              return { x: r.x + r.width / 2, y: r.y + r.height / 2, id: b.id || '' };
+            }
+          }
+        }
+      }
+      return null;
+    });
+    if (info) {
+      await page.mouse.click(info.x, info.y);
+      console.log(`MOSTRAR_PLAN_BTN_OK via=evaluate id=${info.id}`);
+      return true;
+    }
+  } catch {}
+  console.log('MOSTRAR_PLAN_BTN_FAIL');
+  return false;
 }
 
 async function clickFinalizarCitaInModule(page) {
@@ -12104,8 +12340,12 @@ async function runSingleFlowAttempt(attempt, totalAttempts) {
             `MODULE_OPEN_RESULT ok=${moduleOpen.ok ? 1 : 0} scanned=${moduleOpen.scanned || 0} attempted=${moduleOpen.attempted || 0} reason=${moduleOpen.reason || '-'} attempt=${patientAttempt + 1}`
           );
           if (!moduleOpen.ok) {
-            await updateBotStatusOverlay(page, 'error', 'no se pudo abrir módulo');
-            throw new Error('No se logró abrir el módulo de una cita existente.');
+            console.log(`MODE2_MODULE_OPEN_FAIL attempt=${patientAttempt + 1} reason=${moduleOpen.reason || '-'}`);
+            await updateBotStatusOverlay(page, 'warning', 'no se pudo abrir módulo, reintentando...');
+            // No throw — reintentar con siguiente intento
+            try { await ensureCalendarContext(page); } catch {}
+            await waitForTimeoutRaw(page, 800);
+            continue;
           }
           await updateBotStatusOverlay(page, 'waiting', 'esperando apertura Tablero Médico...');
           const target = await getLoadedModuloPage(page, 90000);
@@ -12164,14 +12404,20 @@ async function runSingleFlowAttempt(attempt, totalAttempts) {
           // Falló → cerrar modales residuales, Tablero Médico y volver a agenda
           console.log(`MODE2_PATIENT_FAIL attempt=${patientAttempt + 1} - cerrando tablero y buscando otra cita`);
           await updateBotStatusOverlay(page, 'waiting', `reintentando... (${patientAttempt + 1}/${MODE2_MAX_PATIENT_RETRIES})`);
-          await dismissCatalogoDiagnosticosModal(page);
-          await closeTableroMedicoTab(page);
+          try { await dismissCatalogoDiagnosticosModal(page); } catch {}
+          try { await closeTableroMedicoTab(page); } catch {}
           await waitForTimeoutRaw(page, 800);
+          // Intentar re-asegurar calendario para siguiente intento
+          try { await ensureCalendarContext(page); } catch (calErr) {
+            console.log(`MODE2_CALENDAR_RECOVER_ERR attempt=${patientAttempt + 1} ${(calErr.message || '').slice(0, 60)}`);
+          }
+          await waitForTimeoutRaw(page, 500);
         }
 
         if (!mode2Success) {
+          console.log(`MODE2_ALL_ATTEMPTS_EXHAUSTED retries=${MODE2_MAX_PATIENT_RETRIES}`);
           await updateBotStatusOverlay(page, 'error', 'falló después de todos los intentos');
-          throw new Error(`No se logró completar Nota médica y finalizar cita después de ${MODE2_MAX_PATIENT_RETRIES} intentos.`);
+          // No matar el bot — permitir que el flujo externo decida qué hacer
         }
       } else if (AUTO_CREATE_APPOINTMENT) {
         console.log('Paso 7: crear cita (casilla libre + clave paciente + guardar)');
