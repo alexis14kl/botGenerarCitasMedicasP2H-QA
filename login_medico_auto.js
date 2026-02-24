@@ -6577,8 +6577,30 @@ async function processNotaMedicaAndFinalizar(page, origin = '') {
       return false;
     }
 
-    await updateBotStatusOverlay(page, 'working', 'confirmando Finalizar...');
-    const confirmed = await confirmCancellationDialog(page);
+    await updateBotStatusOverlay(page, 'working', 'esperando diálogo de confirmación...');
+    await waitForTimeoutRaw(page, 1200);
+
+    // Reintentar confirmar diálogo hasta 3 veces (puede tardar en aparecer)
+    let confirmed = false;
+    for (let cAttempt = 1; cAttempt <= 3; cAttempt++) {
+      confirmed = await confirmCancellationDialog(page);
+      if (confirmed) break;
+      console.log(`CONFIRM_DIALOG_RETRY attempt=${cAttempt}/3`);
+      await waitForTimeoutRaw(page, 800);
+    }
+
+    if (!confirmed) {
+      console.log(`FINALIZAR_CONFIRM_FAIL origin=${origin || '-'} attempt=${fAttempt} - diálogo no confirmado`);
+      await updateBotStatusOverlay(page, 'warning', 'no se pudo confirmar Sí, reintentando...');
+      if (fAttempt < FINALIZAR_MAX_RETRIES) {
+        await waitForTimeoutRaw(page, 1500);
+        continue;
+      }
+      await updateBotStatusOverlay(page, 'error', 'falló al confirmar Finalizar');
+      return false;
+    }
+
+    await updateBotStatusOverlay(page, 'working', 'esperando confirmación del sistema...');
     const feedback = await waitForCancellationFeedback(page, 5500);
     console.log(
       `MODE2_NOTA_FINALIZAR_OK origin=${origin || '-'} clicked=1 confirmed=${confirmed ? 1 : 0} feedback=${feedback ? 1 : 0} attempt=${fAttempt}`
@@ -10479,81 +10501,118 @@ async function clickCancelActionInModuleWithRetry(page, options = {}) {
 async function confirmCancellationDialog(page) {
   if (isPageClosedSafe(page)) return false;
   try {
-    const clicked = await page.evaluate(() => {
-      const normalize = (s) =>
-        (s || '')
-          .toLowerCase()
-          .normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '')
-          .replace(/\s+/g, ' ')
-          .trim();
-      const visible = (el) => {
-        if (!el) return false;
-        const st = getComputedStyle(el);
-        const r = el.getBoundingClientRect();
-        return st.display !== 'none' && st.visibility !== 'hidden' && r.width > 10 && r.height > 10;
-      };
-      const safeClick = (el) => {
-        if (!(el instanceof HTMLElement)) return false;
-        try {
-          el.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, view: window }));
-          el.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true, view: window }));
-          el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-          el.click();
-          return true;
-        } catch {
-          return false;
-        }
-      };
-      const looksDialog = (el) => {
-        if (!(el instanceof HTMLElement)) return false;
-        const cls = normalize(el.className || '');
-        return (
-          el.matches('.k-window, .k-dialog, .modal, .rwDialog, .rwWindow, .RadWindow, [role="dialog"], .swal2-popup, .ui-dialog') ||
-          cls.includes('dialog') ||
-          cls.includes('modal') ||
-          cls.includes('window')
-        );
-      };
+    let clicked = false;
 
-      const dialogs = Array.from(
-        document.querySelectorAll('.k-window, .k-dialog, .modal, .rwDialog, .rwWindow, .RadWindow, [role="dialog"], .swal2-popup, .ui-dialog')
-      ).filter((d) => visible(d) && looksDialog(d));
-      if (!dialogs.length) return false;
-
-      const top = dialogs.sort((a, b) => {
-        const az = Number.parseInt(getComputedStyle(a).zIndex || '0', 10) || 0;
-        const bz = Number.parseInt(getComputedStyle(b).zIndex || '0', 10) || 0;
-        return bz - az;
-      })[0];
-
-      const controls = Array.from(
-        top.querySelectorAll('button, a, input[type="button"], input[type="submit"], [role="button"], span')
-      ).filter(visible);
-      const scored = [];
-      for (const c of controls) {
-        const txt = normalize(c.textContent || c.value || c.getAttribute('title') || c.getAttribute('aria-label') || '');
-        if (!txt) continue;
-        let score = 0;
-        if (txt === 'si' || txt === 'sí') score += 350;
-        if (txt.includes('aceptar')) score += 300;
-        if (txt.includes('confirmar')) score += 280;
-        if (txt === 'ok') score += 250;
-        if (txt.includes('continuar')) score += 220;
-        if (txt.includes('guardar')) score += 120;
-        if (txt.includes('no') || txt.includes('cancelar') || txt.includes('cerrar') || txt.includes('salir')) score -= 500;
-        if (score > 0) scored.push({ c, score });
+    // ── Intento 1: Alertify directo (selector exacto del diálogo "¿Desea finalizar?") ──
+    try {
+      const ajsOk = page.locator('div.alertify button.ajs-button.ajs-ok');
+      const count = await ajsOk.count();
+      if (count > 0) {
+        await ajsOk.first().click({ timeout: 3000 });
+        clicked = true;
+        console.log('CANCEL_CONFIRM_OK via=alertify_ajs_ok');
       }
-      if (!scored.length) return false;
-      scored.sort((a, b) => b.score - a.score);
-      return safeClick(scored[0].c);
-    });
+    } catch (e) {
+      console.log(`CANCEL_CONFIRM_ALERTIFY_FAIL err=${(e.message || '').slice(0, 80)}`);
+    }
+
+    // ── Intento 2: Buscar botón "Sí" en cualquier diálogo visible ──
+    if (!clicked) {
+      const btnInfo = await page.evaluate(() => {
+        const normalize = (s) =>
+          (s || '')
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+        const visible = (el) => {
+          if (!el) return false;
+          const st = getComputedStyle(el);
+          const r = el.getBoundingClientRect();
+          return st.display !== 'none' && st.visibility !== 'hidden' && r.width > 10 && r.height > 10;
+        };
+
+        const dialogSel = '.alertify, .k-window, .k-dialog, .modal, .rwDialog, .rwWindow, .RadWindow, [role="dialog"], .swal2-popup, .ui-dialog';
+        const dialogs = Array.from(document.querySelectorAll(dialogSel)).filter(visible);
+        if (!dialogs.length) return null;
+
+        const top = dialogs.sort((a, b) => {
+          const az = Number.parseInt(getComputedStyle(a).zIndex || '0', 10) || 0;
+          const bz = Number.parseInt(getComputedStyle(b).zIndex || '0', 10) || 0;
+          return bz - az;
+        })[0];
+
+        const controls = Array.from(
+          top.querySelectorAll('button, a, input[type="button"], input[type="submit"], [role="button"], span')
+        ).filter(visible);
+        let best = null;
+        let bestScore = 0;
+        for (const c of controls) {
+          const txt = normalize(c.textContent || c.value || c.getAttribute('title') || c.getAttribute('aria-label') || '');
+          if (!txt) continue;
+          let score = 0;
+          if (txt === 'si' || txt === 'sí') score += 350;
+          if (c.classList.contains('ajs-ok')) score += 400;
+          if (txt.includes('aceptar')) score += 300;
+          if (txt.includes('confirmar')) score += 280;
+          if (txt === 'ok') score += 250;
+          if (txt.includes('continuar')) score += 220;
+          if (txt.includes('no') || txt.includes('cancelar') || txt.includes('cerrar') || txt.includes('salir')) score -= 500;
+          if (score > bestScore) {
+            const r = c.getBoundingClientRect();
+            best = { score, txt, x: r.x + r.width / 2, y: r.y + r.height / 2 };
+            bestScore = score;
+          }
+        }
+        return best;
+      });
+
+      if (btnInfo) {
+        console.log(`CANCEL_CONFIRM_FOUND btn_txt="${btnInfo.txt}" score=${btnInfo.score} x=${Math.round(btnInfo.x)} y=${Math.round(btnInfo.y)}`);
+
+        // Click por coordenadas con Playwright
+        if (btnInfo.x > 0 && btnInfo.y > 0) {
+          try {
+            await page.mouse.click(btnInfo.x, btnInfo.y);
+            clicked = true;
+            console.log(`CANCEL_CONFIRM_OK via=coordinates x=${Math.round(btnInfo.x)} y=${Math.round(btnInfo.y)}`);
+          } catch {}
+        }
+      }
+    }
+
+    // ── Intento 3: Locators genéricos de texto "Sí" ──
+    if (!clicked) {
+      const siLocators = [
+        page.locator('button.ajs-ok'),
+        page.locator('.alertify button:has-text("Sí")'),
+        page.locator('button:has-text("Sí")'),
+        page.locator('button:has-text("Si")'),
+        page.locator('a:has-text("Sí")'),
+      ];
+      for (const loc of siLocators) {
+        try {
+          const cnt = await loc.count();
+          if (cnt > 0) {
+            await loc.first().click({ timeout: 3000 });
+            clicked = true;
+            console.log('CANCEL_CONFIRM_OK via=text_locator');
+            break;
+          }
+        } catch {}
+      }
+    }
+
     if (clicked) {
-      await waitForTimeoutRaw(page, 260);
-      console.log('CANCEL_CONFIRM_OK');
+      await waitForTimeoutRaw(page, 400);
       return true;
     }
-  } catch {}
+
+    console.log('CANCEL_CONFIRM_ALL_METHODS_FAIL');
+  } catch (e) {
+    console.log(`CANCEL_CONFIRM_ERROR err=${(e.message || '').slice(0, 100)}`);
+  }
   return false;
 }
 
