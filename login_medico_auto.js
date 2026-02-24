@@ -6735,42 +6735,82 @@ async function ensurePlanTratamientoAndGenerate(page, origin = '') {
 
 async function _clickImaModalButton(page, buttonText) {
   if (isPageClosedSafe(page)) return false;
+  // Intento 1: buscar dentro del modal de imagenología (ventana Kendo con título "imagenolog" o "solicitud")
   try {
-    // Intento 1: locator por texto exacto
-    const btn = page.locator(`button:has-text("${buttonText}"), a:has-text("${buttonText}"), [role="button"]:has-text("${buttonText}")`);
-    const cnt = await btn.count();
-    if (cnt > 0) {
-      await btn.first().click({ timeout: 4000 });
-      console.log(`IMA_MODAL_BTN_OK text="${buttonText}" via=locator`);
-      return true;
-    }
-  } catch (e) {
-    console.log(`IMA_MODAL_BTN_LOCATOR_ERR text="${buttonText}" ${(e.message || '').slice(0, 60)}`);
-  }
-  try {
-    // Intento 2: evaluate DOM - buscar botón por texto en diálogos visibles
     const info = await page.evaluate((txt) => {
       const norm = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
       const target = norm(txt);
-      const btns = document.querySelectorAll('button, a.k-button, [role="button"], input[type="button"]');
-      for (const b of btns) {
-        const t = norm(b.textContent || b.value || '');
+      // Encontrar la ventana modal de imagenología
+      const windows = document.querySelectorAll('.k-window');
+      let modalContent = null;
+      for (const w of windows) {
+        const st = getComputedStyle(w);
+        if (st.display === 'none' || st.visibility === 'hidden') continue;
+        const title = norm(w.querySelector('.k-window-title, .k-dialog-title')?.textContent || '');
+        if (title.includes('imagenolog') || title.includes('solicitud de estudio')) {
+          modalContent = w;
+          break;
+        }
+      }
+      // Buscar en el modal encontrado, o en toda la página si no se encontró modal
+      const scope = modalContent || document;
+      const candidates = scope.querySelectorAll('button, a, [role="button"], input[type="button"], input[type="submit"], .k-button, .btn');
+      for (const b of candidates) {
+        const t = norm(b.textContent || b.value || b.getAttribute('title') || '');
         if (!t.includes(target)) continue;
         const r = b.getBoundingClientRect();
-        if (r.width < 5 || r.height < 5) continue;
-        const st = getComputedStyle(b);
-        if (st.display === 'none' || st.visibility === 'hidden') continue;
-        return { x: r.x + r.width / 2, y: r.y + r.height / 2, id: b.id || '' };
+        if (r.width < 10 || r.height < 10) continue;
+        const bst = getComputedStyle(b);
+        if (bst.display === 'none' || bst.visibility === 'hidden') continue;
+        return { x: r.x + r.width / 2, y: r.y + r.height / 2, id: b.id || '', tag: b.tagName, inModal: !!modalContent };
       }
       return null;
     }, buttonText);
     if (info) {
       await page.mouse.click(info.x, info.y);
-      console.log(`IMA_MODAL_BTN_OK text="${buttonText}" via=mouse id=${info.id}`);
+      console.log(`IMA_MODAL_BTN_OK text="${buttonText}" via=modal_scope id=${info.id} tag=${info.tag} inModal=${info.inModal ? 1 : 0}`);
       return true;
     }
   } catch (e) {
-    console.log(`IMA_MODAL_BTN_MOUSE_ERR text="${buttonText}" ${(e.message || '').slice(0, 60)}`);
+    console.log(`IMA_MODAL_BTN_SCOPE_ERR text="${buttonText}" ${(e.message || '').slice(0, 80)}`);
+  }
+  // Intento 2: Playwright locator directo
+  try {
+    const btn = page.locator(`button:has-text("${buttonText}"), a:has-text("${buttonText}"), [role="button"]:has-text("${buttonText}"), .k-button:has-text("${buttonText}")`);
+    const cnt = await btn.count();
+    if (cnt > 0) {
+      await btn.first().scrollIntoViewIfNeeded({ timeout: 2000 });
+      await btn.first().click({ timeout: 4000 });
+      console.log(`IMA_MODAL_BTN_OK text="${buttonText}" via=locator count=${cnt}`);
+      return true;
+    }
+  } catch (e) {
+    console.log(`IMA_MODAL_BTN_LOCATOR_ERR text="${buttonText}" ${(e.message || '').slice(0, 80)}`);
+  }
+  // Intento 3: buscar por valor/text en TODOS los elementos interactivos
+  try {
+    const info2 = await page.evaluate((txt) => {
+      const norm = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+      const target = norm(txt);
+      const all = document.querySelectorAll('button, a, input[type="button"], input[type="submit"], [role="button"], [onclick], .k-button, .btn, .k-grid-add');
+      for (const el of all) {
+        const t = norm(el.textContent || el.value || el.getAttribute('title') || el.getAttribute('aria-label') || '');
+        if (!t.includes(target)) continue;
+        const r = el.getBoundingClientRect();
+        if (r.width < 8 || r.height < 8) continue;
+        const st = getComputedStyle(el);
+        if (st.display === 'none' || st.visibility === 'hidden' || st.opacity === '0') continue;
+        return { x: r.x + r.width / 2, y: r.y + r.height / 2, id: el.id || '' };
+      }
+      return null;
+    }, buttonText);
+    if (info2) {
+      await page.mouse.click(info2.x, info2.y);
+      console.log(`IMA_MODAL_BTN_OK text="${buttonText}" via=fallback_all id=${info2.id}`);
+      return true;
+    }
+  } catch (e) {
+    console.log(`IMA_MODAL_BTN_ALL_ERR text="${buttonText}" ${(e.message || '').slice(0, 80)}`);
   }
   console.log(`IMA_MODAL_BTN_FAIL text="${buttonText}"`);
   return false;
@@ -7039,10 +7079,49 @@ async function _completarFlujoImagenologia(page, origin = '') {
 
   // 4. Click "Agregar" (solo después de confirmar que el estudio se cargó)
   await updateBotStatusOverlay(page, 'working', 'click en Agregar...');
-  await waitForTimeoutRaw(page, 500);
-  const agregar = await _clickImaModalButton(page, 'Agregar');
+  await waitForTimeoutRaw(page, 800);
+  let agregar = false;
+  // Intento directo con el selector exacto del botón Agregar
+  try {
+    const addBtn = page.locator('[id$="mp_lab_txt_10_wrapper"] > a, [id$="mp_lab_txt_10_wrapper"] a');
+    if ((await addBtn.count()) > 0) {
+      await addBtn.first().scrollIntoViewIfNeeded({ timeout: 2000 });
+      await addBtn.first().click({ timeout: 4000 });
+      agregar = true;
+      console.log('IMA_FLOW_AGREGAR_OK via=direct_selector');
+    }
+  } catch (e) {
+    console.log(`IMA_FLOW_AGREGAR_DIRECT_ERR ${(e.message || '').slice(0, 60)}`);
+  }
+  // Fallback: click por evaluate con ID exacto
+  if (!agregar) {
+    try {
+      agregar = await page.evaluate(() => {
+        const a = document.querySelector('[id$="mp_lab_txt_10_wrapper"] > a') ||
+                  document.querySelector('[id$="mp_lab_txt_10_wrapper"] a');
+        if (a) { a.click(); return true; }
+        return false;
+      });
+      if (agregar) console.log('IMA_FLOW_AGREGAR_OK via=evaluate_direct');
+    } catch {}
+  }
+  // Fallback genérico: buscar botón "Agregar" en el modal
+  if (!agregar) {
+    agregar = await _clickImaModalButton(page, 'Agregar');
+  }
+  // Reintento final si todo falló
+  if (!agregar) {
+    console.log('IMA_FLOW_AGREGAR_RETRY waiting 2s...');
+    await waitForTimeoutRaw(page, 2000);
+    agregar = await _clickImaModalButton(page, 'Agregar');
+  }
   console.log(`IMA_FLOW_AGREGAR clicked=${agregar ? 1 : 0}`);
-  await waitForTimeoutRaw(page, 1500);
+  if (!agregar) {
+    console.log('IMA_FLOW_AGREGAR_FAIL - no se pudo hacer click en Agregar, saliendo del modal');
+    await _clickImaModalButton(page, 'Salir');
+    return false;
+  }
+  await waitForTimeoutRaw(page, 2000);
 
   // 5. Verificar que el estudio se agregó a la lista antes de guardar
   await updateBotStatusOverlay(page, 'working', 'verificando estudio agregado...');
@@ -7058,17 +7137,50 @@ async function _completarFlujoImagenologia(page, origin = '') {
 
   // 6. Click "Guardar"
   await updateBotStatusOverlay(page, 'working', 'click en Guardar...');
-  const guardar = await _clickImaModalButton(page, 'Guardar');
+  let guardar = false;
+  // Intento directo con selector exacto del botón Guardar
+  try {
+    const saveBtn = page.locator('[id$="mp_lab_btnOk2_wrapper"] > a, [id$="mp_lab_btnOk2_wrapper"] a');
+    if ((await saveBtn.count()) > 0) {
+      await saveBtn.first().scrollIntoViewIfNeeded({ timeout: 2000 });
+      await saveBtn.first().click({ timeout: 4000 });
+      guardar = true;
+      console.log('IMA_FLOW_GUARDAR_OK via=direct_selector');
+    }
+  } catch (e) {
+    console.log(`IMA_FLOW_GUARDAR_DIRECT_ERR ${(e.message || '').slice(0, 60)}`);
+  }
+  // Fallback: evaluate con ID exacto
+  if (!guardar) {
+    try {
+      guardar = await page.evaluate(() => {
+        const a = document.querySelector('[id$="mp_lab_btnOk2_wrapper"] > a') ||
+                  document.querySelector('[id$="mp_lab_btnOk2_wrapper"] a');
+        if (a) { a.click(); return true; }
+        return false;
+      });
+      if (guardar) console.log('IMA_FLOW_GUARDAR_OK via=evaluate_direct');
+    } catch {}
+  }
+  // Fallback genérico
+  if (!guardar) {
+    guardar = await _clickImaModalButton(page, 'Guardar');
+  }
+  if (!guardar) {
+    console.log('IMA_FLOW_GUARDAR_RETRY waiting 2s...');
+    await waitForTimeoutRaw(page, 2000);
+    guardar = await _clickImaModalButton(page, 'Guardar');
+  }
   console.log(`IMA_FLOW_GUARDAR clicked=${guardar ? 1 : 0}`);
+  if (!guardar) {
+    console.log('IMA_FLOW_GUARDAR_FAIL - no se pudo guardar, saliendo del modal');
+    await _clickImaModalButton(page, 'Salir');
+    return false;
+  }
   await waitForTimeoutRaw(page, 2500);
+  // Guardar cierra el modal automáticamente, no se necesita click en "Salir"
 
-  // 7. Click "Salir"
-  await updateBotStatusOverlay(page, 'working', 'cerrando modal...');
-  const salir = await _clickImaModalButton(page, 'Salir');
-  console.log(`IMA_FLOW_SALIR clicked=${salir ? 1 : 0}`);
-  await waitForTimeoutRaw(page, 1500);
-
-  console.log(`IMA_FLOW_COMPLETE origin=${origin || '-'} cat=${clickedCat ? 1 : 0} sel=${selected ? 1 : 0} add=${agregar ? 1 : 0} save=${guardar ? 1 : 0} exit=${salir ? 1 : 0}`);
+  console.log(`IMA_FLOW_COMPLETE origin=${origin || '-'} cat=${clickedCat ? 1 : 0} sel=${selected ? 1 : 0} add=${agregar ? 1 : 0} save=${guardar ? 1 : 0}`);
   return true;
 }
 
@@ -7220,17 +7332,19 @@ async function processNotaMedicaAndFinalizar(page, origin = '') {
     await waitForTimeoutRaw(page, 1200);
 
     // ── Detectar alerta "No se ha generado el plan de tratamiento" ──
+    // Buscar en TODOS los diálogos visibles (alertify, k-window, modal, etc.)
     const planAlert = await page.evaluate(() => {
       const norm = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-      // Buscar alertas naranjas/rojas visibles con texto sobre plan de tratamiento
-      const candidates = document.querySelectorAll('div, span, p, [class*="alert"], [class*="notification"], [class*="toast"], [class*="message"]');
+      // Buscar en diálogos visibles (alertify, modals, ventanas Kendo, etc.)
+      const dialogSel = '.alertify, .k-window, .k-dialog, .modal, [role="dialog"], .swal2-popup, .ui-dialog, [class*="alert"], [class*="notification"], [class*="toast"], [class*="message"], div, span, p';
+      const candidates = document.querySelectorAll(dialogSel);
       for (const el of candidates) {
         const t = norm(el.textContent || '');
-        if (t.includes('no se ha generado el plan') || t.includes('seleccionar mostrar plan') || (t.includes('plan de tratamiento') && t.includes('generado'))) {
+        if (t.includes('no se ha generado el plan') || t.includes('seleccionar mostrar plan') || (t.includes('plan') && t.includes('tratamiento') && (t.includes('generado') || t.includes('generar')))) {
           const r = el.getBoundingClientRect();
           const st = getComputedStyle(el);
           if (r.width > 50 && r.height > 20 && st.display !== 'none' && st.visibility !== 'hidden') {
-            return { found: true, text: t.slice(0, 100) };
+            return { found: true, text: t.slice(0, 120) };
           }
         }
       }
@@ -11332,20 +11446,52 @@ async function confirmCancellationDialog(page) {
   try {
     let clicked = false;
 
+    // ── PRE-CHECK: Verificar que el diálogo NO es la alerta de plan de tratamiento ──
+    const isPlanAlert = await page.evaluate(() => {
+      const norm = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+      const visible = (el) => {
+        if (!el) return false;
+        const st = getComputedStyle(el);
+        const r = el.getBoundingClientRect();
+        return st.display !== 'none' && st.visibility !== 'hidden' && r.width > 30 && r.height > 15;
+      };
+      const dialogs = Array.from(document.querySelectorAll('.alertify, .k-window, .k-dialog, [role="dialog"]')).filter(visible);
+      for (const d of dialogs) {
+        const t = norm(d.textContent || '');
+        if (t.includes('no se ha generado el plan') || t.includes('plan de tratamiento') || t.includes('seleccionar mostrar plan')) {
+          return true;
+        }
+      }
+      return false;
+    });
+    if (isPlanAlert) {
+      console.log('CANCEL_CONFIRM_SKIP_PLAN_ALERT - diálogo es alerta de plan, no confirmar');
+      return false;
+    }
+
     // ── Intento 1: Alertify directo (selector exacto del diálogo "¿Desea finalizar?") ──
     try {
+      // Verificar que el alertify contiene texto de finalización, no de plan
       const ajsOk = page.locator('div.alertify button.ajs-button.ajs-ok');
       const count = await ajsOk.count();
       if (count > 0) {
-        await ajsOk.first().click({ timeout: 3000 });
-        clicked = true;
-        console.log('CANCEL_CONFIRM_OK via=alertify_ajs_ok');
+        const dialogText = await page.evaluate(() => {
+          const d = document.querySelector('div.alertify');
+          return (d?.textContent || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().slice(0, 150);
+        });
+        if (dialogText.includes('plan de tratamiento') || dialogText.includes('no se ha generado')) {
+          console.log('CANCEL_CONFIRM_ALERTIFY_IS_PLAN_ALERT - skipping');
+        } else {
+          await ajsOk.first().click({ timeout: 3000 });
+          clicked = true;
+          console.log(`CANCEL_CONFIRM_OK via=alertify_ajs_ok dialog_text="${dialogText.slice(0, 60)}"`);
+        }
       }
     } catch (e) {
       console.log(`CANCEL_CONFIRM_ALERTIFY_FAIL err=${(e.message || '').slice(0, 80)}`);
     }
 
-    // ── Intento 2: Buscar botón "Sí" en cualquier diálogo visible ──
+    // ── Intento 2: Buscar botón "Sí" en diálogo de FINALIZACIÓN (no de plan) ──
     if (!clicked) {
       const btnInfo = await page.evaluate(() => {
         const normalize = (s) =>
@@ -11372,6 +11518,12 @@ async function confirmCancellationDialog(page) {
           return bz - az;
         })[0];
 
+        // SEGURIDAD: si el diálogo contiene texto de plan de tratamiento, NO confirmar
+        const dialogText = normalize(top.textContent || '');
+        if (dialogText.includes('plan de tratamiento') || dialogText.includes('no se ha generado el plan') || dialogText.includes('seleccionar mostrar plan')) {
+          return { isPlanAlert: true };
+        }
+
         const controls = Array.from(
           top.querySelectorAll('button, a, input[type="button"], input[type="submit"], [role="button"], span')
         ).filter(visible);
@@ -11397,6 +11549,10 @@ async function confirmCancellationDialog(page) {
         return best;
       });
 
+      if (btnInfo && btnInfo.isPlanAlert) {
+        console.log('CANCEL_CONFIRM_SKIP_PLAN_ALERT_DIALOG - diálogo superior es alerta de plan');
+        return false;
+      }
       if (btnInfo) {
         console.log(`CANCEL_CONFIRM_FOUND btn_txt="${btnInfo.txt}" score=${btnInfo.score} x=${Math.round(btnInfo.x)} y=${Math.round(btnInfo.y)}`);
 
