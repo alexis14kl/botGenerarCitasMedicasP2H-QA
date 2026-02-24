@@ -6346,7 +6346,6 @@ async function ensurePlanTratamientoAndGenerate(page, origin = '') {
   await updateBotStatusOverlay(page, 'working', 'buscando campo Plan de tratamiento...');
   let state = await readPlanTratamientoState(page);
   if (!state.fieldFound) {
-    // Reintentar unos segundos por si el campo aún no renderiza
     const fieldStart = Date.now();
     while (!state.fieldFound && (Date.now() - fieldStart) < 6000) {
       await waitForTimeoutRaw(page, 500);
@@ -6360,79 +6359,171 @@ async function ensurePlanTratamientoAndGenerate(page, origin = '') {
     return false;
   }
 
-  // Paso 2: Validar si está vacío o lleno
+  // Paso 2: Validar si ya tiene data
   if (state.filled) {
     await updateBotStatusOverlay(page, 'success', `"Plan de tratamiento" lleno (${state.valueLength} chars)`);
     console.log(`PLAN_TRATAMIENTO_CHECK origin=${origin || '-'} status=filled len=${state.valueLength}`);
-  } else {
-    await updateBotStatusOverlay(page, 'warning', '"Plan de tratamiento" está vacío, escribiendo...');
-    console.log(`PLAN_TRATAMIENTO_CHECK origin=${origin || '-'} status=empty`);
-    await waitForTimeoutRaw(page, 800);
+    await waitForTimeoutRaw(page, 600);
+    return true;
+  }
 
-    // Paso 3: Escribir plan corto hardcodeado
-    const plan = await resolvePlanTratamientoPoints(page);
-    let filled = false;
-    const fieldPoints = Array.isArray(plan?.fieldCandidates) ? plan.fieldCandidates : [];
-    for (let i = 0; i < fieldPoints.length && i < 6 && !filled; i += 1) {
-      filled = await keyboardCaptureAtPoint(page, fieldPoints[i], PLAN_TRATAMIENTO_TEXT);
+  // Paso 3: Plan vacío → click en btnSolIma (Imagenología) para crear registro
+  await updateBotStatusOverlay(page, 'working', 'Plan vacío, abriendo Imagenología (btnSolIma)...');
+  console.log(`PLAN_TRATAMIENTO_CHECK origin=${origin || '-'} status=empty action=click_btnSolIma`);
+  await waitForTimeoutRaw(page, 600);
+
+  let clickedIma = false;
+  // Intento 1: por ID exacto
+  try {
+    const imaBtn = page.locator('[id$="btnSolIma"]');
+    const cnt = await imaBtn.count();
+    if (cnt > 0) {
+      await imaBtn.first().click({ timeout: 4000 });
+      clickedIma = true;
+      console.log('PLAN_TRATAMIENTO_BTNSOLIMA_OK via=id_locator');
     }
-    await waitForTimeoutRaw(page, 200);
-    const postFill = await readPlanTratamientoState(page);
-    filled = Boolean(postFill.filled);
-    console.log(`PLAN_TRATAMIENTO_FILL origin=${origin || '-'} filled=${filled ? 1 : 0} len=${postFill.valueLength || 0}`);
+  } catch (e) {
+    console.log(`PLAN_TRATAMIENTO_BTNSOLIMA_ID_ERR ${(e.message || '').slice(0, 80)}`);
+  }
 
-    if (filled) {
-      await updateBotStatusOverlay(page, 'success', 'Plan de tratamiento escrito!');
-    } else {
-      await updateBotStatusOverlay(page, 'warning', 'no se pudo escribir Plan de tratamiento');
-      console.log(`PLAN_TRATAMIENTO_FILL_FAIL origin=${origin || '-'}`);
-      await waitForTimeoutRaw(page, 1200);
+  // Intento 2: por ID con wrapper
+  if (!clickedIma) {
+    try {
+      const imaWrap = page.locator('[id$="btnSolIma_wrapper"] a, [id$="btnSolIma_wrapper"] button');
+      const cnt2 = await imaWrap.count();
+      if (cnt2 > 0) {
+        await imaWrap.first().click({ timeout: 4000 });
+        clickedIma = true;
+        console.log('PLAN_TRATAMIENTO_BTNSOLIMA_OK via=wrapper_locator');
+      }
+    } catch (e) {
+      console.log(`PLAN_TRATAMIENTO_BTNSOLIMA_WRAP_ERR ${(e.message || '').slice(0, 80)}`);
+    }
+  }
+
+  // Intento 3: por evaluate + Playwright click
+  if (!clickedIma) {
+    try {
+      const info = await page.evaluate(() => {
+        const candidates = [
+          document.querySelector('[id$="btnSolIma"]'),
+          document.querySelector('[id$="btnSolIma_wrapper"] a'),
+          document.querySelector('[id$="btnSolIma_wrapper"] button'),
+        ].filter(Boolean);
+        for (const el of candidates) {
+          const r = el.getBoundingClientRect();
+          if (r.width > 5 && r.height > 5) {
+            return { id: el.id, x: r.x + r.width / 2, y: r.y + r.height / 2 };
+          }
+        }
+        return null;
+      });
+      if (info) {
+        await page.mouse.click(info.x, info.y);
+        clickedIma = true;
+        console.log(`PLAN_TRATAMIENTO_BTNSOLIMA_OK via=mouse_click id=${info.id}`);
+      }
+    } catch (e) {
+      console.log(`PLAN_TRATAMIENTO_BTNSOLIMA_MOUSE_ERR ${(e.message || '').slice(0, 80)}`);
+    }
+  }
+
+  if (!clickedIma) {
+    await updateBotStatusOverlay(page, 'warning', 'no se pudo clickear btnSolIma');
+    console.log(`PLAN_TRATAMIENTO_BTNSOLIMA_FAIL origin=${origin || '-'}`);
+    await waitForTimeoutRaw(page, 1200);
+    console.log(`PLAN_TRATAMIENTO_READY_OK origin=${origin || '-'} clicked_ima=0`);
+    return true;
+  }
+
+  // Paso 4: Verificar que el modal "Solicitud de estudios de imagenología" abrió
+  await updateBotStatusOverlay(page, 'working', 'verificando modal de Imagenología...');
+  await waitForTimeoutRaw(page, 1500);
+
+  let modalOpen = false;
+  const modalStart = Date.now();
+  while (!modalOpen && (Date.now() - modalStart) < 8000) {
+    modalOpen = await page.evaluate(() => {
+      // Buscar ventana Telerik/Kendo visible con título que contenga "imagenolog"
+      const windows = document.querySelectorAll('.k-window, .k-dialog, [role="dialog"]');
+      for (const w of windows) {
+        const st = getComputedStyle(w);
+        if (st.display === 'none' || st.visibility === 'hidden') continue;
+        const r = w.getBoundingClientRect();
+        if (r.width < 100 || r.height < 100) continue;
+        const title = (w.querySelector('.k-window-title, .k-dialog-title, [class*="title"]')?.textContent || '').toLowerCase();
+        if (title.includes('imagenolog') || title.includes('solicitud')) return true;
+      }
+      // Fallback: buscar el campo Estudio con catalogButton visible
+      const catBtn = document.querySelector('[id$="mp_lab_txt_4_catalogButton"]');
+      if (catBtn) {
+        const r = catBtn.getBoundingClientRect();
+        if (r.width > 5 && r.height > 5) return true;
+      }
       return false;
-    }
-  }
-  await waitForTimeoutRaw(page, 1200);
-
-  // Paso 4: Click en "Mostrar plan" / "Generar plan"
-  await updateBotStatusOverlay(page, 'working', 'click en Mostrar plan...');
-  const planPoints = await resolvePlanTratamientoPoints(page);
-  const clickedGenerar = await clickGenerarPlanButton(page, Array.isArray(planPoints?.generarCandidates) ? planPoints.generarCandidates : []);
-  const hasPlanAlert = await hasPlanTratamientoRequiredAlert(page);
-  console.log(`PLAN_TRATAMIENTO_GENERAR origin=${origin || '-'} clicked=${clickedGenerar ? 1 : 0} alert=${hasPlanAlert ? 1 : 0} plan_filled=${state.filled ? 1 : 0}`);
-
-  // Si el click fue exitoso, considerar OK (ignorar alertas si el plan ya tenía contenido)
-  if (clickedGenerar) {
-    if (hasPlanAlert && !state.filled) {
-      // Alerta real: el campo estaba vacío y hay un error de validación
-      await updateBotStatusOverlay(page, 'warning', 'alerta en Plan, reintentando...');
-      console.log(`PLAN_TRATAMIENTO_ALERT_REAL origin=${origin || '-'} - plan estaba vacío`);
-    } else {
-      // Click OK y plan tenía contenido → éxito (ignorar alerta falsa)
-      await updateBotStatusOverlay(page, 'success', 'Plan generado!');
-      console.log(`PLAN_TRATAMIENTO_READY_OK origin=${origin || '-'} alert_ignored=${hasPlanAlert ? 1 : 0}`);
-      await waitForTimeoutRaw(page, 1200);
-      return true;
-    }
+    });
+    if (!modalOpen) await waitForTimeoutRaw(page, 500);
   }
 
-  // Reintento si falló el click
-  if (!clickedGenerar) {
-    await updateBotStatusOverlay(page, 'warning', 'reintentando click en Mostrar plan...');
-    await waitForTimeoutRaw(page, 500);
-    const retryPoints = await resolvePlanTratamientoPoints(page);
-    const retryClick = await clickGenerarPlanButton(page, Array.isArray(retryPoints?.generarCandidates) ? retryPoints.generarCandidates : []);
-    console.log(`PLAN_TRATAMIENTO_GENERAR_RETRY origin=${origin || '-'} clicked=${retryClick ? 1 : 0}`);
-    if (retryClick) {
-      await updateBotStatusOverlay(page, 'success', 'Plan generado!');
-      console.log(`PLAN_TRATAMIENTO_READY_OK origin=${origin || '-'} via=retry`);
-      await waitForTimeoutRaw(page, 1200);
-      return true;
+  if (!modalOpen) {
+    await updateBotStatusOverlay(page, 'warning', 'modal de Imagenología no detectado');
+    console.log(`PLAN_IMA_MODAL_NOT_FOUND origin=${origin || '-'}`);
+    await waitForTimeoutRaw(page, 1000);
+    console.log(`PLAN_TRATAMIENTO_READY_OK origin=${origin || '-'} clicked_ima=1 modal=0`);
+    return true;
+  }
+
+  console.log(`PLAN_IMA_MODAL_OPEN origin=${origin || '-'}`);
+
+  // Paso 5: Click en botón catálogo de "Estudio" (mp_lab_txt_4_catalogButton)
+  await updateBotStatusOverlay(page, 'working', 'click en catálogo Estudio...');
+  await waitForTimeoutRaw(page, 600);
+
+  let clickedEstudio = false;
+  // Intento 1: locator por ID
+  try {
+    const estBtn = page.locator('[id$="mp_lab_txt_4_catalogButton"]');
+    const cnt = await estBtn.count();
+    if (cnt > 0) {
+      await estBtn.first().click({ timeout: 4000 });
+      clickedEstudio = true;
+      console.log('PLAN_IMA_ESTUDIO_CATALOG_OK via=id_locator');
+    }
+  } catch (e) {
+    console.log(`PLAN_IMA_ESTUDIO_CATALOG_ID_ERR ${(e.message || '').slice(0, 80)}`);
+  }
+
+  // Intento 2: evaluate + mouse click
+  if (!clickedEstudio) {
+    try {
+      const info = await page.evaluate(() => {
+        const btn = document.querySelector('[id$="mp_lab_txt_4_catalogButton"]');
+        if (!btn) return null;
+        const r = btn.getBoundingClientRect();
+        if (r.width < 5 || r.height < 5) return null;
+        return { x: r.x + r.width / 2, y: r.y + r.height / 2, id: btn.id || '' };
+      });
+      if (info) {
+        await page.mouse.click(info.x, info.y);
+        clickedEstudio = true;
+        console.log(`PLAN_IMA_ESTUDIO_CATALOG_OK via=mouse_click id=${info.id}`);
+      }
+    } catch (e) {
+      console.log(`PLAN_IMA_ESTUDIO_CATALOG_MOUSE_ERR ${(e.message || '').slice(0, 80)}`);
     }
   }
 
-  await updateBotStatusOverlay(page, 'error', 'falló generando Plan de tratamiento');
-  console.log(`PLAN_TRATAMIENTO_READY_FAIL origin=${origin || '-'}`);
-  await waitForTimeoutRaw(page, 1200);
-  return false;
+  if (clickedEstudio) {
+    await updateBotStatusOverlay(page, 'success', 'catálogo Estudio abierto');
+    await waitForTimeoutRaw(page, 1200);
+  } else {
+    await updateBotStatusOverlay(page, 'warning', 'no se pudo abrir catálogo Estudio');
+    console.log(`PLAN_IMA_ESTUDIO_CATALOG_FAIL origin=${origin || '-'}`);
+    await waitForTimeoutRaw(page, 1000);
+  }
+
+  console.log(`PLAN_TRATAMIENTO_READY_OK origin=${origin || '-'} clicked_ima=1 modal=1 estudio=${clickedEstudio ? 1 : 0}`);
+  return true;
 }
 
 async function clickFinalizarCitaInModule(page) {
