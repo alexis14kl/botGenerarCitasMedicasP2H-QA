@@ -5826,23 +5826,58 @@ async function ensureNotaMedicaReadyForFinalize(page, origin = '') {
     console.log(`GENERAR_IA_BTN_CLICK origin=${origin || '-'} - clickeando Generar IA`);
     const generarClicked = await clickGenerarIaByHumanAction(page);
     if (generarClicked) {
-      // Esperar a que el diagnóstico se genere (polling hasta que el campo se llene o timeout)
+      // Esperar a que el botón "Generar IA" quede deshabilitado (= IA terminó de generar)
       const generarStart = Date.now();
-      const GENERAR_IA_WAIT_MS = 15000;
+      const GENERAR_IA_WAIT_MS = 30000; // 30s máximo para generación IA
       let diagGenerated = false;
+      let lastLog = 0;
       while ((Date.now() - generarStart) < GENERAR_IA_WAIT_MS) {
-        const checkState = await readNotaMedicaRequiredState(page);
-        if (checkState.values?.diagnostico_principal) {
+        if (isPageClosedSafe(page)) break;
+        // Verificar si botón quedó deshabilitado (indicador definitivo de generación completa)
+        const btnCheck = await page.evaluate(() => {
+          const normalize = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
+          const visible = (el) => {
+            if (!el) return false;
+            const st = getComputedStyle(el);
+            const r = el.getBoundingClientRect();
+            return st.display !== 'none' && st.visibility !== 'hidden' && r.width > 6 && r.height > 6;
+          };
+          const nodes = Array.from(
+            document.querySelectorAll('button, a, span, input[type="button"], input[type="submit"], [role="button"]')
+          ).filter(visible);
+          for (const n of nodes) {
+            const txt = normalize(`${n.textContent || ''} ${n.getAttribute?.('title') || ''} ${n.getAttribute?.('aria-label') || ''}`);
+            if (!txt.includes('generar')) continue;
+            const isDisabled = n.hasAttribute('disabled') ||
+              n.getAttribute('aria-disabled') === 'true' ||
+              n.classList.contains('aspNetDisabled') ||
+              n.classList.contains('k-state-disabled') ||
+              n.classList.contains('disabled') ||
+              (n.style && n.style.pointerEvents === 'none');
+            return { disabled: isDisabled };
+          }
+          return { disabled: false };
+        });
+
+        if (btnCheck.disabled) {
           diagGenerated = true;
           break;
         }
-        await sleepRaw(800);
+
+        const elapsed = Date.now() - generarStart;
+        if (elapsed - lastLog >= 3000) {
+          const secs = Math.round(elapsed / 1000);
+          await updateBotStatusOverlay(page, 'working', `esperando diagnóstico IA... (${secs}s)`);
+          console.log(`GENERAR_IA_WAITING origin=${origin || '-'} elapsed=${elapsed}ms`);
+          lastLog = elapsed;
+        }
+        await sleepRaw(600);
       }
       if (diagGenerated) {
         await updateBotStatusOverlay(page, 'success', 'diagnóstico generado por IA!');
         console.log(`GENERAR_IA_RESULT origin=${origin || '-'} status=generated elapsed=${Date.now() - generarStart}ms`);
       } else {
-        await updateBotStatusOverlay(page, 'warning', 'diagnóstico no se generó a tiempo');
+        await updateBotStatusOverlay(page, 'warning', 'diagnóstico no se generó a tiempo (30s)');
         console.log(`GENERAR_IA_RESULT origin=${origin || '-'} status=timeout elapsed=${Date.now() - generarStart}ms`);
       }
     } else {
@@ -6605,7 +6640,62 @@ async function processNotaMedicaAndFinalizar(page, origin = '') {
     console.log(
       `MODE2_NOTA_FINALIZAR_OK origin=${origin || '-'} clicked=1 confirmed=${confirmed ? 1 : 0} feedback=${feedback ? 1 : 0} attempt=${fAttempt}`
     );
-    await updateBotStatusOverlay(page, 'success', 'cita finalizada exitosamente!');
+
+    // ── Click "Continuar" en modal "Seleccionar iniciar descanso" ──
+    await updateBotStatusOverlay(page, 'working', 'esperando modal Continuar...');
+    await waitForTimeoutRaw(page, 1500);
+
+    let continuarClicked = false;
+    for (let cntAttempt = 1; cntAttempt <= 5; cntAttempt++) {
+      if (isPageClosedSafe(page)) break;
+
+      // Intento directo por ID exacto
+      try {
+        const btnContinuar = page.locator('#ctl00_nc003_MP_TableroMedico_v10NotaMedicaMP_mp_segop_btnContinuar');
+        const cnt = await btnContinuar.count();
+        if (cnt > 0) {
+          await btnContinuar.click({ timeout: 3000 });
+          continuarClicked = true;
+          console.log(`CONTINUAR_CLICK_OK via=id attempt=${cntAttempt}`);
+          break;
+        }
+      } catch {}
+
+      // Intento por selector parcial ID
+      try {
+        const btnPartial = page.locator('[id$="btnContinuar"] button, [id$="btnContinuar"]');
+        const cnt2 = await btnPartial.count();
+        if (cnt2 > 0) {
+          await btnPartial.first().click({ timeout: 3000 });
+          continuarClicked = true;
+          console.log(`CONTINUAR_CLICK_OK via=partial_id attempt=${cntAttempt}`);
+          break;
+        }
+      } catch {}
+
+      // Intento por texto "Continuar"
+      try {
+        const btnText = page.locator('button:has-text("Continuar")');
+        const cnt3 = await btnText.count();
+        if (cnt3 > 0) {
+          await btnText.first().click({ timeout: 3000 });
+          continuarClicked = true;
+          console.log(`CONTINUAR_CLICK_OK via=text attempt=${cntAttempt}`);
+          break;
+        }
+      } catch {}
+
+      console.log(`CONTINUAR_WAIT attempt=${cntAttempt}/5`);
+      await waitForTimeoutRaw(page, 800);
+    }
+
+    if (continuarClicked) {
+      await waitForTimeoutRaw(page, 500);
+      await updateBotStatusOverlay(page, 'success', 'cita finalizada exitosamente!');
+    } else {
+      console.log('CONTINUAR_NOT_FOUND - modal may not have appeared');
+      await updateBotStatusOverlay(page, 'success', 'cita finalizada!');
+    }
     return true;
   }
 
@@ -10071,7 +10161,7 @@ async function getExistingAppointmentSlots(page, limit = 30, options = {}) {
   const minDayIso = String(options?.minDayIso || '').trim();
   const excludeSundays = options?.excludeSundays === true;
   try {
-    return await page.evaluate(({ limit, preferFinalizada, excludeFinalizada, onlyProgramadaVideollamada, minDayIso, excludeSundays }) => {
+    const result = await page.evaluate(({ limit, preferFinalizada, excludeFinalizada, onlyProgramadaVideollamada, minDayIso, excludeSundays }) => {
       const EVENT_SELECTOR =
         '.k-event, .rsApt, [class*="k-event"], [class*="appointment"], [class*="Appointment"], [id*="appointment"], [id*="Appointment"]';
       const normalize = (s) =>
@@ -10124,11 +10214,13 @@ async function getExistingAppointmentSlots(page, limit = 30, options = {}) {
           const st = getComputedStyle(el);
           const bg = parseRgb(st.backgroundColor);
           const bd = parseRgb(st.borderColor);
-          if (bg && !isNeutralColor(bg)) candidates.push({ rgb: bg, area: r.width * r.height });
-          if (bd && !isNeutralColor(bd)) candidates.push({ rgb: bd, area: r.width * r.height });
+          const bl = parseRgb(st.borderLeftColor);
+          if (bg && !isNeutralColor(bg)) candidates.push({ rgb: bg, area: r.width * r.height, priority: 1 });
+          if (bl && !isNeutralColor(bl)) candidates.push({ rgb: bl, area: r.width * r.height, priority: 0 });
+          if (bd && !isNeutralColor(bd)) candidates.push({ rgb: bd, area: r.width * r.height, priority: 2 });
         }
         if (!candidates.length) return null;
-        candidates.sort((a, b) => a.area - b.area);
+        candidates.sort((a, b) => a.priority - b.priority || a.area - b.area);
         return candidates[0].rgb;
       };
       const findLegendRow = (label) => {
@@ -10152,6 +10244,8 @@ async function getExistingAppointmentSlots(page, limit = 30, options = {}) {
       };
       const legendProgramadaVideoRgb = pickLegendColor(findLegendRow('programada videollamada'));
       const legendFinalizadaRgb = pickLegendColor(findLegendRow('finalizada'));
+      const legendInasistenciaRgb = pickLegendColor(findLegendRow('inasistencia'));
+      const legendProgramadaLlamadaRgb = pickLegendColor(findLegendRow('programada llamada directa'));
 
       const bannedWords = [
         'no disponible',
@@ -10228,28 +10322,66 @@ async function getExistingAppointmentSlots(page, limit = 30, options = {}) {
         const hasProgramada = txt.includes('programada') || meta.includes('programada');
         const hasVideollamada = txt.includes('videollamada') || meta.includes('videollamada');
         const hasFinalizadaLabel = txt.includes('finalizada') || meta.includes('finalizada');
-        const eventBg = parseRgb(st.backgroundColor);
-        const eventBd = parseRgb(st.borderColor);
-        const eventOl = parseRgb(st.outlineColor);
-        const hasProgramadaVideollamadaByLegendColor =
-          colorDistance(eventBg, legendProgramadaVideoRgb) <= 72 ||
-          colorDistance(eventBd, legendProgramadaVideoRgb) <= 72 ||
-          colorDistance(eventOl, legendProgramadaVideoRgb) <= 72;
-        const hasFinalizadaByLegendColor =
-          colorDistance(eventBg, legendFinalizadaRgb) <= 72 ||
-          colorDistance(eventBd, legendFinalizadaRgb) <= 72 ||
-          colorDistance(eventOl, legendFinalizadaRgb) <= 72;
+        const hasInasistenciaLabel = txt.includes('inasistencia') || meta.includes('inasistencia');
+
+        // Recopilar TODOS los colores relevantes del elemento y sus hijos inmediatos
+        const collectEventColors = (el) => {
+          const colors = [];
+          const addColor = (raw) => { const c = parseRgb(raw); if (c && !isNeutralColor(c)) colors.push(c); };
+          const elSt = getComputedStyle(el);
+          addColor(elSt.backgroundColor);
+          addColor(elSt.borderLeftColor);
+          addColor(elSt.borderColor);
+          addColor(elSt.outlineColor);
+          // Revisar hijos inmediatos (tiras de color, indicadores)
+          const children = Array.from(el.children || []).slice(0, 8);
+          for (const ch of children) {
+            if (!(ch instanceof HTMLElement)) continue;
+            const chSt = getComputedStyle(ch);
+            addColor(chSt.backgroundColor);
+            addColor(chSt.borderLeftColor);
+            addColor(chSt.borderColor);
+            // Si el hijo es un div muy delgado (tira de color), darle prioridad
+            const chR = ch.getBoundingClientRect();
+            if (chR.width <= 8 && chR.height > 10) {
+              addColor(chSt.backgroundColor);
+            }
+          }
+          // También revisar inline style del elemento (Telerik a veces usa inline)
+          const inlineBg = el.style?.backgroundColor;
+          const inlineBl = el.style?.borderLeftColor;
+          const inlineBd = el.style?.borderColor;
+          if (inlineBg) addColor(inlineBg);
+          if (inlineBl) addColor(inlineBl);
+          if (inlineBd) addColor(inlineBd);
+          return colors;
+        };
+        const eventColors = collectEventColors(n);
+
+        const matchesLegendColor = (legendRgb, threshold = 72) => {
+          if (!legendRgb) return false;
+          return eventColors.some(c => colorDistance(c, legendRgb) <= threshold);
+        };
+        const hasProgramadaVideollamadaByLegendColor = matchesLegendColor(legendProgramadaVideoRgb);
+        const hasFinalizadaByLegendColor = matchesLegendColor(legendFinalizadaRgb);
+        const hasInasistenciaByLegendColor = matchesLegendColor(legendInasistenciaRgb);
+        const hasProgramadaLlamadaByLegendColor = matchesLegendColor(legendProgramadaLlamadaRgb);
         const hasFinalizadaColor =
-          isPurpleLike(st.backgroundColor) || isPurpleLike(st.borderColor) || isPurpleLike(st.outlineColor);
+          isPurpleLike(st.backgroundColor) || isPurpleLike(st.borderLeftColor || st.borderColor) || isPurpleLike(st.outlineColor);
         const isFinalizada = hasFinalizadaLabel || hasFinalizadaColor || hasFinalizadaByLegendColor;
-        const isProgramadaVideollamada = (hasProgramada && hasVideollamada) || hasProgramadaVideollamadaByLegendColor;
+        const isInasistencia = hasInasistenciaLabel || hasInasistenciaByLegendColor;
+        const isProgramadaVideollamada = !isFinalizada && !isInasistencia && !hasProgramadaLlamadaByLegendColor &&
+          ((hasProgramada && hasVideollamada) || hasProgramadaVideollamadaByLegendColor);
 
         if (excludeFinalizada && isFinalizada) continue;
+        if (isInasistencia) continue; // Siempre excluir inasistencia
         if (onlyProgramadaVideollamada && !isProgramadaVideollamada) continue;
 
         let statusHint = '';
         if (isFinalizada) statusHint = 'finalizada';
+        else if (isInasistencia) statusHint = 'inasistencia';
         else if (isProgramadaVideollamada) statusHint = 'programada_videollamada';
+        else if (hasProgramadaLlamadaByLegendColor) statusHint = 'programada_llamada_directa';
         else if (hasProgramada) statusHint = 'programada';
         else if (hasVideollamada) statusHint = 'videollamada';
 
@@ -10341,8 +10473,18 @@ async function getExistingAppointmentSlots(page, limit = 30, options = {}) {
         if (Math.abs(a.top - b.top) > 4) return a.top - b.top;
         return a.left - b.left;
       });
-      return out.slice(0, Math.max(1, Number(limit) || 30));
+      const _debugLegend = {
+        progVideo: legendProgramadaVideoRgb ? `rgb(${legendProgramadaVideoRgb.r},${legendProgramadaVideoRgb.g},${legendProgramadaVideoRgb.b})` : 'null',
+        finalizada: legendFinalizadaRgb ? `rgb(${legendFinalizadaRgb.r},${legendFinalizadaRgb.g},${legendFinalizadaRgb.b})` : 'null',
+        inasistencia: legendInasistenciaRgb ? `rgb(${legendInasistenciaRgb.r},${legendInasistenciaRgb.g},${legendInasistenciaRgb.b})` : 'null',
+        progLlamada: legendProgramadaLlamadaRgb ? `rgb(${legendProgramadaLlamadaRgb.r},${legendProgramadaLlamadaRgb.g},${legendProgramadaLlamadaRgb.b})` : 'null'
+      };
+      return { slots: out.slice(0, Math.max(1, Number(limit) || 30)), _debugLegend };
     }, { limit, preferFinalizada, excludeFinalizada, onlyProgramadaVideollamada, minDayIso, excludeSundays });
+    if (result && result._debugLegend) {
+      console.log(`LEGEND_COLORS ${JSON.stringify(result._debugLegend)}`);
+    }
+    return (result && result.slots) || [];
   } catch {
     return [];
   }
