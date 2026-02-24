@@ -6950,38 +6950,68 @@ async function _completarFlujoImagenologia(page, origin = '') {
   console.log(`IMA_FLOW_CATALOG_CLICK clicked=${clickedCat ? 1 : 0}`);
   if (!clickedCat) { await _clickImaModalButton(page, 'Salir'); return false; }
 
-  // 3. Esperar popup catálogo y seleccionar primer item
+  // 3. Esperar popup catálogo (#gridGlobalCatalog) y clickear flecha de primera fila
   await updateBotStatusOverlay(page, 'working', 'seleccionando estudio...');
   await waitForTimeoutRaw(page, 1500);
   let selected = false;
   const catStart = Date.now();
   while (!selected && (Date.now() - catStart) < 10000) {
     selected = await page.evaluate(() => {
-      // Buscar grids/tablas/listas en popups visibles
-      const containers = document.querySelectorAll('.k-grid tbody, .k-listbox, [role="listbox"], .k-animation-container table tbody, .k-popup table tbody');
-      for (const cont of containers) {
-        const st = getComputedStyle(cont);
-        if (st.display === 'none' || st.visibility === 'hidden') continue;
-        const rows = cont.querySelectorAll('tr, li, [role="option"]');
-        for (const row of rows) {
-          const r = row.getBoundingClientRect();
-          if (r.width < 30 || r.height < 10) continue;
-          const txt = (row.textContent || '').trim();
-          if (txt.length < 2 || txt.includes('No hay registros')) continue;
-          row.click();
+      // Buscar botón flecha en td.k-command-cell.tkGridFirstCell del #gridGlobalCatalog
+      const grid = document.querySelector('#gridGlobalCatalog');
+      if (grid) {
+        const arrows = grid.querySelectorAll('td.k-command-cell.tkGridFirstCell');
+        for (const arrow of arrows) {
+          const r = arrow.getBoundingClientRect();
+          if (r.width < 10 || r.height < 10) continue;
+          const st = getComputedStyle(arrow);
+          if (st.display === 'none' || st.visibility === 'hidden') continue;
+          // Clickear el link/botón dentro de la celda, o la celda directamente
+          const inner = arrow.querySelector('a, button, [role="button"]');
+          if (inner) { inner.click(); return true; }
+          arrow.click();
           return true;
         }
+      }
+      // Fallback: buscar cualquier grid con celdas de comando
+      const cells = document.querySelectorAll('.k-grid td.k-command-cell');
+      for (const cell of cells) {
+        const r = cell.getBoundingClientRect();
+        if (r.width < 10 || r.height < 10) continue;
+        const st = getComputedStyle(cell);
+        if (st.display === 'none' || st.visibility === 'hidden') continue;
+        const inner = cell.querySelector('a, button, [role="button"]');
+        if (inner) { inner.click(); return true; }
+        cell.click();
+        return true;
       }
       return false;
     });
     if (!selected) await waitForTimeoutRaw(page, 600);
   }
-  // Fallback: doble click con Playwright
+  // Fallback Playwright: locator directo en #gridGlobalCatalog
   if (!selected) {
     try {
-      const row = page.locator('.k-grid tbody tr, .k-popup tbody tr').first();
-      if ((await row.count()) > 0) {
-        await row.dblclick({ timeout: 3000 });
+      const arrow = page.locator('#gridGlobalCatalog td.k-command-cell.tkGridFirstCell a, #gridGlobalCatalog td.k-command-cell.tkGridFirstCell button').first();
+      if ((await arrow.count()) > 0) {
+        await arrow.scrollIntoViewIfNeeded({ timeout: 2000 });
+        await arrow.click({ force: true, timeout: 3000 });
+        selected = true;
+      }
+    } catch {}
+  }
+  // Fallback 2: click por coordenadas en primera fila
+  if (!selected) {
+    try {
+      const info = await page.evaluate(() => {
+        const cell = document.querySelector('#gridGlobalCatalog td.k-command-cell.tkGridFirstCell, #gridGlobalCatalog tbody tr:first-child td:first-child');
+        if (!cell) return null;
+        const r = cell.getBoundingClientRect();
+        if (r.width < 5 || r.height < 5) return null;
+        return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+      });
+      if (info) {
+        await page.mouse.click(info.x, info.y);
         selected = true;
       }
     } catch {}
